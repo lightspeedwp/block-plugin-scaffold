@@ -13,7 +13,6 @@ class Block_Bindings {
 	 * Binding source name.
 	 *
 	 * @since 1.0.0
-	public function __construct() {
 	 */
 	const SOURCE = 'example_plugin/fields';
 

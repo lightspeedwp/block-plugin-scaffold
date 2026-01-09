@@ -43,7 +43,7 @@ class SCF_JSON_Validator {
 	/**
 	 * SCF JSON handler instance.
 	 *
-	 * @var ExamplePlugin_SCF_JSON
+	 * @var SCF_JSON
 	 */
 	private $scf_json;
 
@@ -89,9 +89,8 @@ class SCF_JSON_Validator {
 		$this->schema_path = EXAMPLE_PLUGIN_PLUGIN_DIR . 'scf-json/schema/scf-field-group.schema.json';
 		$this->schema_path = {{namespace|upper}}_PLUGIN_DIR . 'scf-json/schema/scf-field-group.schema.json';
 
-		if ( class_exists( 'example_plugin\classes\ExamplePlugin_SCF_JSON' ) ) {
-			$this->scf_json = new ExamplePlugin_SCF_JSON();
-				if ( class_exists( '{{namespace}}\\classes\\{{namespace|pascalCase}}_SCF_JSON' ) ) {
+		if ( class_exists( '{{namespace}}\\classes\\SCF_JSON' ) ) {
+			$this->scf_json = new SCF_JSON();
 		}
 
 		$this->load_schema();

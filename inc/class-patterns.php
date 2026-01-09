@@ -91,25 +91,25 @@ class Patterns {
 	}
 
 	/**
-	       * Derive pattern slug from filename.
-	       *
-	       * Converts 'patterns/{{slug}}-tour-card.php' to '{{slug}}/tour-card'
-	       *
-	       * @since 1.0.0
-	       * @param string $pattern_file Full path to pattern file.
-	       * @return string Pattern slug.
-	       */
-	      private function get_pattern_slug_from_file( $pattern_file ) {
-		      $filename = basename( $pattern_file, '.php' );
+	 * Derive pattern slug from filename.
+	 *
+	 * Converts 'patterns/{{slug}}-tour-card.php' to '{{slug}}/tour-card'
+	 *
+	 * @since 1.0.0
+	 * @param string $pattern_file Full path to pattern file.
+	 * @return string Pattern slug.
+	 */
+	private function get_pattern_slug_from_file( $pattern_file ) {
+		$filename = basename( $pattern_file, '.php' );
 
-		      // Remove '{{slug}}-' prefix if present, preserving post type and pattern purpose.
-		      if ( strpos( $filename, '{{slug}}-' ) === 0 ) {
-			      $pattern_name = substr( $filename, strlen( '{{slug}}-' ) );
-		      } else {
-			      $pattern_name = $filename;
-		      }
+		// Remove '{{slug}}-' prefix if present, preserving post type and pattern purpose.
+		if ( strpos( $filename, '{{slug}}-' ) === 0 ) {
+			$pattern_name = substr( $filename, strlen( '{{slug}}-' ) );
+		} else {
+			$pattern_name = $filename;
+		}
 
-		      // Return namespaced slug in the format '{{slug}}/{post_type}-{pattern}'.
-		      return '{{slug}}/' . $pattern_name;
-	      }
+		// Return namespaced slug in the format '{{slug}}/{post_type}-{pattern}'.
+		return '{{slug}}/' . $pattern_name;
+	}
 }
