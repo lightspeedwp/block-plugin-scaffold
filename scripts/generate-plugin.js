@@ -416,7 +416,14 @@ function replaceMustacheVars(content, config) {
 	// Replace simple variables (e.g., example-plugin)
 	result = result.replace(/\{\{([a-z_]+)\}\}/gi, (match, varName) => {
 		const value = config[varName];
-		return value !== undefined ? String(value) : ''; // Return empty string for undefined
+		if (value === undefined) {
+			return ''; // Return empty string for undefined
+		}
+		// Handle arrays by converting to quoted, comma-separated strings for PHP
+		if (Array.isArray(value)) {
+			return value.map(item => `'${item}'`).join(', ');
+		}
+		return String(value);
 	});
 
 	return result;

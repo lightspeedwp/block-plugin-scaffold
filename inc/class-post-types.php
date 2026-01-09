@@ -78,7 +78,7 @@ class Post_Types {
 			'hierarchical'       => false,
 			'menu_position'      => 20,
 			'menu_icon'          => '{{cpt_icon}}',
-			'supports'           => {{cpt_supports}},
+			'supports'           => array( {{cpt_supports}} ),
 			'template'           => array(
 				array( '{{namespace}}/{{slug}}-single' ),
 			),
