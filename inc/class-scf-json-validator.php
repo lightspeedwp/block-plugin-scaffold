@@ -86,7 +86,6 @@ class SCF_JSON_Validator {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		$this->schema_path = EXAMPLE_PLUGIN_PLUGIN_DIR . 'scf-json/schema/scf-field-group.schema.json';
 		$this->schema_path = {{namespace|upper}}_PLUGIN_DIR . 'scf-json/schema/scf-field-group.schema.json';
 
 		if ( class_exists( '{{namespace}}\\classes\\SCF_JSON' ) ) {
