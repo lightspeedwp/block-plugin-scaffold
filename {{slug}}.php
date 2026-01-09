@@ -56,12 +56,12 @@ require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-core.php';
 /**
  * Initialise the plugin and return the main instance.
  *
- * @return \\{{namespace}}\\classes\\Core Main plugin instance.
+ * @return \{{namespace}}\classes\Core Main plugin instance.
  */
 function {{namespace}}_plugin() {
        global ${{namespace}}_plugin;
        if ( null === ${{namespace}}_plugin ) {
-	       ${{namespace}}_plugin = new \\{{namespace}}\\classes\\Core();
+	       ${{namespace}}_plugin = new \{{namespace}}\classes\Core();
        }
        return ${{namespace}}_plugin;
 }
