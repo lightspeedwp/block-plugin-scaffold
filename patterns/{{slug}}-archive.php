@@ -10,38 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-<div class="wp-block-query">
-	<!-- wp:post-template {"layout":{"type":"grid","columnCount":3}} -->
-		<!-- wp:pattern {"slug":"{{slug}}/{{slug}}-card"} /-->
-	<!-- /wp:post-template -->
-
-	<!-- wp:query-pagination {"layout":{"type":"flex","justifyContent":"center"}} -->
-		<!-- wp:query-pagination-previous /-->
-		<!-- wp:query-pagination-numbers /-->
-		<!-- wp:query-pagination-next /-->
-	<!-- /wp:query-pagination -->
-
-	<!-- wp:query-no-results -->
-		<!-- wp:paragraph {"align":"center"} -->
-		<p class="has-text-align-center">' . esc_html__( 'No items found.', '{{textdomain}}' ) . '</p>
-<div class="wp-block-query">
-	<!-- wp:post-template {"layout":{"type":"grid","columnCount":3}} -->
-		<!-- wp:pattern {"slug":"example_plugin/example-plugin-card"} /-->
-	<!-- /wp:post-template -->
-
-	<!-- wp:query-pagination {"layout":{"type":"flex","justifyContent":"center"}} -->
-		<!-- wp:query-pagination-previous /-->
-		<!-- wp:query-pagination-numbers /-->
-		<!-- wp:query-pagination-next /-->
-	<!-- /wp:query-pagination -->
-
-	<!-- wp:query-no-results -->
-		<!-- wp:paragraph {"align":"center"} -->
-		<p class="has-text-align-center">' . esc_html__( 'No items found.', 'example-plugin' ) . '</p>
-		<!-- /wp:paragraph -->
-	<!-- /wp:query-no-results -->
-</div>
-<!-- /wp:query -->',
 return array(
 	'title'       => __( '{{name}} Archive', '{{textdomain}}' ),
 	'slug'        => '{{slug}}/item-archive',
