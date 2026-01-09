@@ -14,9 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin block templates registration.
  */
-class {{namespace|pascalCase}}_Block_Templates {
- */
-class ExamplePlugin_Block_Templates {
+class Block_Templates {
 
 	/**
 	 * Constructor.

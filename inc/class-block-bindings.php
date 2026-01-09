@@ -7,7 +7,7 @@ namespace {{namespace}}\classes;
  * @package {{namespace}}
  * @since 6.5.0 Block Bindings API
  */
-class {{namespace|pascalCase}}_Block_Bindings {
+class Block_Bindings {
 
 	/**
 	 * Binding source name.

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class {{namespace|pascalCase}}_Block_Styles {
+class Block_Styles {
 
 	/**
  * Constructor.

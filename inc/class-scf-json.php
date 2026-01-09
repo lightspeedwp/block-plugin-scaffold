@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class {{namespace|pascalCase}}_SCF_JSON {
+class SCF_JSON {
 
 	/**
 	 * Local JSON directory path.

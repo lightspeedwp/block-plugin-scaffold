@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class {{namespace|pascalCase}}_Fields {
+class Fields {
 
 	/**
 	 * Field group key.
@@ -119,7 +119,7 @@ class {{namespace|pascalCase}}_Fields {
 						'label'         => __( 'Related Items', '{{textdomain}}' ),
 						'name'          => '{{namespace}}_related',
 						'type'          => 'relationship',
-						'post_type'     => array( {{namespace|pascalCase}}_Post_Types::POST_TYPE ),
+						'post_type'     => array( Post_Types::POST_TYPE ),
 						'filters'       => array( 'search', 'taxonomy' ),
 						'return_format' => 'object',
 						'instructions'  => __( 'Select related items.', '{{textdomain}}' ),
@@ -130,7 +130,7 @@ class {{namespace|pascalCase}}_Fields {
 						array(
 							'param'    => 'post_type',
 							'operator' => '==',
-							'value'    => ExamplePlugin_Post_Types::POST_TYPE,
+							'value'    => Post_Types::POST_TYPE,
 						),
 					),
 				),
