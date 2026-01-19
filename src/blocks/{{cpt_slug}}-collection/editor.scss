@@ -1,16 +1,11 @@
-// Frontend SCSS for {{cpt1_slug}}-collection block
-// Accessible, responsive, and theme-friendly
-// Frontend SCSS for {{cpt1_slug}}-collection block
-// Accessible, responsive, and theme-friendly
+// Editor SCSS for {{cpt_slug}}-collection block
+// Accessible focus states and BEM naming
 
-$wp-block: 'wp-block-{{namespace}}-{{cpt1_slug}}-collection';
+$wp-block: 'wp-block-{{namespace}}-{{cpt_slug}}-collection';
 
 .#{ $wp-block } {
   display: grid;
   gap: var(--wp--preset--spacing--20, 1.5rem);
-  grid-template-columns: repeat(var(--collection-columns, 3), 1fr);
-  margin-bottom: var(--wp--preset--spacing--30, 2rem);
-  width: 100%;
   min-height: 1px;
   background: var(--wp--preset--color--background, #f9f9f9);
   border-radius: 8px;
@@ -71,9 +66,5 @@ $wp-block: 'wp-block-{{namespace}}-{{cpt1_slug}}-collection';
         cursor: not-allowed;
       }
     }
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
   }
 }

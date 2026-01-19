@@ -1,6 +1,6 @@
 # ⚠️ WARNING: Strict Mustache Placeholder Enforcement
 
-All template files, folders, and code **must** use the correct mustache placeholders as defined in `scripts/mustache-variables-registry.json`. Do not use generic placeholders (like `{{slug}}`) where a more specific one is required (e.g., `{{cpt1_slug}}`, `{{taxonomy1_slug}}`).
+All template files, folders, and code **must** use the correct mustache placeholders as defined in `scripts/mustache-variables-registry.json`. Do not use generic placeholders (like `{{slug}}`) where a more specific one is required (e.g., `{{cpt_slug}}`, `{{taxonomy1_slug}}`).
 
 **Do not hard-code any plugin-specific values** in the scaffold. All identifiers, class names, translation domains, and meta keys must use the appropriate placeholder. This ensures the generator can produce multi-entity plugins without manual intervention.
 
@@ -153,7 +153,7 @@ Author: LightSpeed
 
 ### CRITICAL: Use Specific Placeholders for Multiple CPTs/Taxonomies/Fields
 
-**WARNING:** When building plugins that support multiple custom post types (CPTs), taxonomies, or custom fields, you MUST use specific mustache placeholders for each entity. Do NOT use generic placeholders like `{{slug}}`, `{{cpt_slug}}`, or `{{taxonomy_slug}}` in your templates or code. Instead, use numbered or uniquely named placeholders for each entity, such as `{{cpt1_slug}}`, `{{cpt2_slug}}`, `{{taxonomy1_slug}}`, `{{taxonomy2_slug}}`, `{{field1_name}}`, etc.
+**WARNING:** When building plugins that support multiple custom post types (CPTs), taxonomies, or custom fields, you MUST use specific mustache placeholders for each entity. Do NOT use generic placeholders like `{{slug}}`, `{{cpt_slug}}`, or `{{taxonomy_slug}}` in your templates or code. Instead, use numbered or uniquely named placeholders for each entity, such as `{{cpt_slug}}`, `{{cpt2_slug}}`, `{{taxonomy1_slug}}`, `{{taxonomy2_slug}}`, `{{field1_name}}`, etc.
 
 **Why?**
 
@@ -183,7 +183,7 @@ Author: LightSpeed
 register_post_type( '{{cpt_slug}}', ... );
 
 // GOOD (use specific):
-register_post_type( '{{cpt1_slug}}', ... );
+register_post_type( '{{cpt_slug}}', ... );
 register_post_type( '{{cpt2_slug}}', ... );
 
 // BAD:

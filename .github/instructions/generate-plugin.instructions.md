@@ -1,6 +1,6 @@
 # ⚠️ WARNING: Strict Mustache Placeholder Enforcement
 
-All contributors must use the correct mustache placeholders in all template files, folders, and code. Do not use generic placeholders (like `{{slug}}`) where a more specific one is required (e.g., `{{cpt1_slug}}`, `{{taxonomy1_slug}}`).
+All contributors must use the correct mustache placeholders in all template files, folders, and code. Do not use generic placeholders (like `{{slug}}`) where a more specific one is required (e.g., `{{cpt_slug}}`, `{{taxonomy1_slug}}`).
 
 **Never hard-code plugin-specific values** in the scaffold. All identifiers, class names, translation domains, and meta keys must use the appropriate placeholder as defined in `scripts/mustache-variables-registry.json`.
 

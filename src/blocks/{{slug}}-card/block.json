@@ -3,12 +3,12 @@
 	"apiVersion": 3,
 	"name": "{{namespace}}/{{block_slug}}-card",
 	"title": "{{name}} Card",
-	"category": "{{cpt1_slug}}",
+	"category": "{{cpt_slug}}",
 	"icon": "id-alt",
 	"description": "Display a single item in a card layout.",
 	"version": "1.0.0",
 	"textdomain": "{{textdomain}}",
-	"keywords": [ "card", "{{cpt1_slug}}", "post" ],
+	"keywords": [ "card", "{{cpt_slug}}", "post" ],
 	"usesContext": [ "postId", "postType" ],
 	"supports": {
 		"html": false,
@@ -33,16 +33,16 @@
 		}
 	},
 	"selectors": {
-		"root": ".{{namespace}}-{{cpt1_slug}}-card",
+		"root": ".{{namespace}}-{{cpt_slug}}-card",
 		"color": {
-			"text": ".{{namespace}}-{{cpt1_slug}}-card__content",
-			"background": ".{{namespace}}-{{cpt1_slug}}-card"
+			"text": ".{{namespace}}-{{cpt_slug}}-card__content",
+			"background": ".{{namespace}}-{{cpt_slug}}-card"
 		},
 		"typography": {
-			"fontSize": ".{{namespace}}-{{cpt1_slug}}-card__title"
+			"fontSize": ".{{namespace}}-{{cpt_slug}}-card__title"
 		},
 		"dimensions": {
-			"aspectRatio": ".{{namespace}}-{{cpt1_slug}}-card__image"
+			"aspectRatio": ".{{namespace}}-{{cpt_slug}}-card__image"
 		}
 	},
 	"attributes": {

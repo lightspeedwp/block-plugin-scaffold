@@ -67,7 +67,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 	);
 
 	const blockProps = useBlockProps({
-		className: 'wp-block-{{namespace}}-{{cpt1_slug}}-card',
+		className: 'wp-block-{{namespace}}-{{cpt_slug}}-card',
 	});
 
 	return (
@@ -121,7 +121,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 
 			<div {...blockProps}>
 				{displayFeaturedImage && featuredMedia && (
-					<div className="wp-block-{{namespace}}-{{cpt1_slug}}-card__image">
+					<div className="wp-block-{{namespace}}-{{cpt_slug}}-card__image">
 						<img
 							src={featuredMedia.source_url}
 							alt={featuredMedia.alt_text || ''}
@@ -129,23 +129,23 @@ export default function Edit({ attributes, setAttributes, context }) {
 					</div>
 				)}
 
-				<div className="wp-block-{{namespace}}-{{cpt1_slug}}-card__content">
+				<div className="wp-block-{{namespace}}-{{cpt_slug}}-card__content">
 					{displayTitle && post && (
-						<h3 className="wp-block-{{namespace}}-{{cpt1_slug}}-card__title">
+						<h3 className="wp-block-{{namespace}}-{{cpt_slug}}-card__title">
 							{post.title?.rendered ||
 								__('Untitled', '{{textdomain}}')}
 						</h3>
 					)}
 
 					{displaySubtitle && (
-						<p className="wp-block-{{namespace}}-{{cpt1_slug}}-card__subtitle">
+						<p className="wp-block-{{namespace}}-{{cpt_slug}}-card__subtitle">
 							{__('Subtitle placeholder', '{{textdomain}}')}
 						</p>
 					)}
 
 					{displayExcerpt && post && (
 						<div
-							  className="wp-block-{{namespace}}-{{cpt1_slug}}-card__excerpt"
+							  className="wp-block-{{namespace}}-{{cpt_slug}}-card__excerpt"
 							dangerouslySetInnerHTML={{
 								__html: post.excerpt?.rendered || '',
 							}}
@@ -153,8 +153,8 @@ export default function Edit({ attributes, setAttributes, context }) {
 					)}
 
 					{displayMeta && post && (
-						  <div className="wp-block-{{namespace}}-{{cpt1_slug}}-card__meta">
-							<span className="wp-block-{{namespace}}-{{cpt1_slug}}-card__date">
+						  <div className="wp-block-{{namespace}}-{{cpt_slug}}-card__meta">
+							<span className="wp-block-{{namespace}}-{{cpt_slug}}-card__date">
 								{new Date(post.date).toLocaleDateString()}
 							</span>
 						</div>
@@ -162,7 +162,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 				</div>
 
 								className: 'wp-block-{{block_slug}}-card',
-					<p className="wp-block-{{namespace}}-{{cpt1_slug}}-card__placeholder">
+					<p className="wp-block-{{namespace}}-{{cpt_slug}}-card__placeholder">
 						{__('Select a post to display.', '{{textdomain}}')}
 					</p>
 				)}

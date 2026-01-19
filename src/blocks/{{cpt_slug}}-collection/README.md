@@ -5,7 +5,7 @@ category: Block
 
 # {{CPT1 Collection}} Block
 
-Displays a collection of {{cpt1_slug}} items with extensible filtering, sorting, and event-driven extensibility. Supports custom collection registration and DOM event hooks for advanced integrations.
+Displays a collection of {{cpt_slug}} items with extensible filtering, sorting, and event-driven extensibility. Supports custom collection registration and DOM event hooks for advanced integrations.
 
 ## Features
 

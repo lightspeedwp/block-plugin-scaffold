@@ -58,7 +58,7 @@ export default function Edit({ attributes, setAttributes }) {
 
 			return select('core').getEntityRecords(
 				'postType',
-				'{{cpt1_slug}}',
+				'{{cpt_slug}}',
 				queryArgs
 			);
 		},
@@ -66,7 +66,7 @@ export default function Edit({ attributes, setAttributes }) {
 	);
 
 	const blockProps = useBlockProps({
-		className: `wp-block-{{namespace}}-{{cpt1_slug}}-collection is-layout-${layout}`,
+		className: `wp-block-{{namespace}}-{{cpt_slug}}-collection is-layout-${layout}`,
 	});
 
 	const gridStyle = useMemo(() => {
@@ -217,19 +217,19 @@ export default function Edit({ attributes, setAttributes }) {
 
 				{posts && posts.length > 0 && (
 					<div
-						className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__items"
+						className="wp-block-{{namespace}}-{{cpt_slug}}-collection__items"
 						style={gridStyle}
 					>
 						{posts.map((post) => (
 							<article
 								key={post.id}
-								className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__item"
+								className="wp-block-{{namespace}}-{{cpt_slug}}-collection__item"
 							>
 								{displayFeaturedImage &&
 									post._embedded?.[
 										'wp:featuredmedia'
 									]?.[0] && (
-										<div className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__image">
+										<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__image">
 											<img
 												src={
 													post._embedded[
@@ -244,22 +244,22 @@ export default function Edit({ attributes, setAttributes }) {
 											/>
 										</div>
 									)}
-							<div className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__content">
+							<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__content">
 								{displayTitle && (
-									<h3 className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__title">
+									<h3 className="wp-block-{{namespace}}-{{cpt_slug}}-collection__title">
 										{post.title.rendered}
 									</h3>
 								)}
 								{displayExcerpt && (
 									<div
-										className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__excerpt"
+										className="wp-block-{{namespace}}-{{cpt_slug}}-collection__excerpt"
 										dangerouslySetInnerHTML={{
 											__html: post.excerpt.rendered,
 										}}
 									/>
 								)}
 								{displayMeta && (
-									<div className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__meta">
+									<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__meta">
 										<time>
 											{new Date(
 												post.date
@@ -312,7 +312,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 		columns = 3,
 	} = attributes;
 
-	const postType = context.postType || '{{cpt1_slug}}';
+	const postType = context.postType || '{{cpt_slug}}';
 
 	const posts = useSelect(
 		(select) => {

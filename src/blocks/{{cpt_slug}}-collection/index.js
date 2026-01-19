@@ -1,4 +1,4 @@
-// Entry point for {{cpt1_slug}}-collection block (editor)
+// Entry point for {{cpt_slug}}-collection block (editor)
 import './editor.scss';
 import './style.scss';
 import './view.js';

@@ -1,11 +1,11 @@
 {
   "apiVersion": 3,
-  "name": "{{namespace}}/{{cpt1_slug}}-collection",
+  "name": "{{namespace}}/{{cpt_slug}}-collection",
   "title": "{{CPT1 Collection}}",
   "category": "widgets",
   "icon": "screenoptions",
-  "description": "A collection block for displaying {{cpt1_slug}} items. Extensible and supports custom collection registration and DOM events.",
-  "keywords": ["collection", "list", "{{cpt1_slug}}", "query", "posts", "extensible", "event", "filter", "sort"],
+  "description": "A collection block for displaying {{cpt_slug}} items. Extensible and supports custom collection registration and DOM events.",
+  "keywords": ["collection", "list", "{{cpt_slug}}", "query", "posts", "extensible", "event", "filter", "sort"],
   "textdomain": "{{textdomain}}",
   "attributes": {
     "postsToShow": { "type": "number", "default": 6 },

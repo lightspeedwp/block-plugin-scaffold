@@ -34,7 +34,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 		columns = 3,
 	} = attributes;
 
-	const postType = context.postType || '{{cpt1_slug}}';
+	const postType = context.postType || '{{cpt_slug}}';
 
 	const posts = useSelect(
 		(select) => {
@@ -46,11 +46,11 @@ export default function Edit({ attributes, setAttributes, context }) {
 	);
 
 	const blockProps = useBlockProps({
-		className: 'wp-block-{{namespace}}-{{cpt1_slug}}-collection',
+		className: 'wp-block-{{namespace}}-{{cpt_slug}}-collection',
 	});
 
 	/**
-	 * Block editor logic for the {{cpt1_slug}}-collection block
+	 * Block editor logic for the {{cpt_slug}}-collection block
 	 * Extensible, accessible, and event-driven.
 	 */
 	import { __ } from '@wordpress/i18n';
@@ -112,10 +112,10 @@ export default function Edit({ attributes, setAttributes, context }) {
 					posts.map((post) => (
 						<article
 							key={post.id}
-							className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__item"
+							className="wp-block-{{namespace}}-{{cpt_slug}}-collection__item"
 						>
 							{displayFeaturedImage && post.featured_media && (
-								<div className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__image">
+								<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__image">
 									<img
 										src={
 											post._embedded?.[
@@ -131,22 +131,22 @@ export default function Edit({ attributes, setAttributes, context }) {
 								</div>
 							)}
 							{displayTitle && (
-								<h3 className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__title">
+								<h3 className="wp-block-{{namespace}}-{{cpt_slug}}-collection__title">
 									{post.title?.rendered ||
 										__('Untitled', '{{textdomain}}')}
 								</h3>
 							)}
 							{displayExcerpt && (
 								<div
-									className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__excerpt"
+									className="wp-block-{{namespace}}-{{cpt_slug}}-collection__excerpt"
 									dangerouslySetInnerHTML={{
 										__html: post.excerpt?.rendered || '',
 									}}
 								/>
 							)}
 							{displayMeta && (
-								<div className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__meta">
-									<span className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__date">
+								<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__meta">
+									<span className="wp-block-{{namespace}}-{{cpt_slug}}-collection__date">
 										{new Date(
 											post.date
 										).toLocaleDateString()}
@@ -156,7 +156,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 						</article>
 					))
 				) : (
-					<p className="wp-block-{{namespace}}-{{cpt1_slug}}-collection__placeholder">
+					<p className="wp-block-{{namespace}}-{{cpt_slug}}-collection__placeholder">
 						{__('No posts found.', '{{textdomain}}')}
 					</p>
 				)}
