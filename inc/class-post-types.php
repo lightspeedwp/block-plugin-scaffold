@@ -23,7 +23,7 @@ class Post_Types {
 	 * @since 1.0.0
 	 * @var string
 	 */
-	const POST_TYPE = '{{slug}}';
+	const POST_TYPE = '{{cpt_slug}}';
 
 	/**
 	 * Constructor.
@@ -80,7 +80,7 @@ class Post_Types {
 			'menu_icon'          => '{{cpt_icon}}',
 			'supports'           => array( {{cpt_supports}} ),
 			'template'           => array(
-				array( '{{namespace}}/{{slug}}-single' ),
+				array( '{{namespace}}/{{cpt_slug}}-single' ),
 			),
 			'template_lock'      => false,
 		);
