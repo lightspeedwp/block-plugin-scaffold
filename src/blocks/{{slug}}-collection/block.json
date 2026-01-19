@@ -103,4 +103,3 @@
 	"render": "file:./render.php",
 	"viewScript": "file:./view.js"
 }
-// ...existing code from block.json for collection block...

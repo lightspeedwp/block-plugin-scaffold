@@ -86,4 +86,3 @@
 	"style": "file:./style.css",
 	"render": "file:./render.php"
 }
-// ...existing code from block.json for card block...

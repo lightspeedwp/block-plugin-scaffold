@@ -99,4 +99,3 @@
 	"render": "file:./render.php",
 	"viewScript": "file:./view.js"
 }
-// ...existing code from block.json for slider block...
