@@ -4,6 +4,11 @@ namespace {{namespace}}\classes;
 /**
  * Custom Fields Registration using Secure Custom Fields.
  *
+ * Fields are now registered via JSON files in /post-types/
+ * and handled by Content_Model_Manager.
+ *
+ * This class is kept for the FIELD_GROUP constant and SCF dependency checks.
+ *
  * @package {{namespace}}
  * @since 1.0.0
  * @see https://wordpress.org/plugins/secure-custom-fields/
@@ -34,7 +39,6 @@ class Fields {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		add_action( 'acf/init', array( $this, 'register_fields' ) );
 		add_action( 'admin_notices', array( $this, 'scf_dependency_notice' ) );
 	}
 
@@ -72,92 +76,4 @@ class Fields {
 		}
 	}
 
-	/**
-	 * Register custom fields.
-	 *
-	 * Provides backward compatibility fallback when no JSON configurations exist.
-	 * If JSON configurations are found, Content_Model_Manager handles registration.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function register_fields() {
-		if ( ! $this->is_scf_active() ) {
-			return;
-		}
-
-		// Only register if JSON configurations don't exist (backward compatibility)
-		if ( Content_Model_Manager::has_configurations() ) {
-			return;
-		}
-
-		// Hardcoded fallback registration
-		$this->register_hardcoded();
-	}
-
-	/**
-	 * Register fields with hardcoded values (backward compatibility).
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	private function register_hardcoded() {
-		acf_add_local_field_group(
-			array(
-				'key'             => self::FIELD_GROUP,
-				'title'           => __( '{{name_singular}} Details', '{{textdomain}}' ),
-				'fields'          => array(
-					array(
-						'key'          => 'field_{{namespace}}_subtitle',
-						'label'        => __( 'Subtitle', '{{textdomain}}' ),
-						'name'         => '{{namespace}}_subtitle',
-						'type'         => 'text',
-						'instructions' => __( 'Enter a subtitle for this item.', '{{textdomain}}' ),
-						'placeholder'  => __( 'Enter subtitle...', '{{textdomain}}' ),
-					),
-					array(
-						'key'          => 'field_{{namespace}}_featured',
-						'label'        => __( 'Featured', '{{textdomain}}' ),
-						'name'         => '{{namespace}}_featured',
-						'type'         => 'true_false',
-						'instructions' => __( 'Mark this item as featured.', '{{textdomain}}' ),
-						'ui'           => 1,
-					),
-					array(
-						'key'          => 'field_{{namespace}}_gallery',
-						'label'        => __( 'Gallery', '{{textdomain}}' ),
-						'name'         => '{{namespace}}_gallery',
-						'type'         => 'gallery',
-						'instructions' => __( 'Add images to the gallery.', '{{textdomain}}' ),
-						'return_format' => 'array',
-						'preview_size' => 'medium',
-						'library'      => 'all',
-					),
-					array(
-						'key'           => 'field_{{namespace}}_related',
-						'label'         => __( 'Related Items', '{{textdomain}}' ),
-						'name'          => '{{namespace}}_related',
-						'type'          => 'relationship',
-						'instructions'  => __( 'Select related items.', '{{textdomain}}' ),
-						'post_type'     => array( Post_Types::POST_TYPE ),
-						'filters'       => array( 'search', 'taxonomy' ),
-						'return_format' => 'object',
-					),
-				),
-				'location'        => array(
-					array(
-						array(
-							'param'    => 'post_type',
-							'operator' => '==',
-							'value'    => Post_Types::POST_TYPE,
-						),
-					),
-				),
-				'menu_order'      => 0,
-				'position'        => 'normal',
-				'style'           => 'default',
-				'label_placement' => 'top',
-			)
-		);
-	}
 }
