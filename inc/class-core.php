@@ -50,6 +50,9 @@ class Core {
 	 * @return void
 	 */
 	public function load_classes() {
+		// Include JSON loader first (needed by other classes).
+		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-json-loader.php';
+
 		// Include core classes.
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-post-types.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-taxonomies.php';

@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Block Plugin Post Type Configuration",
+  "description": "JSON Schema for defining WordPress post types, taxonomies, and custom fields",
+  "type": "object",
+  "required": ["slug", "label", "template"],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "Post type slug (lowercase, alphanumeric, underscores, hyphens)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Singular label for the post type"
+    },
+    "pluralLabel": {
+      "type": "string",
+      "description": "Plural label for the post type"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Dashicon name (without 'dashicons-' prefix)"
+    },
+    "template": {
+      "type": "array",
+      "description": "Block template array",
+      "items": {
+        "type": "array"
+      }
+    },
+    "fields": {
+      "type": "array",
+      "description": "Custom fields for this post type",
+      "items": {
+        "type": "object",
+        "required": ["slug", "type", "label"],
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "Field slug"
+          },
+          "type": {
+            "type": "string",
+            "description": "Field type (text, textarea, number, email, etc.)"
+          },
+          "label": {
+            "type": "string",
+            "description": "Field label"
+          },
+          "description": {
+            "type": "string",
+            "description": "Field description"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether field is required"
+          },
+          "default_value": {
+            "description": "Default field value"
+          },
+          "placeholder": {
+            "type": "string",
+            "description": "Placeholder text"
+          },
+          "choices": {
+            "type": "object",
+            "description": "Choices for select/radio/checkbox fields"
+          },
+          "return_format": {
+            "type": "string",
+            "description": "Return format for certain field types"
+          }
+        }
+      }
+    },
+    "taxonomies": {
+      "type": "array",
+      "description": "Taxonomies to register for this post type",
+      "items": {
+        "type": "object",
+        "required": ["slug", "label"],
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "description": "Taxonomy slug"
+          },
+          "label": {
+            "type": "string",
+            "description": "Singular taxonomy label"
+          },
+          "pluralLabel": {
+            "type": "string",
+            "description": "Plural taxonomy label"
+          },
+          "hierarchical": {
+            "type": "boolean",
+            "description": "Whether taxonomy is hierarchical (like categories)"
+          },
+          "show_admin_column": {
+            "type": "boolean",
+            "description": "Show in admin column"
+          }
+        }
+      }
+    }
+  }
+}

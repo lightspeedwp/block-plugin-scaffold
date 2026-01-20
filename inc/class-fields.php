@@ -83,6 +83,112 @@ class Fields {
 			return;
 		}
 
+		// Check if JSON configuration exists
+		$fields = JSON_Loader::get_fields( Post_Types::POST_TYPE );
+
+		if ( ! empty( $fields ) ) {
+			// Register from JSON configuration
+			$this->register_from_json( $fields );
+		} else {
+			// Fallback to hardcoded registration
+			$this->register_hardcoded();
+		}
+	}
+
+	/**
+	 * Register fields from JSON configuration.
+	 *
+	 * @since 1.0.0
+	 * @param array $fields_config JSON fields configuration.
+	 * @return void
+	 */
+	private function register_from_json( $fields_config ) {
+		$fields = array();
+
+		foreach ( $fields_config as $field_config ) {
+			$field = array(
+				'key'          => 'field_' . $field_config['slug'],
+				'label'        => isset( $field_config['label'] ) ? $field_config['label'] : '',
+				'name'         => $field_config['slug'],
+				'type'         => $field_config['type'],
+				'instructions' => isset( $field_config['description'] ) ? $field_config['description'] : '',
+			);
+
+			// Add optional field properties
+			if ( isset( $field_config['required'] ) ) {
+				$field['required'] = (bool) $field_config['required'];
+			}
+
+			if ( isset( $field_config['default_value'] ) ) {
+				$field['default_value'] = $field_config['default_value'];
+			}
+
+			if ( isset( $field_config['placeholder'] ) ) {
+				$field['placeholder'] = $field_config['placeholder'];
+			}
+
+			if ( isset( $field_config['choices'] ) ) {
+				$field['choices'] = $field_config['choices'];
+			}
+
+			if ( isset( $field_config['return_format'] ) ) {
+				$field['return_format'] = $field_config['return_format'];
+			}
+
+			// Field type specific settings
+			switch ( $field_config['type'] ) {
+				case 'true_false':
+					$field['ui'] = 1;
+					break;
+
+				case 'gallery':
+					$field['preview_size'] = 'medium';
+					$field['library']      = 'all';
+					break;
+
+				case 'relationship':
+					if ( ! isset( $field['post_type'] ) ) {
+						$field['post_type'] = array( Post_Types::POST_TYPE );
+					}
+					$field['filters'] = array( 'search', 'taxonomy' );
+					if ( ! isset( $field['return_format'] ) ) {
+						$field['return_format'] = 'object';
+					}
+					break;
+			}
+
+			$fields[] = $field;
+		}
+
+		acf_add_local_field_group(
+			array(
+				'key'             => self::FIELD_GROUP,
+				'title'           => __( 'Item Details', '{{textdomain}}' ),
+				'fields'          => $fields,
+				'location'        => array(
+					array(
+						array(
+							'param'    => 'post_type',
+							'operator' => '==',
+							'value'    => Post_Types::POST_TYPE,
+						),
+					),
+				),
+				'menu_order'      => 0,
+				'position'        => 'normal',
+				'style'           => 'default',
+				'label_placement' => 'top',
+			)
+		);
+	}
+
+	/**
+	 * Register fields with hardcoded values (backward compatibility).
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_hardcoded() {
 		acf_add_local_field_group(
 			array(
 				'key'             => self::FIELD_GROUP,

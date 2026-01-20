@@ -41,6 +41,55 @@ class Taxonomies {
 	 * @return void
 	 */
 	public function register_taxonomies() {
+		// Check if JSON configuration exists for the post type
+		$taxonomies = JSON_Loader::get_taxonomies( Post_Types::POST_TYPE );
+
+		if ( ! empty( $taxonomies ) ) {
+			// Register from JSON configuration
+			foreach ( $taxonomies as $taxonomy_config ) {
+				$this->register_from_json( $taxonomy_config );
+			}
+		} else {
+			// Fallback to hardcoded registration
+			$this->register_hardcoded();
+		}
+	}
+
+	/**
+	 * Register taxonomy from JSON configuration.
+	 *
+	 * @since 1.0.0
+	 * @param array $config JSON configuration.
+	 * @return void
+	 */
+	private function register_from_json( $config ) {
+		$labels = JSON_Loader::get_taxonomy_labels( $config );
+
+		$args = array(
+			'labels'            => $labels,
+			'hierarchical'      => isset( $config['hierarchical'] ) ? (bool) $config['hierarchical'] : true,
+			'public'            => true,
+			'show_ui'           => true,
+			'show_in_rest'      => true, // Required for block editor.
+			'show_admin_column' => isset( $config['show_admin_column'] ) ? (bool) $config['show_admin_column'] : true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => $config['slug'] ),
+		);
+
+		register_taxonomy(
+			$config['slug'],
+			Post_Types::POST_TYPE,
+			$args
+		);
+	}
+
+	/**
+	 * Register taxonomy with hardcoded values (backward compatibility).
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function register_hardcoded() {
 		$labels = array(
 			'name'                       => _x( '{{taxonomy_plural}}', 'Taxonomy general name', '{{textdomain}}' ),
 			'singular_name'              => _x( '{{taxonomy_singular}}', 'Taxonomy singular name', '{{textdomain}}' ),

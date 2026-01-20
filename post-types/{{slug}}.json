@@ -1,0 +1,51 @@
+{
+  "slug": "{{cpt_slug}}",
+  "label": "{{name_singular}}",
+  "pluralLabel": "{{name_plural}}",
+  "icon": "{{cpt_icon_name}}",
+  "template": [
+    [
+      "{{namespace}}/{{cpt_slug}}-single"
+    ]
+  ],
+  "fields": [
+    {
+      "slug": "{{namespace}}_subtitle",
+      "type": "text",
+      "label": "Subtitle",
+      "description": "Enter a subtitle for this item.",
+      "required": false,
+      "placeholder": "Enter subtitle..."
+    },
+    {
+      "slug": "{{namespace}}_featured",
+      "type": "true_false",
+      "label": "Featured",
+      "description": "Mark this item as featured.",
+      "required": false
+    },
+    {
+      "slug": "{{namespace}}_gallery",
+      "type": "gallery",
+      "label": "Gallery",
+      "description": "Add images to the gallery.",
+      "return_format": "array"
+    },
+    {
+      "slug": "{{namespace}}_related",
+      "type": "relationship",
+      "label": "Related Items",
+      "description": "Select related items.",
+      "return_format": "object"
+    }
+  ],
+  "taxonomies": [
+    {
+      "slug": "{{taxonomy_slug}}",
+      "label": "{{taxonomy_singular}}",
+      "pluralLabel": "{{taxonomy_plural}}",
+      "hierarchical": true,
+      "show_admin_column": true
+    }
+  ]
+}
