@@ -32,11 +32,11 @@ date: 2025-12-01
 **Status**: ✅ COMPLETED
 
 - [x] **Custom Post Types**
-  - Location: [inc/class-post-types.php](../inc/class-post-types.php)
+  - Location: JSON files in [/post-types/](../post-types/)
   - Registers: {{slug}} post type with block editor support
 
 - [x] **Custom Taxonomies**
-  - Location: [inc/class-taxonomies.php](../inc/class-taxonomies.php)
+  - Location: JSON files in [/post-types/](../post-types/)
   - Registers: {{slug}}_category taxonomy
 
 ---
@@ -46,7 +46,7 @@ date: 2025-12-01
 **Status**: ✅ COMPLETED
 
 - [x] **SCF Field Registration**
-  - Location: [inc/class-fields.php](../inc/class-fields.php)
+  - Location: JSON files in [/post-types/](../post-types/)
   - Features: Subtitle, featured flag, gallery, related posts
 
 - [x] **Repeater Fields**

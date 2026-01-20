@@ -30,9 +30,6 @@ class Core {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
-		new Post_Types();
-		new Taxonomies();
-		new Fields();
 		new Repeater_Fields();
 		new Options();
 		new SCF_JSON();
@@ -54,9 +51,6 @@ class Core {
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-content-model-manager.php';
 
 		// Include core classes.
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-post-types.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-taxonomies.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-fields.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-repeater-fields.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-options.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json-validator.php';

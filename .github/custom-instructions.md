@@ -114,9 +114,7 @@ You are an expert WordPress multi-block plugin developer working on {{name}}, a 
 │   ├── utils/
 │   └── scss/
 ├── inc/
-│   ├── class-post-types.php
-│   ├── class-taxonomies.php
-│   ├── class-fields.php
+│   ├── class-content-model-manager.php
 │   ├── class-repeater-fields.php
 │   ├── class-block-templates.php
 │   ├── class-block-bindings.php
@@ -181,14 +179,14 @@ You are an expert WordPress multi-block plugin developer working on {{name}}, a 
 
 ### Custom Post Types
 
-- Register in `inc/class-post-types.php`
+- Register via JSON files in `/post-types/` (handled by `inc/class-content-model-manager.php`)
 - Enable block editor support (`show_in_rest`)
 - Define block templates for consistent editing
 
 ### Custom Fields
 
 - Use Secure Custom Fields (SCF) API
-- Register fields in `inc/class-fields.php`
+- Register fields via JSON files in `/post-types/` (handled by `inc/class-content-model-manager.php`)
 - Implement repeater fields for complex data
 - Use Block Bindings for field display
 
@@ -254,7 +252,7 @@ Use these variables in templates and configuration files:
 
 **Adding Custom Fields**
 
-1. Register field group in `inc/class-fields.php`
+1. Register field group via JSON files in `/post-types/` (handled by `inc/class-content-model-manager.php`)
 2. Use `acf_add_local_field_group()` API
 3. Implement block binding if needed
 4. Test field functionality
