@@ -89,9 +89,6 @@ class Fields {
 		if ( ! empty( $fields ) ) {
 			// Register from JSON configuration
 			$this->register_from_json( $fields );
-		} else {
-			// Fallback to hardcoded registration
-			$this->register_hardcoded();
 		}
 	}
 
@@ -165,71 +162,6 @@ class Fields {
 				'key'             => self::FIELD_GROUP,
 				'title'           => __( 'Item Details', '{{textdomain}}' ),
 				'fields'          => $fields,
-				'location'        => array(
-					array(
-						array(
-							'param'    => 'post_type',
-							'operator' => '==',
-							'value'    => Post_Types::POST_TYPE,
-						),
-					),
-				),
-				'menu_order'      => 0,
-				'position'        => 'normal',
-				'style'           => 'default',
-				'label_placement' => 'top',
-			)
-		);
-	}
-
-	/**
-	 * Register fields with hardcoded values (backward compatibility).
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	private function register_hardcoded() {
-		acf_add_local_field_group(
-			array(
-				'key'             => self::FIELD_GROUP,
-				'title'           => __( 'Item Details', '{{textdomain}}' ),
-				'fields'          => array(
-					array(
-						'key'          => 'field_{{namespace}}_subtitle',
-						'label'        => __( 'Subtitle', '{{textdomain}}' ),
-						'name'         => '{{namespace}}_subtitle',
-						'type'         => 'text',
-						'instructions' => __( 'Enter a subtitle for this item.', '{{textdomain}}' ),
-				),
-					array(
-						'key'          => 'field_{{namespace}}_featured',
-						'label'        => __( 'Featured', '{{textdomain}}' ),
-						'name'         => '{{namespace}}_featured',
-						'type'         => 'true_false',
-						'ui'           => 1,
-						'instructions' => __( 'Mark this item as featured.', '{{textdomain}}' ),
-				),
-					array(
-						'key'           => 'field_{{namespace}}_gallery',
-						'label'         => __( 'Gallery', '{{textdomain}}' ),
-						'name'          => '{{namespace}}_gallery',
-						'type'          => 'gallery',
-						'instructions'  => __( 'Add images to the gallery.', '{{textdomain}}' ),
-						'return_format' => 'array',
-						'preview_size'  => 'medium',
-						'library'       => 'all',
-				),
-					array(
-						'key'           => 'field_{{namespace}}_related',
-						'label'         => __( 'Related Items', '{{textdomain}}' ),
-						'name'          => '{{namespace}}_related',
-						'type'          => 'relationship',
-						'post_type'     => array( Post_Types::POST_TYPE ),
-						'filters'       => array( 'search', 'taxonomy' ),
-						'return_format' => 'object',
-						'instructions'  => __( 'Select related items.', '{{textdomain}}' ),
-				),
-				),
 				'location'        => array(
 					array(
 						array(
