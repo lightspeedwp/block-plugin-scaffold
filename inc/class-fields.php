@@ -75,6 +75,9 @@ class Fields {
 	/**
 	 * Register custom fields.
 	 *
+	 * Provides backward compatibility fallback when no JSON configurations exist.
+	 * If JSON configurations are found, Content_Model_Manager handles registration.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -83,85 +86,64 @@ class Fields {
 			return;
 		}
 
-		// Check if JSON configuration exists
-		$fields = JSON_Loader::get_fields( Post_Types::POST_TYPE );
-
-		if ( ! empty( $fields ) ) {
-			// Register from JSON configuration
-			$this->register_from_json( $fields );
+		// Only register if JSON configurations don't exist (backward compatibility)
+		if ( Content_Model_Manager::has_configurations() ) {
+			return;
 		}
+
+		// Hardcoded fallback registration
+		$this->register_hardcoded();
 	}
 
 	/**
-	 * Register fields from JSON configuration.
+	 * Register fields with hardcoded values (backward compatibility).
 	 *
 	 * @since 1.0.0
-	 * @param array $fields_config JSON fields configuration.
 	 * @return void
 	 */
-	private function register_from_json( $fields_config ) {
-		$fields = array();
-
-		foreach ( $fields_config as $field_config ) {
-			$field = array(
-				'key'          => 'field_' . $field_config['slug'],
-				'label'        => isset( $field_config['label'] ) ? $field_config['label'] : '',
-				'name'         => $field_config['slug'],
-				'type'         => $field_config['type'],
-				'instructions' => isset( $field_config['description'] ) ? $field_config['description'] : '',
-			);
-
-			// Add optional field properties
-			if ( isset( $field_config['required'] ) ) {
-				$field['required'] = (bool) $field_config['required'];
-			}
-
-			if ( isset( $field_config['default_value'] ) ) {
-				$field['default_value'] = $field_config['default_value'];
-			}
-
-			if ( isset( $field_config['placeholder'] ) ) {
-				$field['placeholder'] = $field_config['placeholder'];
-			}
-
-			if ( isset( $field_config['choices'] ) ) {
-				$field['choices'] = $field_config['choices'];
-			}
-
-			if ( isset( $field_config['return_format'] ) ) {
-				$field['return_format'] = $field_config['return_format'];
-			}
-
-			// Field type specific settings
-			switch ( $field_config['type'] ) {
-				case 'true_false':
-					$field['ui'] = 1;
-					break;
-
-				case 'gallery':
-					$field['preview_size'] = 'medium';
-					$field['library']      = 'all';
-					break;
-
-				case 'relationship':
-					if ( ! isset( $field['post_type'] ) ) {
-						$field['post_type'] = array( Post_Types::POST_TYPE );
-					}
-					$field['filters'] = array( 'search', 'taxonomy' );
-					if ( ! isset( $field['return_format'] ) ) {
-						$field['return_format'] = 'object';
-					}
-					break;
-			}
-
-			$fields[] = $field;
-		}
-
+	private function register_hardcoded() {
 		acf_add_local_field_group(
 			array(
 				'key'             => self::FIELD_GROUP,
-				'title'           => __( 'Item Details', '{{textdomain}}' ),
-				'fields'          => $fields,
+				'title'           => __( '{{name_singular}} Details', '{{textdomain}}' ),
+				'fields'          => array(
+					array(
+						'key'          => 'field_{{namespace}}_subtitle',
+						'label'        => __( 'Subtitle', '{{textdomain}}' ),
+						'name'         => '{{namespace}}_subtitle',
+						'type'         => 'text',
+						'instructions' => __( 'Enter a subtitle for this item.', '{{textdomain}}' ),
+						'placeholder'  => __( 'Enter subtitle...', '{{textdomain}}' ),
+					),
+					array(
+						'key'          => 'field_{{namespace}}_featured',
+						'label'        => __( 'Featured', '{{textdomain}}' ),
+						'name'         => '{{namespace}}_featured',
+						'type'         => 'true_false',
+						'instructions' => __( 'Mark this item as featured.', '{{textdomain}}' ),
+						'ui'           => 1,
+					),
+					array(
+						'key'          => 'field_{{namespace}}_gallery',
+						'label'        => __( 'Gallery', '{{textdomain}}' ),
+						'name'         => '{{namespace}}_gallery',
+						'type'         => 'gallery',
+						'instructions' => __( 'Add images to the gallery.', '{{textdomain}}' ),
+						'return_format' => 'array',
+						'preview_size' => 'medium',
+						'library'      => 'all',
+					),
+					array(
+						'key'           => 'field_{{namespace}}_related',
+						'label'         => __( 'Related Items', '{{textdomain}}' ),
+						'name'          => '{{namespace}}_related',
+						'type'          => 'relationship',
+						'instructions'  => __( 'Select related items.', '{{textdomain}}' ),
+						'post_type'     => array( Post_Types::POST_TYPE ),
+						'filters'       => array( 'search', 'taxonomy' ),
+						'return_format' => 'object',
+					),
+				),
 				'location'        => array(
 					array(
 						array(
