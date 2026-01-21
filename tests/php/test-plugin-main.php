@@ -45,7 +45,6 @@ class Test_Plugin_Main extends WP_UnitTestCase {
 		$this->assertTrue( class_exists( 'ExamplePlugin_Taxonomies' ) );
 		$this->assertTrue( class_exists( 'ExamplePlugin_Fields' ) );
 		$this->assertTrue( class_exists( 'ExamplePlugin_Repeater_Fields' ) );
-		$this->assertTrue( class_exists( 'ExamplePlugin_Block_Templates' ) );
 		$this->assertTrue( class_exists( 'ExamplePlugin_Block_Bindings' ) );
 		$this->assertTrue( class_exists( 'ExamplePlugin_Patterns' ) );
 	}

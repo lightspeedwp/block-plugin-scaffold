@@ -34,7 +34,6 @@ class Core {
 		new Options();
 		new SCF_JSON();
 		new SCF_JSON_Validator();
-		new Block_Templates();
 		new Block_Bindings();
 		new Block_Styles();
 		new Patterns();
@@ -55,7 +54,6 @@ class Core {
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-options.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json-validator.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-templates.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-bindings.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-styles.php';
 		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-patterns.php';

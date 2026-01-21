@@ -319,9 +319,6 @@ function applyDefaults(config) {
 		'featured',
 	];
 
-	// Default templates
-	result.templates = result.templates || ['single', 'archive'];
-
 	// Default CPT supports
 	result.cpt_supports = result.cpt_supports || [
 		'title',

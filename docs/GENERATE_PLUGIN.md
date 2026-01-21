@@ -703,9 +703,7 @@ tour-operator/
 │   ├── components/           # Shared React components
 │   ├── hooks/                # Custom React hooks
 │   └── scss/                 # Stylesheets
-├── templates/                # Block templates
 ├── patterns/                 # Block patterns
-├── template-parts/           # Template parts
 └── scf-json/                 # SCF field groups
 ```
 
