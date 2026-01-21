@@ -28,6 +28,15 @@ class Content_Model_Manager {
 	private static $configurations = array();
 
 	/**
+	 * Constructor.
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		self::init();
+	}
+
+	/**
 	 * Initialize the content model manager.
 	 *
 	 * @since 1.0.0

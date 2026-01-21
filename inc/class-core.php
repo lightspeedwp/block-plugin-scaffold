@@ -30,6 +30,7 @@ class Core {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
+		new Content_Model_Manager();
 		new Repeater_Fields();
 		new Options();
 		new SCF_JSON();

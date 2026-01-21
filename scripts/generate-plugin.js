@@ -793,6 +793,12 @@ function generatePlugin(config, inPlace = false) {
 	log('INFO', 'Generating README.md');
 	generateReadme(outputDir, fullConfig);
 
+	// Generate post-type JSON files
+	if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+		log('INFO', 'Generating post-type JSON files');
+		generatePostTypeJSONFiles(outputDir, fullConfig);
+	}
+
 	// Generate SCF JSON field group
 	if (fullConfig.fields && fullConfig.fields.length > 0) {
 		log('INFO', 'Generating SCF field group JSON');
@@ -819,6 +825,91 @@ function generatePlugin(config, inPlace = false) {
 	console.log(`📝 Log file: ${logFile}\n`);
 
 	return outputDir;
+}
+
+/**
+ * Generate individual post-type JSON files from config
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generatePostTypeJSONFiles(outputDir, config) {
+	if (!config.post_types || config.post_types.length === 0) {
+		log('INFO', 'No post types defined, skipping post-type JSON generation');
+		return;
+	}
+
+	log('INFO', 'Generating post-type JSON files', {
+		postTypeCount: config.post_types.length
+	});
+
+	const postTypesDir = path.join(outputDir, 'post-types');
+	if (!fs.existsSync(postTypesDir)) {
+		fs.mkdirSync(postTypesDir, { recursive: true });
+		log('INFO', 'Created post-types directory');
+	}
+
+	// Generate a JSON file for each post type
+	config.post_types.forEach((postType) => {
+		const postTypeJson = {
+			slug: postType.slug,
+			label: postType.singular,
+			pluralLabel: postType.plural,
+			icon: postType.menu_icon || 'dashicons-admin-post',
+			supports: postType.supports || ['title', 'editor', 'thumbnail'],
+			has_archive: postType.has_archive !== false,
+			hierarchical: postType.hierarchical || false,
+			rewrite: postType.slug,
+			template: [[`${config.namespace}/${postType.slug}-single`]],
+			fields: [],
+			taxonomies: []
+		};
+
+		// Add fields if defined
+		if (postType.fields && postType.fields.length > 0) {
+			postTypeJson.fields = postType.fields.map(field => ({
+				slug: `${config.namespace}_${field.name}`,
+				type: field.type,
+				label: field.label,
+				description: field.instructions || '',
+				required: field.required || false,
+				placeholder: field.placeholder || '',
+				default_value: field.default_value,
+				choices: field.choices,
+				return_format: field.return_format,
+				min: field.min,
+				max: field.max,
+				step: field.step
+			}));
+		}
+
+		// Add taxonomies if defined
+		if (postType.taxonomies && postType.taxonomies.length > 0) {
+			postTypeJson.taxonomies = postType.taxonomies.map(tax => ({
+				slug: tax.slug,
+				label: tax.singular,
+				pluralLabel: tax.plural,
+				hierarchical: tax.hierarchical !== false
+			}));
+		}
+
+		// Write the JSON file
+		const filePath = path.join(postTypesDir, `${postType.slug}.json`);
+		fs.writeFileSync(
+			filePath,
+			JSON.stringify(postTypeJson, null, 2),
+			'utf8'
+		);
+
+		log('INFO', `Generated post-type JSON: ${filePath}`, {
+			slug: postType.slug,
+			fieldCount: postTypeJson.fields.length,
+			taxonomyCount: postTypeJson.taxonomies.length
+		});
+	});
+
+	log('INFO', 'Post-type JSON files generated successfully', {
+		filesGenerated: config.post_types.length
+	});
 }
 
 /**

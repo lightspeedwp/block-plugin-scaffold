@@ -282,8 +282,7 @@
                                     "description": "Whether taxonomy is hierarchical (like categories) or flat (like tags)",
                                     "default": true
                                 }
-                            },
-                            "additionalProperties": false
+                            }
                         }
                     },
                     "fields": {
@@ -444,12 +443,10 @@
                                     "description": "Allow null/empty value",
                                     "default": false
                                 }
-                            },
-                            "additionalProperties": false
+                            }
                         }
                     }
-                },
-                "additionalProperties": false
+                }
             }
         },
 
@@ -480,5 +477,5 @@
             "minItems": 1
         }
     },
-    "additionalProperties": false
+    "additionalProperties": true
 }
