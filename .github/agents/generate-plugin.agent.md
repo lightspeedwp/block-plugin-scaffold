@@ -202,8 +202,15 @@ I will ask you about each taxonomy you want to create one by one.
 
 ### Stage 4: Custom Fields (SCF)
 
-I'll help you design field groups. I can work from a simple list or an interactive process.
+I'll help you design field groups. The generator will create SCF JSON files that Secure Custom Fields automatically loads from the `scf-json/` directory.
+
 For each field, please provide the **field label** (e.g., "Start Date") and the **field type** (e.g., `date_picker`). I will generate the field name automatically (e.g., `start_date`).
+
+**How It Works:**
+- Fields from `plugin-config.json` are converted to SCF JSON format
+- Generated files are saved to `scf-json/group_{slug}_fields.json`
+- SCF automatically loads and registers these field groups
+- No PHP code required - pure JSON configuration
 
 **Example Field Request:**
 > "Add a 'Subtitle' text field, a 'Price' number field, and a 'Featured' true/false toggle."
@@ -517,10 +524,24 @@ Patterns:
 After generation, I can help with:
 
 ### 1. SCF Field Configuration
+
+Field groups are automatically generated as JSON files:
+
 ```bash
-# Field groups will be in:
+# Field group JSON files:
 scf-json/group_{{slug}}_fields.json
+
+# Schema for validation:
+.github/schemas/scf-field-group.schema.json
 ```
+
+**SCF Local JSON Benefits:**
+- Version control friendly
+- No database queries for field definitions
+- Easy to backup and sync across environments
+- Can be edited directly or via WordPress admin
+
+The SCF_JSON class automatically configures the save/load paths so any field groups created in WordPress admin are saved to `scf-json/` and version controlled.
 
 ### 2. Block Customisation
 ```bash

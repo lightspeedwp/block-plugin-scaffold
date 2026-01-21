@@ -746,6 +746,12 @@ function generatePlugin(config, inPlace = false) {
 	log('INFO', 'Generating README.md');
 	generateReadme(outputDir, fullConfig);
 
+	// Generate SCF JSON field group
+	if (fullConfig.fields && fullConfig.fields.length > 0) {
+		log('INFO', 'Generating SCF field group JSON');
+		generateSCFFieldGroup(outputDir, fullConfig);
+	}
+
 	log('INFO', 'Plugin generated successfully', {
 		outputDirectory: outputDir,
 		mode: inPlace ? 'template' : 'generator',
@@ -766,6 +772,114 @@ function generatePlugin(config, inPlace = false) {
 	console.log(`📝 Log file: ${logFile}\n`);
 
 	return outputDir;
+}
+
+/**
+ * Generate SCF JSON field group file from config
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateSCFFieldGroup(outputDir, config) {
+	if (!config.fields || config.fields.length === 0) {
+		log('INFO', 'No custom fields defined, skipping SCF JSON generation');
+		return;
+	}
+
+	log('INFO', 'Generating SCF JSON field group');
+
+	// Map config fields to SCF field format
+	const scfFields = config.fields.map((field, index) => {
+		const fieldKey = `field_${config.slug}_${field.name}`;
+		
+		const scfField = {
+			key: fieldKey,
+			label: field.label,
+			name: field.name,
+			type: field.type,
+			instructions: field.instructions || '',
+			required: field.required ? 1 : 0,
+		};
+
+		// Add optional properties
+		if (field.default_value !== undefined) {
+			scfField.default_value = field.default_value;
+		}
+
+		if (field.placeholder) {
+			scfField.placeholder = field.placeholder;
+		}
+
+		if (field.choices) {
+			scfField.choices = field.choices;
+		}
+
+		if (field.return_format) {
+			scfField.return_format = field.return_format;
+		}
+
+		if (field.multiple !== undefined) {
+			scfField.multiple = field.multiple ? 1 : 0;
+		}
+
+		if (field.allow_null !== undefined) {
+			scfField.allow_null = field.allow_null ? 1 : 0;
+		}
+
+		// Add type-specific properties
+		if (field.type === 'number') {
+			if (field.min !== undefined) scfField.min = field.min;
+			if (field.max !== undefined) scfField.max = field.max;
+			if (field.step !== undefined) scfField.step = field.step;
+		}
+
+		return scfField;
+	});
+
+	// Create the field group
+	const fieldGroup = {
+		key: `group_${config.slug}_fields`,
+		title: `${config.name} Fields`,
+		fields: scfFields,
+		location: [
+			[
+				{
+					param: 'post_type',
+					operator: '==',
+					value: config.cpt_slug || config.slug,
+				},
+			],
+		],
+		menu_order: 0,
+		position: 'normal',
+		style: 'default',
+		label_placement: 'top',
+		instruction_placement: 'label',
+		hide_on_screen: '',
+		active: true,
+		description: `Custom fields for ${config.name_singular || config.name}`,
+	};
+
+	// Write to scf-json directory
+	const scfJsonDir = path.join(outputDir, 'scf-json');
+	if (!fs.existsSync(scfJsonDir)) {
+		fs.mkdirSync(scfJsonDir, { recursive: true });
+		log('INFO', 'Created scf-json directory');
+	}
+
+	const fieldGroupPath = path.join(
+		scfJsonDir,
+		`group_${config.slug}_fields.json`
+	);
+	fs.writeFileSync(
+		fieldGroupPath,
+		JSON.stringify(fieldGroup, null, 4),
+		'utf8'
+	);
+
+	log('INFO', `Generated SCF field group: ${fieldGroupPath}`, {
+		fieldCount: scfFields.length,
+		postType: config.cpt_slug || config.slug,
+	});
 }
 
 /**

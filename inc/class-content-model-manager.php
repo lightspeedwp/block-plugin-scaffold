@@ -34,7 +34,6 @@ class Content_Model_Manager {
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'load_and_register' ), 10 );
-		add_action( 'acf/init', array( __CLASS__, 'register_all_fields' ) );
 	}
 
 	/**
@@ -208,121 +207,6 @@ class Content_Model_Manager {
 		);
 
 		register_taxonomy( $config['slug'], $post_type, $args );
-	}
-
-	/**
-	 * Register all custom fields from loaded configurations.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public static function register_all_fields() {
-		if ( ! function_exists( 'acf_add_local_field_group' ) ) {
-			return;
-		}
-
-		if ( empty( self::$configurations ) ) {
-			return;
-		}
-
-		foreach ( self::$configurations as $post_type_slug => $config ) {
-			if ( empty( $config['fields'] ) ) {
-				continue;
-			}
-
-			self::register_field_group( $post_type_slug, $config['fields'] );
-		}
-	}
-
-	/**
-	 * Register a field group for a post type.
-	 *
-	 * @since 1.0.0
-	 * @param string $post_type Post type slug.
-	 * @param array  $fields_config Fields configuration.
-	 * @return void
-	 */
-	private static function register_field_group( $post_type, $fields_config ) {
-		$fields = array();
-
-		foreach ( $fields_config as $field_config ) {
-			$field = array(
-				'key'          => 'field_' . $post_type . '_' . $field_config['slug'],
-				'label'        => isset( $field_config['label'] ) ? $field_config['label'] : '',
-				'name'         => $field_config['slug'],
-				'type'         => $field_config['type'],
-				'instructions' => isset( $field_config['description'] ) ? $field_config['description'] : '',
-			);
-
-			// Add optional field properties
-			if ( isset( $field_config['required'] ) ) {
-				$field['required'] = (bool) $field_config['required'];
-			}
-
-			if ( isset( $field_config['default_value'] ) ) {
-				$field['default_value'] = $field_config['default_value'];
-			}
-
-			if ( isset( $field_config['placeholder'] ) ) {
-				$field['placeholder'] = $field_config['placeholder'];
-			}
-
-			if ( isset( $field_config['choices'] ) ) {
-				$field['choices'] = $field_config['choices'];
-			}
-
-			if ( isset( $field_config['return_format'] ) ) {
-				$field['return_format'] = $field_config['return_format'];
-			}
-
-			// Field type specific settings
-			switch ( $field_config['type'] ) {
-				case 'true_false':
-					$field['ui'] = 1;
-					break;
-
-				case 'gallery':
-					$field['preview_size'] = 'medium';
-					$field['library']      = 'all';
-					break;
-
-				case 'relationship':
-					if ( ! isset( $field['post_type'] ) ) {
-						$field['post_type'] = array( $post_type );
-					}
-					$field['filters'] = array( 'search', 'taxonomy' );
-					if ( ! isset( $field['return_format'] ) ) {
-						$field['return_format'] = 'object';
-					}
-					break;
-			}
-
-			$fields[] = $field;
-		}
-
-		$config = self::get_configuration( $post_type );
-		$label  = isset( $config['label'] ) ? $config['label'] : ucfirst( $post_type );
-
-		acf_add_local_field_group(
-			array(
-				'key'             => 'group_' . $post_type . '_fields',
-				'title'           => sprintf( __( '%s Details', '{{textdomain}}' ), $label ),
-				'fields'          => $fields,
-				'location'        => array(
-					array(
-						array(
-							'param'    => 'post_type',
-							'operator' => '==',
-							'value'    => $post_type,
-						),
-					),
-				),
-				'menu_order'      => 0,
-				'position'        => 'normal',
-				'style'           => 'default',
-				'label_placement' => 'top',
-			)
-		);
 	}
 
 	/**
