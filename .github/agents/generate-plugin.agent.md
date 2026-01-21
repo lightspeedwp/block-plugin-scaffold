@@ -209,8 +209,27 @@ For each field, please provide the **field label** (e.g., "Start Date") and the 
 **How It Works:**
 - Fields from `plugin-config.json` are converted to SCF JSON format
 - Generated files are saved to `scf-json/group_{slug}_fields.json`
-- SCF automatically loads and registers these field groups
+- SCF automatically loads and registers these field groups from JSON files
 - No PHP code required - pure JSON configuration
+
+**Configuration Options:**
+All fields support these common properties:
+- `name` — Field slug (lowercase with underscores)
+- `label` — Display label in admin
+- `type` — Field type (see below)
+- `instructions` — Help text shown below the field
+- `required` — Whether the field is required (true/false)
+- `default_value` — Default value for the field
+- `placeholder` — Placeholder text for text-based fields
+- `choices` — Options for select/radio/checkbox fields (object with key:value pairs)
+- `return_format` — Return format for certain field types (value, label, array, url, id, object)
+- `multiple` — Allow multiple selections (for select/post_object/user fields)
+- `allow_null` — Allow null/empty value
+
+**Number Field Options:**
+- `min` — Minimum value
+- `max` — Maximum value
+- `step` — Step increment (default: 1)
 
 **Example Field Request:**
 > "Add a 'Subtitle' text field, a 'Price' number field, and a 'Featured' true/false toggle."
@@ -543,20 +562,54 @@ scf-json/group_{{slug}}_fields.json
 
 The SCF_JSON class automatically configures the save/load paths so any field groups created in WordPress admin are saved to `scf-json/` and version controlled.
 
-### 2. Block Customisation
+### 2. Post Types JSON Configuration
+
+Post types, taxonomies, and their associated fields can also be defined in JSON format in the `post-types/` directory:
+
+```bash
+# Post type JSON configuration:
+post-types/{{slug}}.json
+
+# Schema for validation:
+.github/schemas/post-types.schema.json
+```
+
+**JSON Configuration Example:**
+```json
+{
+  "slug": "product",
+  "label": "Product",
+  "pluralLabel": "Products",
+  "icon": "products",
+  "template": [["my-plugin/product-single"]],
+  "fields": [...],
+  "taxonomies": [...]
+}
+```
+
+**Post Type JSON Benefits:**
+- Declarative content structure definition
+- Mustache template support for generator
+- JSON Schema validation ensures correctness
+- Version control friendly
+- Easy to maintain without PHP knowledge
+
+The Content_Model_Manager class automatically loads all JSON files from `post-types/` and registers the defined post types, taxonomies, and field groups.
+
+### 3. Block Customisation
 ```bash
 # Edit block attributes and supports:
 src/blocks/{{slug}}-*/block.json
 ```
 
-### 3. Template Setup
+### 4. Template Setup
 ```bash
 # Customise templates with block bindings:
 templates/single-{{slug}}.html
 templates/archive-{{slug}}.html
 ```
 
-### 4. Development Start
+### 5. Development Start
 ```bash
 cd output-plugin
 composer install

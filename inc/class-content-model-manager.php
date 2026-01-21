@@ -155,6 +155,8 @@ class Content_Model_Manager {
 			'template_lock'      => false,
 		);
 
+		$args = apply_filters( '{{namespace|snakeCase}}_' . $slug . '_post_type_args', $args, $config );
+
 		register_post_type( $slug, $args );
 	}
 
@@ -205,6 +207,8 @@ class Content_Model_Manager {
 			'query_var'         => true,
 			'rewrite'           => array( 'slug' => $config['slug'] ),
 		);
+
+		$args = apply_filters( '{{namespace|snakeCase}}_' . $config['slug'] . '_taxonomy_args', $args, $config );
 
 		register_taxonomy( $config['slug'], $post_type, $args );
 	}
