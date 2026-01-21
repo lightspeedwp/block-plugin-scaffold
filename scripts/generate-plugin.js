@@ -289,20 +289,6 @@ function applyDefaults(config) {
 		result.namespace = result.namespace || result.slug.replace(/-/g, '_');
 	}
 
-	// Auto-derive CPT slug from first word of slug (tour-operator -> tour)
-	if (!result.cpt_slug && result.slug) {
-		const firstWord = result.slug.split('-')[0];
-		result.cpt_slug = firstWord.substring(0, 20); // Max 20 chars for CPT
-	}
-
-	// Auto-derive singular/plural names
-	if (result.name && !result.name_singular) {
-		result.name_singular = result.name.replace(/s$/, '');
-	}
-	if (result.name_singular && !result.name_plural) {
-		result.name_plural = result.name_singular + 's';
-	}
-
 	// Set defaults
 	result.version = result.version || '1.0.0';
 	result.requires_wp = result.requires_wp || '6.5';
@@ -319,19 +305,83 @@ function applyDefaults(config) {
 		'featured',
 	];
 
-	// Default CPT supports
-	result.cpt_supports = result.cpt_supports || [
-		'title',
-		'editor',
-		'thumbnail',
-		'excerpt',
-		'revisions',
-	];
+	// Handle post_types array
+	result.post_types = result.post_types || [];
+	
+	// If using legacy single post type format, convert to array
+	if (result.cpt_slug || result.name_singular) {
+		const legacyPostType = {
+			slug: result.cpt_slug || result.slug?.split('-')[0]?.substring(0, 20),
+			singular: result.name_singular || result.name?.replace(/s$/, ''),
+			plural: result.name_plural || (result.name_singular ? result.name_singular + 's' : result.name),
+			supports: result.cpt_supports || [
+				'title',
+				'editor',
+				'thumbnail',
+				'excerpt',
+				'revisions',
+			],
+			has_archive: result.cpt_has_archive !== false,
+			public: result.cpt_public !== false,
+			menu_icon: result.cpt_menu_icon || 'dashicons-admin-post',
+			taxonomies: result.taxonomies || [],
+			fields: result.fields || [],
+		};
+		result.post_types = [legacyPostType];
+		
+		// Clean up legacy fields
+		delete result.cpt_slug;
+		delete result.name_singular;
+		delete result.name_plural;
+		delete result.cpt_supports;
+		delete result.cpt_has_archive;
+		delete result.cpt_public;
+		delete result.cpt_menu_icon;
+		delete result.taxonomies;
+		delete result.fields;
+	}
 
-	// Default CPT settings
-	result.cpt_has_archive = result.cpt_has_archive !== false;
-	result.cpt_public = result.cpt_public !== false;
-	result.cpt_menu_icon = result.cpt_menu_icon || 'dashicons-admin-post';
+	// Apply defaults to each post type
+	result.post_types = result.post_types.map((postType) => {
+		const pt = { ...postType };
+		
+		// Auto-derive plural from singular if not set
+		if (pt.singular && !pt.plural) {
+			pt.plural = pt.singular + 's';
+		}
+		
+		// Default supports
+		pt.supports = pt.supports || [
+			'title',
+			'editor',
+			'thumbnail',
+			'excerpt',
+			'revisions',
+		];
+		
+		// Default settings
+		pt.has_archive = pt.has_archive !== false;
+		pt.public = pt.public !== false;
+		pt.menu_icon = pt.menu_icon || 'dashicons-admin-post';
+		pt.taxonomies = pt.taxonomies || [];
+		pt.fields = pt.fields || [];
+		
+		return pt;
+	});
+
+	// For backward compatibility, set first post type properties as top-level
+	if (result.post_types.length > 0) {
+		const firstPostType = result.post_types[0];
+		result.cpt_slug = firstPostType.slug;
+		result.name_singular = firstPostType.singular;
+		result.name_plural = firstPostType.plural;
+		result.cpt_supports = firstPostType.supports;
+		result.cpt_has_archive = firstPostType.has_archive;
+		result.cpt_public = firstPostType.public;
+		result.cpt_menu_icon = firstPostType.menu_icon;
+		result.taxonomies = firstPostType.taxonomies;
+		result.fields = firstPostType.fields;
+	}
 
 	return result;
 }
