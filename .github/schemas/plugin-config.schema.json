@@ -45,23 +45,6 @@
             "minLength": 1,
             "maxLength": 500
         },
-        "name_singular": {
-            "type": "string",
-            "x-stage": 2,
-            "description": "Singular name for the custom post type",
-            "minLength": 1,
-            "maxLength": 50,
-            "examples": [
-                "Tour",
-                "Event",
-                "Portfolio Item"
-            ]
-        },
-        "name_plural": {
-            "type": "string",
-            "x-stage": 2,
-            "description": "Plural name for the custom post type"
-        },
         "author": {
             "type": "string",
             "x-stage": 1,
@@ -149,6 +132,24 @@
                 "GPL-2.0-or-later",
                 "GPL-3.0-or-later"
             ]
+        },
+
+        "name_singular": {
+            "type": "string",
+            "x-stage": 2,
+            "description": "Singular name for the custom post type",
+            "minLength": 1,
+            "maxLength": 50,
+            "examples": [
+                "Tour",
+                "Event",
+                "Portfolio Item"
+            ]
+        },
+        "name_plural": {
+            "type": "string",
+            "x-stage": 2,
+            "description": "Plural name for the custom post type"
         },
         "cpt_slug": {
             "type": "string",
@@ -429,6 +430,8 @@
                 "additionalProperties": false
             }
         },
+
+		
         "blocks": {
             "type": "array",
             "description": "Block types to generate for this plugin",
@@ -453,24 +456,6 @@
                 ]
             },
             "minItems": 1
-        },
-        "templates": {
-            "type": "array",
-            "description": "Block templates to generate",
-            "default": [
-                "single",
-                "archive"
-            ],
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "single",
-                    "archive",
-                    "search",
-                    "taxonomy"
-                ]
-            }
         }
     },
     "additionalProperties": false
