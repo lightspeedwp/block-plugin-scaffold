@@ -22,6 +22,42 @@
       "type": "string",
       "description": "Dashicon name (without 'dashicons-' prefix)"
     },
+    "supports": {
+      "type": "array",
+      "description": "Post type features to support",
+      "items": {
+        "type": "string",
+        "enum": [
+          "title",
+          "editor",
+          "author",
+          "thumbnail",
+          "excerpt",
+          "trackbacks",
+          "custom-fields",
+          "comments",
+          "revisions",
+          "page-attributes",
+          "post-formats"
+        ]
+      },
+      "default": ["title", "editor", "thumbnail", "excerpt", "custom-fields"]
+    },
+    "has_archive": {
+      "type": "boolean",
+      "description": "Enable archive page for this post type",
+      "default": true
+    },
+    "hierarchical": {
+      "type": "boolean",
+      "description": "Whether the post type is hierarchical (like pages)",
+      "default": false
+    },
+    "rewrite": {
+      "type": "string",
+      "description": "Custom rewrite slug for the post type URLs",
+      "pattern": "^[a-z][a-z0-9_-]*$"
+    },
     "template": {
       "type": "array",
       "description": "Block template array",

@@ -3,6 +3,17 @@
   "label": "{{name_singular}}",
   "pluralLabel": "{{name_plural}}",
   "icon": "{{cpt_icon_name}}",
+  "supports": [
+    "title",
+    "editor",
+    "thumbnail",
+    "excerpt",
+    "custom-fields",
+    "revisions"
+  ],
+  "has_archive": true,
+  "hierarchical": false,
+  "rewrite": "{{cpt_slug}}",
   "template": [
     [
       "{{namespace}}/{{cpt_slug}}-single"
