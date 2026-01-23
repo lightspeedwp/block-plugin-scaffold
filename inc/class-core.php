@@ -127,7 +127,7 @@ class Core {
 		load_plugin_textdomain(
 			'{{textdomain}}',
 			false,
-			dirname( {{namespace|upper}}_PLUGIN_BASENAME ) . '/languages'
+			dirname( {{namespace|upper}}_BASENAME ) . '/languages'
 		);
 	}
 }

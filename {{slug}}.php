@@ -24,8 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Plugin constants.
 define( '{{namespace|upper}}_VERSION', '{{version}}' );
 define( '{{namespace|upper}}_DIR', plugin_dir_path( __FILE__ ) );
-define( '{{namespace|upper}}_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( '{{namespace|upper}}_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+define( '{{namespace|upper}}_URL', plugin_dir_url( __FILE__ ) );
+define( '{{namespace|upper}}_BASENAME', plugin_basename( __FILE__ ) );
 
 // Include the Core class.
 require_once {{namespace|upper}}_DIR . 'inc/class-core.php';
