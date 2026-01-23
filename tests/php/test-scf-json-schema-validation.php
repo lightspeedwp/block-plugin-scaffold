@@ -175,7 +175,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test example field group conforms to schema.
 	 */
 	public function test_example_field_group_conforms_to_schema() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_basic_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );
@@ -207,7 +207,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test example field group has valid field types.
 	 */
 	public function test_example_field_types_are_valid() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_basic_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );
@@ -244,7 +244,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test example field group valid location rules.
 	 */
 	public function test_example_location_rules_are_valid() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_basic_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );
@@ -284,7 +284,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test repeated field validation.
 	 */
 	public function test_repeater_field_has_sub_fields() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_advanced_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );
@@ -308,7 +308,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test group field has sub_fields.
 	 */
 	public function test_group_field_has_sub_fields() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_advanced_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );
@@ -331,7 +331,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test flexible_content layouts are properly defined.
 	 */
 	public function test_flexible_content_layouts() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_advanced_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );
@@ -362,7 +362,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test field wrapper configuration if present.
 	 */
 	public function test_field_wrapper_configuration() {
-		$example_path = dirname( dirname( __DIR__ ) ) . '/scf-json/group_example-plugin_example.json';
+		$example_path = dirname( dirname( __DIR__ ) ) . '/docs/group_example_basic_fields.json';
 
 		if ( ! file_exists( $example_path ) ) {
 			$this->markTestSkipped( 'Example field group file not found' );

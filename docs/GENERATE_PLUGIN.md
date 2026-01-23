@@ -179,19 +179,11 @@ Author: LightSpeed
 **Template usage:**
 
 ```php
-// BAD (do not use):
-register_post_type( '{{cpt_slug}}', ... );
-
 // GOOD (use specific):
 register_post_type( '{{cpt_slug}}', ... );
-register_post_type( '{{cpt2_slug}}', ... );
-
-// BAD:
-register_taxonomy( '{{taxonomy_slug}}', ... );
 
 // GOOD:
-register_taxonomy( '{{taxonomy1_slug}}', ... );
-register_taxonomy( '{{taxonomy2_slug}}', ... );
+register_taxonomy( '{{taxonomy_slug}}', ... );
 ```
 
 **Enforcement:**
