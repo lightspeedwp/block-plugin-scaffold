@@ -35,13 +35,13 @@ require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-core.php';
  *
  * @return \{{namespace}}\classes\Core Main plugin instance.
  */
-function {{namespace}}_plugin() {
-       global ${{namespace}}_plugin;
-       if ( null === ${{namespace}}_plugin ) {
-	       ${{namespace}}_plugin = new \{{namespace}}\classes\Core();
+function {{namespace}}_init() {
+       global ${{namespace}};
+       if ( null === ${{namespace}} ) {
+	       ${{namespace}} = new \{{namespace}}\classes\Core();
        }
-       return ${{namespace}}_plugin;
+       return ${{namespace}};
 }
 
 // Initialize the plugin.
-{{namespace}}_plugin();
+{{namespace}}_init();
