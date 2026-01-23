@@ -28,6 +28,13 @@ class Content_Model_Manager {
 	private static $configurations = array();
 
 	/**
+	 * Holds mapping of taxonomies to their associated post types.
+	 *
+	 * @var array
+	 */
+	private static $taxonomy_map = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 1.0.0
@@ -53,6 +60,7 @@ class Content_Model_Manager {
 	 */
 	public static function load_and_register() {
 		self::load_configurations();
+		self::build_taxonomy_map();
 		self::register_all_post_types();
 		self::register_all_taxonomies();
 	}
@@ -119,6 +127,50 @@ class Content_Model_Manager {
 	}
 
 	/**
+	 * Build mapping of taxonomies to their associated post types.
+	 *
+	 * This scans all configurations and creates a map where each taxonomy
+	 * slug points to an array of post types it should be registered to.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private static function build_taxonomy_map() {
+		self::$taxonomy_map = array();
+
+		if ( empty( self::$configurations ) ) {
+			return;
+		}
+
+		foreach ( self::$configurations as $post_type_slug => $config ) {
+			if ( empty( $config['taxonomies'] ) ) {
+				continue;
+			}
+
+			foreach ( $config['taxonomies'] as $taxonomy_config ) {
+				if ( ! isset( $taxonomy_config['slug'] ) ) {
+					continue;
+				}
+
+				$taxonomy_slug = $taxonomy_config['slug'];
+
+				// Initialize taxonomy entry if not exists
+				if ( ! isset( self::$taxonomy_map[ $taxonomy_slug ] ) ) {
+					self::$taxonomy_map[ $taxonomy_slug ] = array(
+						'config'     => $taxonomy_config,
+						'post_types' => array(),
+					);
+				}
+
+				// Add post type to this taxonomy's list
+				if ( ! in_array( $post_type_slug, self::$taxonomy_map[ $taxonomy_slug ]['post_types'], true ) ) {
+					self::$taxonomy_map[ $taxonomy_slug ]['post_types'][] = $post_type_slug;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Register all post types from loaded configurations.
 	 *
 	 * @since 1.0.0
@@ -170,24 +222,20 @@ class Content_Model_Manager {
 	}
 
 	/**
-	 * Register all taxonomies from loaded configurations.
+	 * Register all taxonomies from the taxonomy map.
+	 *
+	 * Each taxonomy is registered only once with all its associated post types.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	private static function register_all_taxonomies() {
-		if ( empty( self::$configurations ) ) {
+		if ( empty( self::$taxonomy_map ) ) {
 			return;
 		}
 
-		foreach ( self::$configurations as $post_type_slug => $config ) {
-			if ( empty( $config['taxonomies'] ) ) {
-				continue;
-			}
-
-			foreach ( $config['taxonomies'] as $taxonomy_config ) {
-				self::register_taxonomy( $taxonomy_config, $post_type_slug );
-			}
+		foreach ( self::$taxonomy_map as $taxonomy_slug => $taxonomy_data ) {
+			self::register_taxonomy( $taxonomy_data['config'], $taxonomy_data['post_types'] );
 		}
 	}
 
@@ -195,12 +243,12 @@ class Content_Model_Manager {
 	 * Register a single taxonomy from configuration.
 	 *
 	 * @since 1.0.0
-	 * @param array  $config Taxonomy configuration.
-	 * @param string $post_type Post type to attach to.
+	 * @param array $config Taxonomy configuration.
+	 * @param array $post_types Array of post type slugs to attach taxonomy to.
 	 * @return void
 	 */
-	private static function register_taxonomy( $config, $post_type ) {
-		if ( ! isset( $config['slug'] ) ) {
+	private static function register_taxonomy( $config, $post_types ) {
+		if ( ! isset( $config['slug'] ) || empty( $post_types ) ) {
 			return;
 		}
 
@@ -219,7 +267,7 @@ class Content_Model_Manager {
 
 		$args = apply_filters( '{{namespace|snakeCase}}_' . $config['slug'] . '_taxonomy_args', $args, $config );
 
-		register_taxonomy( $config['slug'], $post_type, $args );
+		register_taxonomy( $config['slug'], $post_types, $args );
 	}
 
 	/**
@@ -230,6 +278,18 @@ class Content_Model_Manager {
 	 */
 	public static function get_configurations() {
 		return self::$configurations;
+	}
+
+	/**
+	 * Get the taxonomy map.
+	 *
+	 * Returns mapping of taxonomy slugs to their configurations and associated post types.
+	 *
+	 * @since 1.0.0
+	 * @return array
+	 */
+	public static function get_taxonomy_map() {
+		return self::$taxonomy_map;
 	}
 
 	/**
