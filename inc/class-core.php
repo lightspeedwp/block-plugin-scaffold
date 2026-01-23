@@ -48,16 +48,16 @@ class Core {
 	 */
 	public function load_classes() {
 		// Include Content Model Manager (handles JSON-based post types, taxonomies, and fields).
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-content-model-manager.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-content-model-manager.php';
 
 		// Include core classes.
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-repeater-fields.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-options.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json-validator.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-bindings.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-styles.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-patterns.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-repeater-fields.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-options.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json-validator.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-block-bindings.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-block-styles.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-patterns.php';
 	}
 
 	/**
@@ -79,7 +79,7 @@ class Core {
 	 */
 	public function register_blocks() {
 		// Auto-register all blocks in build/blocks/ (filtered for flexibility).
-		$default_dir = {{namespace|upper}}_PLUGIN_DIR . 'build/blocks/';
+		$default_dir = {{namespace|upper}}_DIR . 'build/blocks/';
 		$blocks_dir = apply_filters( 'example-plugin_blocks_dir', $default_dir );
 
 		if ( ! is_dir( $blocks_dir ) ) {

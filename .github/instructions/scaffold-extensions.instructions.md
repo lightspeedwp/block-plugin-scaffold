@@ -57,7 +57,7 @@ The repository uses mustache-style placeholders like `{{namespace}}`, `{{slug}}`
 2. **Plugin dir constant**
 
    - Reuse the constant already used in `class-patterns.php`:
-     - `{{namespace|upper}}_PLUGIN_DIR`
+     - `{{namespace|upper}}_DIR`
    - Use this constant when resolving plugin-relative directories (e.g. `templates/`, `styles/`).
 
 3. **Hooking**
@@ -130,7 +130,7 @@ class Block_Templates {
             return; // Pre-6.7: no-op.
         }
 
-        $templates_dir = {{namespace|upper}}_PLUGIN_DIR . 'templates/';
+        $templates_dir = {{namespace|upper}}_DIR . 'templates/';
 
         $template_file = $templates_dir . 'example-archive.html';
 
@@ -260,7 +260,7 @@ Tasks:
 1. **Leave the existing registration logic intact**, just ensure:
 
    * The constructor hooks into `'init'` (it already does).
-   * `$patterns_dir` uses `{{namespace|upper}}_PLUGIN_DIR . 'patterns/'`.
+   * `$patterns_dir` uses `{{namespace|upper}}_DIR . 'patterns/'`.
 
 
 
@@ -300,7 +300,7 @@ Files can expose an object or a numeric array; the loader handles both shapes. C
 
 ### **5.2. Class implementation**
 
-`inc/class-block-styles.php` already performs this: it resolves `{{namespace|upper}}_PLUGIN_DIR . 'styles/'`, collects every `.json` file, decodes it, and flattens the definitions. For each definition with `scope === 'block'`, it calls `register_block_style()` with the translated `label`, the provided `name`, and any `style_data`.
+`inc/class-block-styles.php` already performs this: it resolves `{{namespace|upper}}_DIR . 'styles/'`, collects every `.json` file, decodes it, and flattens the definitions. For each definition with `scope === 'block'`, it calls `register_block_style()` with the translated `label`, the provided `name`, and any `style_data`.
 
 When extending the class, keep the same pattern — avoid duplicating style metadata in PHP. Add new JSON files and let the loader pick them up automatically rather than hard-coding more styles in PHP.
 

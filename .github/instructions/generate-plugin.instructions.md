@@ -179,7 +179,7 @@ When generating taxonomy functionality:
 ```php
 // Use UPPERCASE namespace
 define( '{{namespace|upper}}_VERSION', '{{version}}' );
-define( '{{namespace|upper}}_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( '{{namespace|upper}}_DIR', plugin_dir_path( __FILE__ ) );
 ```
 
 **Classes:**

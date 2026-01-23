@@ -39,7 +39,7 @@ class SCF_JSON {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		$this->json_path = {{namespace|upper}}_PLUGIN_DIR . 'scf-json';
+		$this->json_path = {{namespace|upper}}_DIR . 'scf-json';
 
 		// Set JSON save location.
 		add_filter( 'acf/settings/save_json', array( $this, 'set_save_path' ) );
