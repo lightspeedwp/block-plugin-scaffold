@@ -680,16 +680,16 @@
 
         "blocks": {
             "type": "array",
-            "description": "Block types to generate for this plugin (no block templates available)",
-            "default": [],
+            "description": "Block types to generate for this plugin",
+            "default": [
+                "collection",
+                "slider"
+            ],
             "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": [
-                    "single",
-                    "archive",
-                    "search",
-                    "filter"
+                    "collection"
                 ]
             },
             "minItems": 1
