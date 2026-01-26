@@ -17,26 +17,57 @@ This directory contains comprehensive examples of Secure Custom Fields (SCF) fie
 
 ## 🎯 Default Taxonomy Fields
 
-All taxonomies registered by the plugin automatically include these meta fields (registered via `class-taxonomy-meta.php`):
+All taxonomies defined in your plugin's post-type JSON files automatically get SCF field groups generated with these default fields during plugin generation:
 
-| Field | Type | Description | Access Method |
-|-------|------|-------------|---------------|
-| `thumbnail_id` | integer | Attachment ID for taxonomy thumbnail | `Taxonomy_Meta::get_meta($term_id, 'thumbnail_id')` |
-| `thumbnail` | string | URL for taxonomy thumbnail image | `Taxonomy_Meta::get_thumbnail_url($term_id, 'medium')` |
-| `subtitle` | string | Subtitle/tagline for taxonomy term | `Taxonomy_Meta::get_subtitle($term_id)` |
+| Field | Type | Description |
+|-------|------|-------------|
+| `thumbnail_id` | image | Attachment ID for taxonomy thumbnail (return format: "id") |
+| `subtitle` | text | Subtitle/tagline for taxonomy term |
 
-These fields are:
-- Registered for all custom taxonomies defined in post-type JSON files
-- Available in the REST API (`show_in_rest => true`)
-- Properly sanitized and validated
-- Accessible without needing SCF field groups
+**How it works:**
+1. The generator scans all `post-types/*.json` files
+2. Collects all unique taxonomies defined across post types
+3. Creates an SCF field group for each taxonomy: `scf-json/group_{taxonomy_slug}_fields.json`
+4. Each field group includes thumbnail_id and subtitle fields by default
 
-**Usage Example:**
+**Generated file example:**
+```json
+{
+  "key": "group_brand_fields",
+  "title": "Brand Fields",
+  "fields": [
+    {
+      "name": "thumbnail_id",
+      "type": "image",
+      "return_format": "id"
+    },
+    {
+      "name": "subtitle",
+      "type": "text"
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "taxonomy",
+        "operator": "==",
+        "value": "brand"
+      }
+    ]
+  ]
+}
+```
+
+**Usage in templates:**
 ```php
 $term_id = get_queried_object_id();
-$thumbnail_url = \{{namespace}}\classes\Taxonomy_Meta::get_thumbnail_url( $term_id, 'large' );
-$subtitle = \{{namespace}}\classes\Taxonomy_Meta::get_subtitle( $term_id );
+$thumbnail_id = get_term_meta( $term_id, 'thumbnail_id', true );
+$thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, 'large' );
+$subtitle = get_term_meta( $term_id, 'subtitle', true );
 ```
+
+**Adding custom fields:**
+You can edit the generated field group files in `scf-json/` to add additional fields specific to each taxonomy.
 
 ---
 
@@ -131,8 +162,8 @@ Demonstrates complex container and layout fields:
 **File:** [group_example_taxonomy_fields.json](group_example_taxonomy_fields.json)
 
 Demonstrates custom fields attached to taxonomy terms:
-- `thumbnail_id` - Featured image for taxonomy term (uses default field)
-- `subtitle` - Short tagline/description (uses default field)
+- `thumbnail_id` - Featured image for taxonomy term (automatically included in generated field groups)
+- `subtitle` - Short tagline/description (automatically included in generated field groups)
 - `wysiwyg` - Rich text extended description
 - `color_picker` - Color coding for terms
 - `text` - Icon classes or identifiers
@@ -140,20 +171,25 @@ Demonstrates custom fields attached to taxonomy terms:
 
 **Use cases:** Enhanced taxonomy terms, category metadata, term branding
 
-**Important:** The `thumbnail_id` and `subtitle` fields shown in this example use the default field names that are automatically registered by the `Taxonomy_Meta` class. This ensures consistency and provides built-in getter methods.
+**Important:** The `thumbnail_id` and `subtitle` fields are automatically generated for all taxonomies during plugin generation. You can add additional custom fields by editing the generated `scf-json/group_{taxonomy_slug}_fields.json` files.
 
 **Location rules:** Use `"param": "taxonomy"` with taxonomy slug as value
 
-**Helper functions available:**
+**Accessing field data:**
 ```php
-// Get thumbnail URL at any size
-$thumbnail = \{{namespace}}\classes\Taxonomy_Meta::get_thumbnail_url( $term_id, 'large' );
+$term_id = get_queried_object_id();
+
+// Get thumbnail
+$thumbnail_id = get_term_meta( $term_id, 'thumbnail_id', true );
+if ( $thumbnail_id ) {
+    $thumbnail_url = wp_get_attachment_image_url( $thumbnail_id, 'large' );
+}
 
 // Get subtitle
-$subtitle = \{{namespace}}\classes\Taxonomy_Meta::get_subtitle( $term_id );
+$subtitle = get_term_meta( $term_id, 'subtitle', true );
 
-// Get any meta field
-$value = \{{namespace}}\classes\Taxonomy_Meta::get_meta( $term_id, 'thumbnail_id' );
+// Get custom fields
+$custom_value = get_term_meta( $term_id, 'custom_field_name', true );
 ```
 
 ---
