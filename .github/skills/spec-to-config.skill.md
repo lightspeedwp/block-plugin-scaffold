@@ -153,7 +153,7 @@ const pluginConfig = {
   requires_php: "8.0",
   license: "GPL-2.0-or-later",
   post_types: postTypes,
-  blocks: ["card", "collection", "featured"]
+  blocks: ["collection", "slider"]
 };
 ```
 
@@ -241,7 +241,7 @@ The generated config must be valid JSON following the plugin-config.schema.json:
       ]
     }
   ],
-  "blocks": ["card", "collection", "featured"]
+  "blocks": ["collection", "slider"]
 }
 ```
 

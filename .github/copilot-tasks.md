@@ -77,10 +77,6 @@ date: 2025-12-01
 
 **Status**: 📋 TODO
 
-- [ ] **Card Block** - Single post card display
-  - Location: `src/blocks/{{slug}}-card/`
-  - Features: Post preview with featured image, title, excerpt
-
 - [ ] **Collection Block** - Post query/collection
   - Location: `src/blocks/{{slug}}-collection/`
   - Features: Grid/list/slider layouts, taxonomy filtering
@@ -89,9 +85,7 @@ date: 2025-12-01
   - Location: `src/blocks/{{slug}}-slider/`
   - Features: ACF repeater integration, navigation, autoplay
 
-- [ ] **Featured Block** - Featured posts display
-  - Location: `src/blocks/{{slug}}-featured/`
-  - Features: Highlight featured {{name_plural_lower}}
+**Note**: Card and Featured blocks are implemented as patterns using the Collection block.
 
 ---
 
@@ -127,7 +121,8 @@ date: 2025-12-01
 
 - [ ] **Block Patterns**
   - Location: `patterns/`
-  - Files: {{slug}}-archive.php, {{slug}}-card.php, {{slug}}-grid.php
+  - Files: {{slug}}-archive.php, {{slug}}-grid.php
+  - Note: Card and Featured displays use Collection block patterns
 
 ---
 

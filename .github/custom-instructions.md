@@ -102,10 +102,8 @@ You are an expert WordPress multi-block plugin developer working on {{name}}, a 
 {{slug}}/
 ├── src/
 │   ├── blocks/
-│   │   ├── {{slug}}-card/
 │   │   ├── {{slug}}-collection/
-│   │   ├── {{slug}}-slider/
-│   │   └── {{slug}}-featured/
+│   │   └── {{slug}}-slider/
 │   ├── components/
 │   │   ├── Slider/
 │   │   ├── PostSelector/

@@ -140,10 +140,10 @@ Initial release of the Multi-Block Plugin Scaffold - a comprehensive WordPress p
 
 #### Example Blocks
 
-- **Card Block** - Display single items with featured image, title, excerpt, and custom fields
 - **Collection Block** - Grid/list layouts with pagination, filtering, and query controls
 - **Slider Block** - Carousel with autoplay, navigation, and responsive controls
-- **Featured Block** - Highlight selected items with custom layouts
+
+**Note**: Card and Featured displays are implemented as patterns using the Collection block.
 
 #### Architecture & Infrastructure
 

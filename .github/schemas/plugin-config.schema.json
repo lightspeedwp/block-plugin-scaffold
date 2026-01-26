@@ -682,20 +682,16 @@
             "type": "array",
             "description": "Block types to generate for this plugin",
             "default": [
-                "card",
                 "collection",
-                "slider",
-                "featured"
+                "slider"
             ],
             "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": [
-                    "card",
                     "collection",
                     "slider",
                     "single",
-                    "featured",
                     "archive",
                     "search",
                     "filter"

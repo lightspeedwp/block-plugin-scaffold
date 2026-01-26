@@ -303,11 +303,10 @@ itinerary (repeater)
 
 | Block | Purpose | Included |
 |-------|---------|----------|
-| `{{slug}}-card` | Single post card display | ✓ Default |
 | `{{slug}}-collection` | Query-based post grid | ✓ Default |
 | `{{slug}}-slider` | Carousel display | ✓ Default |
-| `{{slug}}-single` | Full post display | ✓ Default |
-| `{{slug}}-featured` | Featured posts section | ✓ Default |
+
+**Note**: Card and Featured displays are implemented as patterns using the Collection block.
 
 **Block Configuration Options:**
 
@@ -323,9 +322,7 @@ For each block:
 |------|------|----------|
 | Single template | `templates/single-{{slug}}.html` | ✓ Default |
 | Archive template | `templates/archive-{{slug}}.html` | ✓ Default |
-| Card pattern | `patterns/{{slug}}-card.php` | ✓ Default |
 | Grid pattern | `patterns/{{slug}}-grid.php` | ✓ Default |
-| Featured pattern | `patterns/{{slug}}-featured.php` | ✓ Default |
 
 ### Stage 8: Additional Features
 

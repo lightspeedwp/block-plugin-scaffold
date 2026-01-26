@@ -1,8 +1,0 @@
-// Frontend SCSS for {{block_slug}}-card block
-.wp-block-{{namespace}}-{{block_slug}}-card {
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  background: var(--wp--preset--color--base-2, #fff);
-  padding: var(--wp--preset--spacing--10, 1rem);
-  margin-bottom: var(--wp--preset--spacing--20, 1.5rem);
-}

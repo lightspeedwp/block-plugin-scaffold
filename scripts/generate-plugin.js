@@ -299,10 +299,8 @@ function applyDefaults(config) {
 
 	// Default blocks
 	result.blocks = result.blocks || [
-		'card',
 		'collection',
 		'slider',
-		'featured',
 	];
 
 	// Initialize arrays

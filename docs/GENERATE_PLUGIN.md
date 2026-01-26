@@ -599,7 +599,7 @@ Generate a complete tour operator plugin with:
 - Tours custom post type
 - Destination taxonomy
 - Booking fields using core APIs
-- Card and slider blocks
+- Collection and slider blocks
 - Archive and single templates
 ```
 
@@ -1531,7 +1531,7 @@ You can mix formats, but using the new structure is recommended for new plugins.
 
 ```json
 {
-  "blocks": ["card", "collection", "slider"],
+  "blocks": ["collection", "slider"],
   "templates": ["single", "archive"]
 }
 ```

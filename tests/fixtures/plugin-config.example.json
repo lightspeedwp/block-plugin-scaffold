@@ -89,10 +89,8 @@
     }
   ],
   "blocks": [
-    "card",
     "collection",
-    "slider",
-    "featured"
+    "slider"
   ],
   "templates": [
     "single",

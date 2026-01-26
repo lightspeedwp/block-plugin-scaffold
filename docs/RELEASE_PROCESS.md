@@ -493,10 +493,8 @@ A comprehensive WordPress plugin scaffold with dual-mode generation, mustache te
 - CLI interface with JSON mode for automation
 
 #### Example Blocks
-- Card Block - Single item display with custom fields
 - Collection Block - Grid/list with pagination and filtering
 - Slider Block - Responsive carousel with autoplay
-- Featured Block - Highlighted items with custom layouts
 
 #### Development Tools
 - Unit tests across multiple suites

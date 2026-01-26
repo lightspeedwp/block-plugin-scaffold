@@ -57,7 +57,7 @@ The multi-block generator is comprehensive and will guide you through:
 
 **Advanced Prompt Examples:**
 
-- "Generate a block.json with custom attributes and supports for a card block."
+- "Generate a block.json with custom attributes and supports for a collection block."
 - "Create a Playwright E2E test for the collection block."
 - "Refactor this PHP function for security and performance."
 - "Add a repeater field for slider content."

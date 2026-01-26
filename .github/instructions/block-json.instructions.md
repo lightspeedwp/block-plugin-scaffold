@@ -334,7 +334,7 @@ $alignment = $attributes['alignment'] ?? 'left';
 $post_id = $block->context['postId'] ?? get_the_ID();
 
 ?>
-<div class="wp-block-{{namespace}}-{{slug}}-card align<?php echo esc_attr( $alignment ); ?>">
+<div class="wp-block-{{namespace}}-{{slug}}-collection align<?php echo esc_attr( $alignment ); ?>">
     <?php echo wp_kses_post( $content ); ?>
 </div>
 ```

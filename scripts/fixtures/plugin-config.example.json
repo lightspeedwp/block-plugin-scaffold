@@ -93,9 +93,7 @@
     }
   ],
   "blocks": [
-    "card",
     "collection",
-    "slider",
-    "featured"
+    "slider"
   ]
 }
