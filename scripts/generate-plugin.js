@@ -797,6 +797,10 @@ function generatePlugin(config, inPlace = false) {
 	if (fullConfig.post_types && fullConfig.post_types.length > 0) {
 		log('INFO', 'Generating post-type JSON files');
 		generatePostTypeJSONFiles(outputDir, fullConfig);
+		
+		// Generate taxonomy SCF field groups
+		log('INFO', 'Generating taxonomy field groups');
+		generateTaxonomySCFGroups(outputDir, fullConfig);
 	}
 
 	// Generate SCF JSON field group
@@ -909,6 +913,128 @@ function generatePostTypeJSONFiles(outputDir, config) {
 
 	log('INFO', 'Post-type JSON files generated successfully', {
 		filesGenerated: config.post_types.length
+	});
+}
+
+/**
+ * Generate SCF field groups for taxonomies
+ * Creates a field group for each unique taxonomy with default fields (thumbnail_id, subtitle)
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateTaxonomySCFGroups(outputDir, config) {
+	if (!config.post_types || config.post_types.length === 0) {
+		return;
+	}
+
+	// Collect all unique taxonomies from all post types
+	const taxonomyMap = new Map();
+	
+	config.post_types.forEach(postType => {
+		if (!postType.taxonomies || postType.taxonomies.length === 0) {
+			return;
+		}
+
+		postType.taxonomies.forEach(taxonomy => {
+			if (!taxonomy.slug) {
+				return;
+			}
+
+			// Store taxonomy config if not already stored
+			if (!taxonomyMap.has(taxonomy.slug)) {
+				taxonomyMap.set(taxonomy.slug, {
+					slug: taxonomy.slug,
+					label: taxonomy.label || taxonomy.slug,
+					pluralLabel: taxonomy.pluralLabel || taxonomy.label + 's',
+				});
+			}
+		});
+	});
+
+	if (taxonomyMap.size === 0) {
+		log('INFO', 'No taxonomies found, skipping taxonomy field group generation');
+		return;
+	}
+
+	// Ensure scf-json directory exists
+	const scfJsonDir = path.join(outputDir, 'scf-json');
+	if (!fs.existsSync(scfJsonDir)) {
+		fs.mkdirSync(scfJsonDir, { recursive: true });
+		log('INFO', 'Created scf-json directory');
+	}
+
+	// Generate field group for each taxonomy
+	taxonomyMap.forEach((taxonomy, slug) => {
+		const fieldGroup = {
+			key: `group_${slug}_fields`,
+			title: `${taxonomy.label} Fields`,
+			description: `Default fields for ${taxonomy.label} taxonomy terms`,
+			fields: [
+				{
+					key: `field_${slug}_thumbnail_id`,
+					name: 'thumbnail_id',
+					label: 'Thumbnail',
+					type: 'image',
+					instructions: `Featured image for this ${taxonomy.label.toLowerCase()}`,
+					required: 0,
+					wrapper: {
+						width: '50',
+						class: '',
+						id: ''
+					},
+					return_format: 'id',
+					preview_size: 'medium',
+					library: 'all'
+				},
+				{
+					key: `field_${slug}_subtitle`,
+					name: 'subtitle',
+					label: 'Subtitle',
+					type: 'text',
+					instructions: `Short subtitle or tagline for this ${taxonomy.label.toLowerCase()}`,
+					required: 0,
+					wrapper: {
+						width: '50',
+						class: '',
+						id: ''
+					},
+					default_value: '',
+					placeholder: ''
+				}
+			],
+			location: [
+				[
+					{
+						param: 'taxonomy',
+						operator: '==',
+						value: slug
+					}
+				]
+			],
+			menu_order: 0,
+			position: 'normal',
+			style: 'default',
+			label_placement: 'top',
+			instruction_placement: 'label',
+			hide_on_screen: [],
+			active: true
+		};
+
+		const fieldGroupPath = path.join(scfJsonDir, `group_${slug}_fields.json`);
+		fs.writeFileSync(
+			fieldGroupPath,
+			JSON.stringify(fieldGroup, null, 4),
+			'utf8'
+		);
+
+		log('INFO', `Generated taxonomy field group: ${fieldGroupPath}`, {
+			taxonomy: slug,
+			label: taxonomy.label
+		});
+	});
+
+	log('INFO', 'Taxonomy field groups generated successfully', {
+		taxonomiesGenerated: taxonomyMap.size
 	});
 }
 

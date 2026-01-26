@@ -1,23 +1,38 @@
 {
   "key": "group_example_taxonomy_fields",
   "title": "Example: Taxonomy Term Fields",
-  "description": "Example field group demonstrating custom fields for taxonomy terms",
+  "description": "Example field group demonstrating custom fields for taxonomy terms. Includes default fields (thumbnail, subtitle) plus additional custom fields.",
   "fields": [
     {
-      "key": "field_tax_featured_image",
-      "name": "featured_image",
-      "label": "Featured Image",
+      "key": "field_tax_thumbnail",
+      "name": "thumbnail_id",
+      "label": "Thumbnail Image",
       "type": "image",
-      "instructions": "Upload a featured image for this term",
+      "instructions": "Featured image for this taxonomy term",
       "required": 0,
       "wrapper": {
         "width": "50",
         "class": "",
         "id": ""
       },
-      "return_format": "url",
+      "return_format": "id",
       "preview_size": "medium",
       "library": "all"
+    },
+    {
+      "key": "field_tax_subtitle",
+      "name": "subtitle",
+      "label": "Subtitle",
+      "type": "text",
+      "instructions": "Short descriptive subtitle for this term",
+      "required": 0,
+      "wrapper": {
+        "width": "50",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "Enter subtitle..."
     },
     {
       "key": "field_tax_description_extended",
@@ -27,7 +42,7 @@
       "instructions": "Rich text description for this term",
       "required": 0,
       "wrapper": {
-        "width": "50",
+        "width": "100",
         "class": "",
         "id": ""
       },

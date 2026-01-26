@@ -4,7 +4,7 @@ description: Complete examples of Secure Custom Fields (SCF) field group definit
 category: Reference
 type: Examples
 audience: Developers
-date: 2026-01-23
+date: 2026-01-26
 ---
 
 # SCF Field Examples
@@ -14,6 +14,31 @@ This directory contains comprehensive examples of Secure Custom Fields (SCF) fie
 ## ⚠️ Important Note
 
 **These are example files for documentation and reference purposes only.** They are not used by the plugin scaffold directly. When generating a plugin, your actual field groups will be created in the `scf-json/` directory based on your plugin configuration.
+
+## 🎯 Default Taxonomy Fields
+
+All taxonomies registered by the plugin automatically include these meta fields (registered via `class-taxonomy-meta.php`):
+
+| Field | Type | Description | Access Method |
+|-------|------|-------------|---------------|
+| `thumbnail_id` | integer | Attachment ID for taxonomy thumbnail | `Taxonomy_Meta::get_meta($term_id, 'thumbnail_id')` |
+| `thumbnail` | string | URL for taxonomy thumbnail image | `Taxonomy_Meta::get_thumbnail_url($term_id, 'medium')` |
+| `subtitle` | string | Subtitle/tagline for taxonomy term | `Taxonomy_Meta::get_subtitle($term_id)` |
+
+These fields are:
+- Registered for all custom taxonomies defined in post-type JSON files
+- Available in the REST API (`show_in_rest => true`)
+- Properly sanitized and validated
+- Accessible without needing SCF field groups
+
+**Usage Example:**
+```php
+$term_id = get_queried_object_id();
+$thumbnail_url = \{{namespace}}\classes\Taxonomy_Meta::get_thumbnail_url( $term_id, 'large' );
+$subtitle = \{{namespace}}\classes\Taxonomy_Meta::get_subtitle( $term_id );
+```
+
+---
 
 ## Available Examples
 
@@ -106,7 +131,8 @@ Demonstrates complex container and layout fields:
 **File:** [group_example_taxonomy_fields.json](group_example_taxonomy_fields.json)
 
 Demonstrates custom fields attached to taxonomy terms:
-- `image` - Featured image for category/term
+- `thumbnail_id` - Featured image for taxonomy term (uses default field)
+- `subtitle` - Short tagline/description (uses default field)
 - `wysiwyg` - Rich text extended description
 - `color_picker` - Color coding for terms
 - `text` - Icon classes or identifiers
@@ -114,7 +140,21 @@ Demonstrates custom fields attached to taxonomy terms:
 
 **Use cases:** Enhanced taxonomy terms, category metadata, term branding
 
+**Important:** The `thumbnail_id` and `subtitle` fields shown in this example use the default field names that are automatically registered by the `Taxonomy_Meta` class. This ensures consistency and provides built-in getter methods.
+
 **Location rules:** Use `"param": "taxonomy"` with taxonomy slug as value
+
+**Helper functions available:**
+```php
+// Get thumbnail URL at any size
+$thumbnail = \{{namespace}}\classes\Taxonomy_Meta::get_thumbnail_url( $term_id, 'large' );
+
+// Get subtitle
+$subtitle = \{{namespace}}\classes\Taxonomy_Meta::get_subtitle( $term_id );
+
+// Get any meta field
+$value = \{{namespace}}\classes\Taxonomy_Meta::get_meta( $term_id, 'thumbnail_id' );
+```
 
 ---
 
