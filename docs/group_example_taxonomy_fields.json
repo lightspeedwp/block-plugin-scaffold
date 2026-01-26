@@ -1,0 +1,101 @@
+{
+  "key": "group_example_taxonomy_fields",
+  "title": "Example: Taxonomy Term Fields",
+  "description": "Example field group demonstrating custom fields for taxonomy terms",
+  "fields": [
+    {
+      "key": "field_tax_featured_image",
+      "name": "featured_image",
+      "label": "Featured Image",
+      "type": "image",
+      "instructions": "Upload a featured image for this term",
+      "required": 0,
+      "wrapper": {
+        "width": "50",
+        "class": "",
+        "id": ""
+      },
+      "return_format": "url",
+      "preview_size": "medium",
+      "library": "all"
+    },
+    {
+      "key": "field_tax_description_extended",
+      "name": "description_extended",
+      "label": "Extended Description",
+      "type": "wysiwyg",
+      "instructions": "Rich text description for this term",
+      "required": 0,
+      "wrapper": {
+        "width": "50",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "tabs": "all",
+      "toolbar": "full",
+      "media_upload": 1
+    },
+    {
+      "key": "field_tax_color",
+      "name": "term_color",
+      "label": "Term Color",
+      "type": "color_picker",
+      "instructions": "Select a color to represent this term",
+      "required": 0,
+      "wrapper": {
+        "width": "33.33",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "#0073aa"
+    },
+    {
+      "key": "field_tax_icon",
+      "name": "icon_class",
+      "label": "Icon Class",
+      "type": "text",
+      "instructions": "CSS class for icon (e.g., dashicons-category)",
+      "required": 0,
+      "wrapper": {
+        "width": "33.33",
+        "class": "",
+        "id": ""
+      },
+      "default_value": "",
+      "placeholder": "dashicons-category"
+    },
+    {
+      "key": "field_tax_order",
+      "name": "display_order",
+      "label": "Display Order",
+      "type": "number",
+      "instructions": "Order for displaying this term",
+      "required": 0,
+      "wrapper": {
+        "width": "33.33",
+        "class": "",
+        "id": ""
+      },
+      "default_value": 0,
+      "min": 0,
+      "step": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "taxonomy",
+        "operator": "==",
+        "value": "category"
+      }
+    ]
+  ],
+  "menu_order": 0,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": [],
+  "active": true
+}

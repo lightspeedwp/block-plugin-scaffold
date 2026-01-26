@@ -102,6 +102,22 @@ Demonstrates complex container and layout fields:
 
 ---
 
+### Taxonomy Fields
+**File:** [group_example_taxonomy_fields.json](group_example_taxonomy_fields.json)
+
+Demonstrates custom fields attached to taxonomy terms:
+- `image` - Featured image for category/term
+- `wysiwyg` - Rich text extended description
+- `color_picker` - Color coding for terms
+- `text` - Icon classes or identifiers
+- `number` - Custom ordering/sorting
+
+**Use cases:** Enhanced taxonomy terms, category metadata, term branding
+
+**Location rules:** Use `"param": "taxonomy"` with taxonomy slug as value
+
+---
+
 ## Field Group Structure
 
 All SCF field group JSON files follow this structure:
@@ -167,11 +183,63 @@ Field groups can be displayed based on various conditions:
 - `post_format` - Show for specific post formats
 - `post_category` - Show for specific categories
 - `post_taxonomy` - Show for specific taxonomy terms
+- `taxonomy` - Show for specific taxonomy edit screens (e.g., `"category"`, `"post_tag"`, custom taxonomies)
 - `page_template` - Show for specific page templates
 - `page_type` - Show for front page, posts page, etc.
 - `page_parent` - Show for child pages of specific parent
 - `user_role` - Show for specific user roles
 - `user_form` - Show on user add/edit forms
+
+**Taxonomy term field groups:**
+```json
+"location": [
+  [
+    {
+      "param": "taxonomy",
+      "operator": "==",
+      "value": "magazine_issue"
+    }
+  ]
+]
+```
+
+**Multiple conditions (AND):**
+```json
+"location": [
+  [
+    {
+      "param": "post_type",
+      "operator": "==",
+      "value": "product"
+    },
+    {
+      "param": "post_category",
+      "operator": "==",
+      "value": "featured"
+    }
+  ]
+]
+```
+
+**Multiple condition groups (OR):**
+```json
+"location": [
+  [
+    {
+      "param": "post_type",
+      "operator": "==",
+      "value": "post"
+    }
+  ],
+  [
+    {
+      "param": "post_type",
+      "operator": "==",
+      "value": "page"
+    }
+  ]
+]
+```
 
 ## Wrapper Settings
 
