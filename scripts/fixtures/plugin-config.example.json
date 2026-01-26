@@ -91,9 +91,5 @@
         }
       ]
     }
-  ],
-  "blocks": [
-    "collection",
-    "slider"
   ]
 }

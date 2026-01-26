@@ -75,15 +75,9 @@ date: 2025-12-01
 
 ## 5. Block Development
 
-**Status**: 📋 TODO
+**Status**: ❌ REMOVED
 
-- [ ] **Collection Block** - Post query/collection
-  - Location: `src/blocks/{{slug}}-collection/`
-  - Features: Grid/list/slider layouts, taxonomy filtering
-
-- [ ] **Slider Block** - Carousel/slider display
-  - Location: `src/blocks/{{slug}}-slider/`
-  - Features: ACF repeater integration, navigation, autoplay
+**Note**: Block templates have been removed from the scaffold. Implement blocks as patterns or custom code as needed.
 
 **Note**: Card and Featured blocks are implemented as patterns using the Collection block.
 
@@ -122,7 +116,7 @@ date: 2025-12-01
 - [ ] **Block Patterns**
   - Location: `patterns/`
   - Files: {{slug}}-archive.php, {{slug}}-grid.php
-  - Note: Card and Featured displays use Collection block patterns
+  - Note: Implement card and featured displays as patterns
 
 ---
 

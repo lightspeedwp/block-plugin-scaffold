@@ -52,15 +52,14 @@ The multi-block generator is comprehensive and will guide you through:
 
 - Use mustache variables for all plugin and block references
 - Include context (file, feature, or user story) in every prompt
-- Prefer actionable, testable requests (e.g., "Generate a collection block with taxonomy filtering")
+- Prefer actionable, testable requests (e.g., "Generate a custom post type with taxonomy filtering")
 - Reference chat modes for context-specific prompts
 
 **Advanced Prompt Examples:**
 
-- "Generate a block.json with custom attributes and supports for a collection block."
-- "Create a Playwright E2E test for the collection block."
+- "Generate a block.json with custom attributes and supports for a custom block."
+- "Create a Playwright E2E test for a custom block."
 - "Refactor this PHP function for security and performance."
-- "Add a repeater field for slider content."
 - "Configure block bindings for displaying custom fields."
 
 **Best Practices:**

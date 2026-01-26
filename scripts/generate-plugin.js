@@ -297,11 +297,8 @@ function applyDefaults(config) {
 	result.description =
 		result.description || 'A WordPress multi-block plugin.';
 
-	// Default blocks
-	result.blocks = result.blocks || [
-		'collection',
-		'slider',
-	];
+	// Default blocks - no default blocks as templates are removed
+	result.blocks = result.blocks || [];
 
 	// Initialize arrays
 	result.post_types = result.post_types || [];

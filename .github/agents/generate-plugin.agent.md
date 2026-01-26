@@ -301,20 +301,7 @@ itinerary (repeater)
 
 ### Stage 6: Blocks Configuration
 
-| Block | Purpose | Included |
-|-------|---------|----------|
-| `{{slug}}-collection` | Query-based post grid | ✓ Default |
-| `{{slug}}-slider` | Carousel display | ✓ Default |
-
-**Note**: Card and Featured displays are implemented as patterns using the Collection block.
-
-**Block Configuration Options:**
-
-For each block:
-- Category (common, text, media, design, widgets)
-- Icon (dashicon name)
-- Supports (align, anchor, className, color, spacing)
-- Variations (grid, list, slider layouts)
+**Note**: Block templates have been removed from the scaffold. Blocks should be implemented as patterns or custom code.
 
 ### Stage 7: Templates & Patterns
 
@@ -483,9 +470,9 @@ Which blocks do you want?
 
 ### Final Configuration
 
-**User**: "All defaults plus the search block"
+**User**: "All defaults"
 
-**Me**: "Adding search block.
+**Me**: "Using all defaults.
 
 **Final Configuration Summary:**
 
@@ -514,21 +501,14 @@ Fields:
   Repeater: features (feature_name, feature_icon)
 
 Blocks:
-  - real-estate-pro-card
-  - real-estate-pro-collection
-  - real-estate-pro-slider
-  - real-estate-pro-single
-  - real-estate-pro-featured
-  - real-estate-pro-search
+  - None (block templates removed - implement as patterns or custom code)
 
 Templates:
   - single-real-estate-pro.html
   - archive-real-estate-pro.html
 
 Patterns:
-  - real-estate-pro-card.php
   - real-estate-pro-grid.php
-  - real-estate-pro-featured.php
 ```
 
 **Ready to generate?** (yes/no/modify)"

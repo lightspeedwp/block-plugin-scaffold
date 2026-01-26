@@ -88,10 +88,6 @@
       }
     }
   ],
-  "blocks": [
-    "collection",
-    "slider"
-  ],
   "templates": [
     "single",
     "archive"

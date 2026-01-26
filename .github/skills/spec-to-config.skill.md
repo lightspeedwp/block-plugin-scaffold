@@ -152,8 +152,7 @@ const pluginConfig = {
   requires_wp: "6.5",
   requires_php: "8.0",
   license: "GPL-2.0-or-later",
-  post_types: postTypes,
-  blocks: ["collection", "slider"]
+  post_types: postTypes
 };
 ```
 
@@ -240,8 +239,7 @@ The generated config must be valid JSON following the plugin-config.schema.json:
         }
       ]
     }
-  ],
-  "blocks": ["collection", "slider"]
+  ]
 }
 ```
 
