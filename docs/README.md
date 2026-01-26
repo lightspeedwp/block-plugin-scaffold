@@ -36,6 +36,7 @@ This directory contains all documentation for the multi-block plugin scaffold. U
 - **[../.github/instructions/blocks-development.instructions.md](../.github/instructions/blocks-development.instructions.md)** - Block development patterns
 - **[../.github/instructions/patterns-and-templates.instructions.md](../.github/instructions/patterns-and-templates.instructions.md)** - Block patterns and templates
 - **[../.github/instructions/scf-fields.instructions.md](../.github/instructions/scf-fields.instructions.md)** - Secure Custom Fields reference
+- **[SCF-EXAMPLES.md](SCF-EXAMPLES.md)** - SCF field group examples and usage
 
 ### Coding Standards
 

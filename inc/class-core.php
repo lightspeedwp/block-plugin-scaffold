@@ -30,14 +30,11 @@ class Core {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
-		new Post_Types();
-		new Taxonomies();
-		new Fields();
+		new Content_Model_Manager();
 		new Repeater_Fields();
 		new Options();
 		new SCF_JSON();
 		new SCF_JSON_Validator();
-		new Block_Templates();
 		new Block_Bindings();
 		new Block_Styles();
 		new Patterns();
@@ -50,18 +47,17 @@ class Core {
 	 * @return void
 	 */
 	public function load_classes() {
+		// Include Content Model Manager (handles JSON-based post types, taxonomies, and fields).
+		require_once {{namespace|upper}}_DIR . 'inc/class-content-model-manager.php';
+
 		// Include core classes.
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-post-types.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-taxonomies.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-fields.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-repeater-fields.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-options.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json-validator.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-templates.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-bindings.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-styles.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-patterns.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-repeater-fields.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-options.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json-validator.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-block-bindings.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-block-styles.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-patterns.php';
 	}
 
 	/**
@@ -83,7 +79,7 @@ class Core {
 	 */
 	public function register_blocks() {
 		// Auto-register all blocks in build/blocks/ (filtered for flexibility).
-		$default_dir = {{namespace|upper}}_PLUGIN_DIR . 'build/blocks/';
+		$default_dir = {{namespace|upper}}_DIR . 'build/blocks/';
 		$blocks_dir = apply_filters( 'example-plugin_blocks_dir', $default_dir );
 
 		if ( ! is_dir( $blocks_dir ) ) {
@@ -131,7 +127,7 @@ class Core {
 		load_plugin_textdomain(
 			'{{textdomain}}',
 			false,
-			dirname( {{namespace|upper}}_PLUGIN_BASENAME ) . '/languages'
+			dirname( {{namespace|upper}}_BASENAME ) . '/languages'
 		);
 	}
 }

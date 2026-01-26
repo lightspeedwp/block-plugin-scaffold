@@ -1,0 +1,382 @@
+<?php
+/**
+ * Content Model Manager - Handles all JSON-based post types, taxonomies, and fields
+ *
+ * @package {{namespace}}
+ * @since 1.0.0
+ */
+
+namespace {{namespace}}\classes;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Content_Model_Manager class.
+ *
+ * Centralized manager for loading JSON configurations and registering
+ * all post types, taxonomies, and custom fields.
+ */
+class Content_Model_Manager {
+
+	/**
+	 * Holds the loaded post type configurations.
+	 *
+	 * @var array
+	 */
+	private static $configurations = array();
+
+	/**
+	 * Holds mapping of taxonomies to their associated post types.
+	 *
+	 * @var array
+	 */
+	private static $taxonomy_map = array();
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		self::init();
+	}
+
+	/**
+	 * Initialize the content model manager.
+	 *
+	 * @since 1.0.0
+	 */
+	public static function init() {
+		add_action( 'init', array( __CLASS__, 'load_and_register' ), 10 );
+	}
+
+	/**
+	 * Load all JSON configurations and register post types and taxonomies.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function load_and_register() {
+		self::load_configurations();
+		self::build_taxonomy_map();
+		self::register_all_post_types();
+		self::register_all_taxonomies();
+	}
+
+	/**
+	 * Load all JSON configuration files.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private static function load_configurations() {
+		$json_path = dirname( dirname( __FILE__ ) ) . '/post-types/';
+		
+		if ( ! file_exists( $json_path ) ) {
+			return;
+		}
+
+		$json_files = glob( $json_path . '*.json' );
+		
+		if ( empty( $json_files ) ) {
+			return;
+		}
+
+		foreach ( $json_files as $file ) {
+			// Skip schema.json
+			if ( basename( $file ) === 'schema.json' ) {
+				continue;
+			}
+
+			$config = self::load_json_file( $file );
+			
+			if ( $config && isset( $config['slug'] ) ) {
+				self::$configurations[ $config['slug'] ] = $config;
+			}
+		}
+	}
+
+	/**
+	 * Load and parse a JSON file.
+	 *
+	 * @since 1.0.0
+	 * @param string $file Path to JSON file.
+	 * @return array|null Parsed configuration or null on failure.
+	 */
+	private static function load_json_file( $file ) {
+		if ( ! file_exists( $file ) ) {
+			return null;
+		}
+
+		$contents = file_get_contents( $file );
+		
+		if ( false === $contents ) {
+			return null;
+		}
+
+		$config = json_decode( $contents, true );
+		
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			error_log( sprintf( 'JSON decode error in %s: %s', basename( $file ), json_last_error_msg() ) );
+			return null;
+		}
+
+		return $config;
+	}
+
+	/**
+	 * Build mapping of taxonomies to their associated post types.
+	 *
+	 * This scans all configurations and creates a map where each taxonomy
+	 * slug points to an array of post types it should be registered to.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private static function build_taxonomy_map() {
+		self::$taxonomy_map = array();
+
+		if ( empty( self::$configurations ) ) {
+			return;
+		}
+
+		foreach ( self::$configurations as $post_type_slug => $config ) {
+			if ( empty( $config['taxonomies'] ) ) {
+				continue;
+			}
+
+			foreach ( $config['taxonomies'] as $taxonomy_config ) {
+				if ( ! isset( $taxonomy_config['slug'] ) ) {
+					continue;
+				}
+
+				$taxonomy_slug = $taxonomy_config['slug'];
+
+				// Initialize taxonomy entry if not exists
+				if ( ! isset( self::$taxonomy_map[ $taxonomy_slug ] ) ) {
+					self::$taxonomy_map[ $taxonomy_slug ] = array(
+						'config'     => $taxonomy_config,
+						'post_types' => array(),
+					);
+				}
+
+				// Add post type to this taxonomy's list
+				if ( ! in_array( $post_type_slug, self::$taxonomy_map[ $taxonomy_slug ]['post_types'], true ) ) {
+					self::$taxonomy_map[ $taxonomy_slug ]['post_types'][] = $post_type_slug;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Register all post types from loaded configurations.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private static function register_all_post_types() {
+		if ( empty( self::$configurations ) ) {
+			return;
+		}
+
+		foreach ( self::$configurations as $slug => $config ) {
+			self::register_post_type( $slug, $config );
+		}
+	}
+
+	/**
+	 * Register a single post type from configuration.
+	 *
+	 * @since 1.0.0
+	 * @param string $slug Post type slug.
+	 * @param array  $config Post type configuration.
+	 * @return void
+	 */
+	private static function register_post_type( $slug, $config ) {
+		$labels = self::get_post_type_labels( $config );
+
+		$args = array(
+			'labels'             => $labels,
+			'public'             => true,
+			'publicly_queryable' => true,
+			'show_ui'            => true,
+			'show_in_menu'       => true,
+			'show_in_rest'       => true,
+			'query_var'          => true,
+			'rewrite'            => array( 'slug' => $slug ),
+			'capability_type'    => 'post',
+			'has_archive'        => true,
+			'hierarchical'       => false,
+			'menu_position'      => 20,
+			'menu_icon'          => isset( $config['icon'] ) ? 'dashicons-' . $config['icon'] : 'dashicons-admin-post',
+			'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields' ),
+			'template'           => isset( $config['template'] ) ? $config['template'] : array(),
+			'template_lock'      => false,
+		);
+
+		$args = apply_filters( '{{namespace|snakeCase}}_' . $slug . '_post_type_args', $args, $config );
+
+		register_post_type( $slug, $args );
+	}
+
+	/**
+	 * Register all taxonomies from the taxonomy map.
+	 *
+	 * Each taxonomy is registered only once with all its associated post types.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private static function register_all_taxonomies() {
+		if ( empty( self::$taxonomy_map ) ) {
+			return;
+		}
+
+		foreach ( self::$taxonomy_map as $taxonomy_slug => $taxonomy_data ) {
+			self::register_taxonomy( $taxonomy_data['config'], $taxonomy_data['post_types'] );
+		}
+	}
+
+	/**
+	 * Register a single taxonomy from configuration.
+	 *
+	 * @since 1.0.0
+	 * @param array $config Taxonomy configuration.
+	 * @param array $post_types Array of post type slugs to attach taxonomy to.
+	 * @return void
+	 */
+	private static function register_taxonomy( $config, $post_types ) {
+		if ( ! isset( $config['slug'] ) || empty( $post_types ) ) {
+			return;
+		}
+
+		$labels = self::get_taxonomy_labels( $config );
+
+		$args = array(
+			'labels'            => $labels,
+			'hierarchical'      => isset( $config['hierarchical'] ) ? (bool) $config['hierarchical'] : true,
+			'public'            => true,
+			'show_ui'           => true,
+			'show_in_rest'      => true,
+			'show_admin_column' => isset( $config['show_admin_column'] ) ? (bool) $config['show_admin_column'] : true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => $config['slug'] ),
+		);
+
+		$args = apply_filters( '{{namespace|snakeCase}}_' . $config['slug'] . '_taxonomy_args', $args, $config );
+
+		register_taxonomy( $config['slug'], $post_types, $args );
+	}
+
+	/**
+	 * Get all loaded configurations.
+	 *
+	 * @since 1.0.0
+	 * @return array
+	 */
+	public static function get_configurations() {
+		return self::$configurations;
+	}
+
+	/**
+	 * Get the taxonomy map.
+	 *
+	 * Returns mapping of taxonomy slugs to their configurations and associated post types.
+	 *
+	 * @since 1.0.0
+	 * @return array
+	 */
+	public static function get_taxonomy_map() {
+		return self::$taxonomy_map;
+	}
+
+	/**
+	 * Get configuration for a specific post type.
+	 *
+	 * @since 1.0.0
+	 * @param string $slug Post type slug.
+	 * @return array|null Configuration array or null if not found.
+	 */
+	public static function get_configuration( $slug ) {
+		return isset( self::$configurations[ $slug ] ) ? self::$configurations[ $slug ] : null;
+	}
+
+	/**
+	 * Check if configurations are loaded.
+	 *
+	 * @since 1.0.0
+	 * @return bool
+	 */
+	public static function has_configurations() {
+		return ! empty( self::$configurations );
+	}
+
+	/**
+	 * Get post type labels from configuration.
+	 *
+	 * @since 1.0.0
+	 * @param array $config Post type configuration.
+	 * @return array
+	 */
+	private static function get_post_type_labels( $config ) {
+		$singular = isset( $config['label'] ) ? $config['label'] : '';
+		$plural   = isset( $config['pluralLabel'] ) ? $config['pluralLabel'] : $singular . 's';
+
+		return array(
+			'name'                  => $plural,
+			'singular_name'         => $singular,
+			'menu_name'             => $plural,
+			'add_new'               => __( 'Add New', '{{textdomain}}' ),
+			'add_new_item'          => sprintf( __( 'Add New %s', '{{textdomain}}' ), $singular ),
+			'edit_item'             => sprintf( __( 'Edit %s', '{{textdomain}}' ), $singular ),
+			'new_item'              => sprintf( __( 'New %s', '{{textdomain}}' ), $singular ),
+			'view_item'             => sprintf( __( 'View %s', '{{textdomain}}' ), $singular ),
+			'view_items'            => sprintf( __( 'View %s', '{{textdomain}}' ), $plural ),
+			'search_items'          => sprintf( __( 'Search %s', '{{textdomain}}' ), $plural ),
+			'not_found'             => sprintf( __( 'No %s found', '{{textdomain}}' ), strtolower( $plural ) ),
+			'not_found_in_trash'    => sprintf( __( 'No %s found in Trash', '{{textdomain}}' ), strtolower( $plural ) ),
+			'all_items'             => sprintf( __( 'All %s', '{{textdomain}}' ), $plural ),
+			'archives'              => sprintf( __( '%s Archives', '{{textdomain}}' ), $singular ),
+			'attributes'            => sprintf( __( '%s Attributes', '{{textdomain}}' ), $singular ),
+			'insert_into_item'      => sprintf( __( 'Insert into %s', '{{textdomain}}' ), strtolower( $singular ) ),
+			'uploaded_to_this_item' => sprintf( __( 'Uploaded to this %s', '{{textdomain}}' ), strtolower( $singular ) ),
+			'filter_items_list'     => sprintf( __( 'Filter %s list', '{{textdomain}}' ), strtolower( $plural ) ),
+			'items_list_navigation' => sprintf( __( '%s list navigation', '{{textdomain}}' ), $plural ),
+			'items_list'            => sprintf( __( '%s list', '{{textdomain}}' ), $plural ),
+		);
+	}
+
+	/**
+	 * Get taxonomy labels from configuration.
+	 *
+	 * @since 1.0.0
+	 * @param array $config Taxonomy configuration.
+	 * @return array
+	 */
+	private static function get_taxonomy_labels( $config ) {
+		$singular = isset( $config['label'] ) ? $config['label'] : '';
+		$plural   = isset( $config['pluralLabel'] ) ? $config['pluralLabel'] : $singular . 's';
+
+		return array(
+			'name'                       => $plural,
+			'singular_name'              => $singular,
+			'search_items'               => sprintf( __( 'Search %s', '{{textdomain}}' ), $plural ),
+			'popular_items'              => sprintf( __( 'Popular %s', '{{textdomain}}' ), $plural ),
+			'all_items'                  => sprintf( __( 'All %s', '{{textdomain}}' ), $plural ),
+			'edit_item'                  => sprintf( __( 'Edit %s', '{{textdomain}}' ), $singular ),
+			'update_item'                => sprintf( __( 'Update %s', '{{textdomain}}' ), $singular ),
+			'add_new_item'               => sprintf( __( 'Add New %s', '{{textdomain}}' ), $singular ),
+			'new_item_name'              => sprintf( __( 'New %s Name', '{{textdomain}}' ), $singular ),
+			'separate_items_with_commas' => sprintf( __( 'Separate %s with commas', '{{textdomain}}' ), strtolower( $plural ) ),
+			'add_or_remove_items'        => sprintf( __( 'Add or remove %s', '{{textdomain}}' ), strtolower( $plural ) ),
+			'choose_from_most_used'      => sprintf( __( 'Choose from the most used %s', '{{textdomain}}' ), strtolower( $plural ) ),
+			'not_found'                  => sprintf( __( 'No %s found.', '{{textdomain}}' ), strtolower( $plural ) ),
+			'menu_name'                  => $plural,
+		);
+	}
+}
+
+// Initialize the content model manager
+Content_Model_Manager::init();

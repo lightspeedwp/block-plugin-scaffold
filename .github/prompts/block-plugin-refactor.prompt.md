@@ -47,7 +47,7 @@ Your task is to **implement the scaffolding described in `block-plugin.instructi
 
      - Registers at least one example plugin template via `register_block_template()` (WP 6.7+).
      - Reads block markup from `templates/example-archive.html`.
-     - Uses `{{namespace|upper}}_PLUGIN_DIR` for paths.
+     - Uses `{{namespace|upper}}_DIR` for paths.
      - Includes a `function_exists( 'register_block_template' )` guard.
 
 

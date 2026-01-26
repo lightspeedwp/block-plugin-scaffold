@@ -1,8 +1,6 @@
 {
   "slug": "tour-operator",
   "name": "Tour Operator",
-  "name_singular": "Tour",
-  "name_plural": "Tours",
   "description": "A comprehensive tour booking and management plugin with custom post types, taxonomies, custom fields, and multi-block display options.",
   "author": "LightSpeed",
   "author_uri": "https://developer.lsdev.biz",
@@ -12,80 +10,86 @@
   "requires_wp": "6.5",
   "requires_php": "8.0",
   "license": "GPL-2.0-or-later",
-  "cpt_slug": "tour",
-  "cpt_supports": [
-    "title",
-    "editor",
-    "thumbnail",
-    "excerpt",
-    "custom-fields",
-    "revisions"
-  ],
-  "cpt_has_archive": true,
-  "cpt_public": true,
-  "cpt_menu_icon": "dashicons-palmtree",
-  "taxonomies": [
+  "post_types": [
     {
-      "slug": "destination",
-      "singular": "Destination",
-      "plural": "Destinations",
-      "hierarchical": true
-    },
-    {
-      "slug": "travel_style",
-      "singular": "Travel Style",
-      "plural": "Travel Styles",
-      "hierarchical": false
-    }
-  ],
-  "fields": [
-    {
-      "name": "price",
-      "label": "Price per Person",
-      "type": "number",
-      "required": false,
-      "instructions": "Enter the base price for this tour (in your currency)"
-    },
-    {
-      "name": "duration_days",
-      "label": "Duration (Days)",
-      "type": "number",
-      "required": false,
-      "instructions": "Number of days for this tour"
-    },
-    {
-      "name": "group_size",
-      "label": "Group Size",
-      "type": "number",
-      "required": false,
-      "instructions": "Maximum number of people per group"
-    },
-    {
-      "name": "featured",
-      "label": "Featured Tour",
-      "type": "true_false",
-      "required": false,
-      "instructions": "Display this tour in featured sections"
-    },
-    {
-      "name": "gallery",
-      "label": "Tour Photos",
-      "type": "gallery",
-      "required": false,
-      "instructions": "Upload photos to showcase this tour"
-    },
-    {
-      "name": "difficulty",
-      "label": "Difficulty Level",
-      "type": "select",
-      "required": false,
-      "instructions": "Rate the physical difficulty of this tour",
-      "choices": {
-        "easy": "Easy",
-        "moderate": "Moderate",
-        "challenging": "Challenging",
-        "difficult": "Difficult"
-      }
+      "slug": "tour",
+      "singular": "Tour",
+      "plural": "Tours",
+      "supports": [
+        "title",
+        "editor",
+        "thumbnail",
+        "excerpt",
+        "custom-fields",
+        "revisions"
+      ],
+      "has_archive": true,
+      "public": true,
+      "menu_icon": "dashicons-palmtree",
+      "taxonomies": [
+        {
+          "slug": "destination",
+          "singular": "Destination",
+          "plural": "Destinations",
+          "hierarchical": true
+        },
+        {
+          "slug": "travel_style",
+          "singular": "Travel Style",
+          "plural": "Travel Styles",
+          "hierarchical": false
+        }
+      ],
+      "fields": [
+        {
+          "name": "price",
+          "label": "Price per Person",
+          "type": "number",
+          "required": false,
+          "instructions": "Enter the base price for this tour (in your currency)"
+        },
+        {
+          "name": "duration_days",
+          "label": "Duration (Days)",
+          "type": "number",
+          "required": false,
+          "instructions": "Number of days for this tour"
+        },
+        {
+          "name": "group_size",
+          "label": "Group Size",
+          "type": "number",
+          "required": false,
+          "instructions": "Maximum number of people per group"
+        },
+        {
+          "name": "featured",
+          "label": "Featured Tour",
+          "type": "true_false",
+          "required": false,
+          "instructions": "Display this tour in featured sections"
+        },
+        {
+          "name": "gallery",
+          "label": "Tour Photos",
+          "type": "gallery",
+          "required": false,
+          "instructions": "Upload photos to showcase this tour"
+        },
+        {
+          "name": "difficulty",
+          "label": "Difficulty Level",
+          "type": "select",
+          "required": false,
+          "instructions": "Rate the physical difficulty of this tour",
+          "choices": {
+            "easy": "Easy",
+            "moderate": "Moderate",
+            "challenging": "Challenging",
+            "difficult": "Difficult"
+          }
+        }
+      ]
     }
   ],
   "blocks": [
@@ -93,9 +97,5 @@
     "collection",
     "slider",
     "featured"
-  ],
-  "templates": [
-    "single",
-    "archive"
   ]
 }
