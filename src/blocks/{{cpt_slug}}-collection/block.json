@@ -1,6 +1,6 @@
 {
   "apiVersion": 3,
-  "name": "{{namespace}}/{{cpt_slug}}-collection",
+  "name": "{{slug}}/{{block_slug}}-collection",
   "title": "{{cpt_singular|title}} Collection",
   "category": "{{slug}}",
   "icon": "screenoptions",
@@ -40,7 +40,7 @@
     "color": { "background": true, "text": true }
   },
   "providesContext": {
-    "{{namespace}}/collectionType": "collectionType"
+    "{{slug}}/collectionType": "collectionType"
   },
   "usesContext": ["postType", "taxonomy", "queryId"],
   "example": {

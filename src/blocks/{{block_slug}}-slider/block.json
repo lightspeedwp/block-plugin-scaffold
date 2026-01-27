@@ -1,6 +1,6 @@
 {
   "apiVersion": 3,
-  "name": "{{namespace}}/{{block_slug}}-slider",
+  "name": "{{slug}}/{{block_slug}}-slider",
   "title": "{{name|title}} Slider",
   "category": "{{slug}}",
   "icon": "images-alt2",
