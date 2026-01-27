@@ -1,9 +1,9 @@
 {
   "apiVersion": 3,
   "name": "{{slug}}/{{block_slug}}-collection",
-  "title": "{{cpt_singular|title}} Collection",
+  "title": "{{cpt_singular}} Collection",
   "category": "{{slug}}",
-  "icon": "screenoptions",
+  "icon": "{{cpt_icon}}",
   "description": "A collection block for displaying {{cpt_slug}} items. Extensible and supports custom collection registration and DOM events.",
   "keywords": ["collection", "list", "{{cpt_slug}}", "query", "posts", "extensible", "event", "filter", "sort"],
   "textdomain": "{{textdomain}}",
