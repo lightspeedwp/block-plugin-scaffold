@@ -1,9 +1,9 @@
 /**
- * Frontend view script for the {{cpt_slug}}-collection block
+ * Frontend view script for the {{block_slug}}-collection block
  * Handles DOM events and extensibility hooks.
  */
 (function() {
-  const blockSelector = '.wp-block-{{namespace}}-{{cpt_slug}}-collection';
+  const blockSelector = '.wp-block-{{namespace}}-{{block_slug}}-collection';
 
   function triggerEvent(element, eventName, detail = {}) {
     const event = new CustomEvent(eventName, { detail, bubbles: true });

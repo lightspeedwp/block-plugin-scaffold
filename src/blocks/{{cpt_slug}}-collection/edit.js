@@ -46,33 +46,37 @@ export default function Edit({ attributes, setAttributes, context }) {
 	);
 
 	const blockProps = useBlockProps({
-		className: 'wp-block-{{namespace}}-{{cpt_slug}}-collection',
+		className: 'wp-block-{{slug}}-{{block_slug}}-collection',
 	});
 
-	/**
-	 * Block editor logic for the {{cpt_slug}}-collection block
-	 * Extensible, accessible, and event-driven.
-	 */
-	import { __ } from '@wordpress/i18n';
-	import { useBlockProps } from '@wordpress/block-editor';
-	import { useEffect } from '@wordpress/element';
-
-	export default function Edit( { attributes, setAttributes } ) {
-		const blockProps = useBlockProps();
-
-		useEffect( () => {
-			// Example: trigger custom event for extensibility
-			const event = new CustomEvent( 'collectionInit', { detail: { attributes } } );
-			document.dispatchEvent( event );
-		}, [] );
-
-		return (
-			<div { ...blockProps }>
-				{/* Render block controls and preview here */}
-				<p>{ __( 'Collection block preview (editor).', '{{textdomain}}' ) }</p>
-			</div>
-		);
-	}
+	return (
+		<>
+			<InspectorControls>
+				<PanelBody
+					title={__('Collection Settings', '{{textdomain}}')}
+				>
+					<RangeControl
+						label={__('Number of Posts', '{{textdomain}}')}
+						value={postsToShow}
+						onChange={(value) =>
+							setAttributes({ postsToShow: value })
+						}
+						min={1}
+						max={20}
+					/>
+					<RangeControl
+						label={__('Columns', '{{textdomain}}')}
+						value={columns}
+						onChange={(value) =>
+							setAttributes({ columns: value })
+						}
+						min={1}
+						max={6}
+					/>
+					<ToggleControl
+						label={__('Display Featured Image', '{{textdomain}}')}
+						checked={displayFeaturedImage}
+						onChange={(value) =>
 							setAttributes({ displayFeaturedImage: value })
 						}
 					/>
@@ -112,10 +116,10 @@ export default function Edit({ attributes, setAttributes, context }) {
 					posts.map((post) => (
 						<article
 							key={post.id}
-							className="wp-block-{{namespace}}-{{cpt_slug}}-collection__item"
+							className="wp-block-{{slug}}-{{block_slug}}-collection__item"
 						>
 							{displayFeaturedImage && post.featured_media && (
-								<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__image">
+								<div className="wp-block-{{slug}}-{{block_slug}}-collection__image">
 									<img
 										src={
 											post._embedded?.[
@@ -131,22 +135,22 @@ export default function Edit({ attributes, setAttributes, context }) {
 								</div>
 							)}
 							{displayTitle && (
-								<h3 className="wp-block-{{namespace}}-{{cpt_slug}}-collection__title">
+								<h3 className="wp-block-{{slug}}-{{block_slug}}-collection__title">
 									{post.title?.rendered ||
 										__('Untitled', '{{textdomain}}')}
 								</h3>
 							)}
 							{displayExcerpt && (
 								<div
-									className="wp-block-{{namespace}}-{{cpt_slug}}-collection__excerpt"
+									className="wp-block-{{slug}}-{{block_slug}}-collection__excerpt"
 									dangerouslySetInnerHTML={{
 										__html: post.excerpt?.rendered || '',
 									}}
 								/>
 							)}
 							{displayMeta && (
-								<div className="wp-block-{{namespace}}-{{cpt_slug}}-collection__meta">
-									<span className="wp-block-{{namespace}}-{{cpt_slug}}-collection__date">
+								<div className="wp-block-{{slug}}-{{block_slug}}-collection__meta">
+									<span className="wp-block-{{slug}}-{{block_slug}}-collection__date">
 										{new Date(
 											post.date
 										).toLocaleDateString()}
@@ -156,7 +160,7 @@ export default function Edit({ attributes, setAttributes, context }) {
 						</article>
 					))
 				) : (
-					<p className="wp-block-{{namespace}}-{{cpt_slug}}-collection__placeholder">
+					<p className="wp-block-{{slug}}-{{block_slug}}-collection__placeholder">
 						{__('No posts found.', '{{textdomain}}')}
 					</p>
 				)}

@@ -1,7 +1,7 @@
-// Editor SCSS for {{cpt_slug}}-collection block
+// Editor SCSS for {{block_slug}}-collection block
 // Accessible focus states and BEM naming
 
-$wp-block: 'wp-block-{{namespace}}-{{cpt_slug}}-collection';
+$wp-block: 'wp-block-{{namespace}}-{{block_slug}}-collection';
 
 .#{ $wp-block } {
   display: grid;

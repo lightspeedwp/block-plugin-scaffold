@@ -1,9 +1,9 @@
-// Frontend SCSS for {{cpt_slug}}-collection block
+// Frontend SCSS for {{block_slug}}-collection block
 // Accessible, responsive, and theme-friendly
-// Frontend SCSS for {{cpt_slug}}-collection block
+// Frontend SCSS for {{block_slug}}-collection block
 // Accessible, responsive, and theme-friendly
 
-$wp-block: 'wp-block-{{namespace}}-{{cpt_slug}}-collection';
+$wp-block: 'wp-block-{{namespace}}-{{block_slug}}-collection';
 
 .#{ $wp-block } {
   display: grid;

@@ -993,7 +993,13 @@ function generatePerCPTBlocks(outputDir, config) {
 					// Copy and process file - replace first post type slug with current post type
 					let content = fs.readFileSync(srcPath, 'utf8');
 					
+					// Create dasherized versions for block names
+					const firstCPTDasherized = firstPostType.slug.replace(/_/g, '-');
+					const currentCPTDasherized = postType.slug.replace(/_/g, '-');
+					
 					// Replace the first post type's slug with the current post type's slug
+					// Handle both underscore version (for variables) and dash version (for block names)
+					content = content.replace(new RegExp(firstCPTDasherized, 'g'), currentCPTDasherized);
 					content = content.replace(new RegExp(firstPostType.slug, 'g'), postType.slug);
 					content = content.replace(new RegExp(firstPostType.singular, 'g'), postType.singular);
 					content = content.replace(new RegExp(firstPostType.plural, 'g'), postType.plural);

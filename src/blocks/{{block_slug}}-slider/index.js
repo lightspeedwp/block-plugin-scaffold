@@ -1,5 +1,5 @@
 /**
- * {{cpt_singular|title}} Collection Block
+ * {{name|title}} Slider Block
  * 
  * @package {{textdomain}}
  */
@@ -11,7 +11,6 @@ import metadata from './block.json';
 // Import styles
 import './editor.scss';
 import './style.scss';
-import './view.js';
 
 // Register the block
 registerBlockType(metadata.name, {
