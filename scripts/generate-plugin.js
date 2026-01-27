@@ -851,7 +851,12 @@ function generatePlugin(config, inPlace = false) {
 		if (fullConfig.post_types && fullConfig.post_types.length > 0) {
 			log('INFO', 'Generating per-CPT blocks');
 			generatePerCPTBlocks(outputDir, fullConfig);
+			log('INFO', 'Per-CPT block generation completed');
 		}
+		
+		// Generate src/index.js with dynamic block imports
+		log('INFO', 'Generating src/index.js with block imports');
+		generateSrcIndexFile(outputDir, fullConfig);
 	}
 
 	// Generate package.json
@@ -1023,6 +1028,61 @@ function generatePerCPTBlocks(outputDir, config) {
 		templatesProcessed: firstCPTBlocks.length,
 		blocksGenerated: firstCPTBlocks.length * (config.post_types.length - 1),
 		postTypes: config.post_types.map(pt => pt.slug)
+	});
+}
+
+/**
+ * Generate src/index.js with dynamic block imports
+ * Creates the main entry point file with imports for all generated blocks
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateSrcIndexFile(outputDir, config) {
+	const blocksDir = path.join(outputDir, 'src', 'blocks');
+	const indexPath = path.join(outputDir, 'src', 'index.js');
+	
+	if (!fs.existsSync(blocksDir)) {
+		log('WARN', 'Blocks directory not found, skipping src/index.js generation');
+		return;
+	}
+
+	// Get all block directories
+	const blockDirs = fs.readdirSync(blocksDir, { withFileTypes: true })
+		.filter(entry => entry.isDirectory())
+		.map(entry => entry.name)
+		.sort();
+
+	if (blockDirs.length === 0) {
+		log('WARN', 'No blocks found, skipping src/index.js generation');
+		return;
+	}
+
+	// Generate block imports
+	const blockImports = blockDirs
+		.map(blockDir => `import './blocks/${blockDir}';`)
+		.join('\n');
+
+	// Generate the file content
+	const content = `/**
+ * ${config.name} Plugin - Main Entry Point
+ *
+ * Registers all blocks from the blocks directory.
+ *
+ * @package
+ */
+
+// Import blocks.
+${blockImports}
+
+// Import global styles.
+import './scss/style.scss';
+import './scss/editor.scss';
+`;
+
+	fs.writeFileSync(indexPath, content, 'utf8');
+	
+	log('INFO', `Generated src/index.js with ${blockDirs.length} block imports`, {
+		blocks: blockDirs
 	});
 }
 
