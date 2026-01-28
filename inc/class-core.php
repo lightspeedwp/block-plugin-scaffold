@@ -27,6 +27,7 @@ class Core {
 
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'init', array( $this, 'register_blocks' ) );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
@@ -94,6 +95,27 @@ class Core {
 
 		foreach ( $blocks as $block_json ) {
 			register_block_type( dirname( $block_json ) );
+		}
+	}
+
+	/**
+	 * Enqueue editor assets.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function enqueue_editor_assets() {
+		// Enqueue paragraph prefix script.
+		$prefix_script = {{namespace|upper}}_DIR . 'build/js/blocks/paragraph-prefix.js';
+		
+		if ( file_exists( $prefix_script ) ) {
+			wp_enqueue_script(
+				'{{slug}}-paragraph-prefix',
+				{{namespace|upper}}_URL . 'build/js/blocks/paragraph-prefix.js',
+				array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-hooks' ),
+				{{namespace|upper}}_VERSION,
+				true
+			);
 		}
 	}
 

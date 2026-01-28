@@ -1,0 +1,15 @@
+/**
+ * {{cpt_name}} Field Display Block - Frontend Styles
+ *
+ * @package {{namespace}}
+ */
+
+.wp-block-{{slug}}-{{block_slug}}-field-display {
+	.field-display-value {
+		margin: 0;
+		
+		strong {
+			font-weight: 700;
+		}
+	}
+}

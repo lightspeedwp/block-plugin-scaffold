@@ -23,11 +23,22 @@ blockDirs.forEach((blockPath) => {
 	);
 });
 
+// Find all JS files in src/js directory.
+const jsEntries = {};
+const jsDirs = glob.sync('./src/js/**/*.js');
+
+jsDirs.forEach((jsPath) => {
+	const relativePath = path.relative('./src/js', jsPath);
+	const entryName = relativePath.replace(/\.js$/, '');
+	jsEntries[`js/${entryName}`] = path.resolve(process.cwd(), jsPath);
+});
+
 module.exports = {
 	...defaultConfig,
 	entry: {
 		index: path.resolve(process.cwd(), 'src', 'index.js'),
 		...blockEntries,
+		...jsEntries,
 	},
 	output: {
 		filename: '[name].js',

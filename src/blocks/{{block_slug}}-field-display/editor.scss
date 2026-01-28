@@ -1,0 +1,19 @@
+/**
+ * {{cpt_name}} Field Display Block - Editor Styles
+ *
+ * @package {{namespace}}
+ */
+
+.wp-block-{{slug}}-{{block_slug}}-field-display {
+	.field-display-value {
+		margin: 0;
+		padding: 0.5em;
+		background: #f0f0f0;
+		border-left: 3px solid var(--wp--preset--color--primary, #0073aa);
+		border-radius: 2px;
+		
+		strong {
+			font-weight: 700;
+		}
+	}
+}
