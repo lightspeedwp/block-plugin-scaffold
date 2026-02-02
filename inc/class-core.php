@@ -31,7 +31,6 @@ class Core {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
-		new Content_Model_Manager();
 		new Repeater_Fields();
 		new Options();
 		new SCF_JSON();
@@ -48,9 +47,6 @@ class Core {
 	 * @return void
 	 */
 	public function load_classes() {
-		// Include Content Model Manager (handles JSON-based post types, taxonomies, and fields).
-		require_once {{namespace|upper}}_DIR . 'inc/class-content-model-manager.php';
-
 		// Include core classes.
 		require_once {{namespace|upper}}_DIR . 'inc/class-repeater-fields.php';
 		require_once {{namespace|upper}}_DIR . 'inc/class-options.php';
