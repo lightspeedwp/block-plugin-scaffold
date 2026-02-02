@@ -102,7 +102,16 @@ class Core {
 				require_once $render_file;
 			}
 			
-			register_block_type( $block_dir );
+			// Read block.json to get render callback.
+			$block_metadata = json_decode( file_get_contents( $block_json ), true );
+			$args = array();
+			
+			// If render callback is specified, add it.
+			if ( ! empty( $block_metadata['render'] ) && is_string( $block_metadata['render'] ) && function_exists( $block_metadata['render'] ) ) {
+				$args['render_callback'] = $block_metadata['render'];
+			}
+			
+			register_block_type( $block_dir, $args );
 		}
 	}
 

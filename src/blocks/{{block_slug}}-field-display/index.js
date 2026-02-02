@@ -101,4 +101,5 @@ const Edit = (props) => {
 registerBlockType(metadata.name, {
 	...metadata,
 	edit: Edit,
+	save: () => null, // Dynamic block - uses PHP render callback
 });
