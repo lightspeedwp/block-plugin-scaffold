@@ -9,7 +9,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, TextControl, ToggleControl } from '@wordpress/components';
+import { PanelBody, TextControl, ToggleControl, RadioControl, SelectControl } from '@wordpress/components';
 import { useEntityProp } from '@wordpress/core-data';
 
 import './editor.scss';
@@ -24,8 +24,19 @@ import metadata from './block.json';
  */
 const Edit = (props) => {
 	const { attributes, setAttributes, context } = props;
-	const { fieldKey, prefix, prefixBold, fallbackText } = attributes;
+	const { fieldKey, prefix, prefixBold, fallbackText, iconType, iconName } = attributes;
 	const { postId, postType } = context;
+
+	// Icon types and names - this should match your icon library structure
+	const iconTypes = ['outline', 'solid'];
+	const iconNames = [
+		{ label: __('None', '{{textdomain}}'), value: '' },
+		{ label: __('Check In', '{{textdomain}}'), value: 'checkInAccommodationIcon' },
+		{ label: __('Check Out', '{{textdomain}}'), value: 'checkOutAccommodationIcon' },
+		{ label: __('Clock', '{{textdomain}}'), value: 'clockIcon' },
+		{ label: __('Calendar', '{{textdomain}}'), value: 'calendarIcon' },
+		{ label: __('Person', '{{textdomain}}'), value: 'personIcon' },
+	];
 
 	const blockProps = useBlockProps({
 		className: 'wp-block-{{slug}}-{{block_slug}}-field-display',
@@ -72,6 +83,26 @@ const Edit = (props) => {
 						onChange={(value) => setAttributes({ fallbackText: value })}
 						help={__('Text to display when field is empty.', '{{textdomain}}')}
 					/>
+				</PanelBody>
+				<PanelBody title={__('Icon Settings', '{{textdomain}}')} initialOpen={false}>
+					<SelectControl
+						label={__('Icon', '{{textdomain}}')}
+						value={iconName}
+						onChange={(value) => setAttributes({ iconName: value })}
+						options={iconNames}
+						help={__('Select an icon to display before the field value.', '{{textdomain}}')}
+					/>
+					{iconName && (
+						<RadioControl
+							label={__('Icon Type', '{{textdomain}}')}
+							selected={iconType}
+							onChange={(value) => setAttributes({ iconType: value })}
+							options={iconTypes.map((type) => ({
+								label: type.charAt(0).toUpperCase() + type.slice(1),
+								value: type,
+							}))}
+						/>
+					)}
 				</PanelBody>
 				<PanelBody title={__('Prefix Settings', '{{textdomain}}')} initialOpen={false}>
 					<TextControl

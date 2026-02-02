@@ -27,6 +27,9 @@ define( '{{namespace|upper}}_DIR', plugin_dir_path( __FILE__ ) );
 define( '{{namespace|upper}}_URL', plugin_dir_url( __FILE__ ) );
 define( '{{namespace|upper}}_BASENAME', plugin_basename( __FILE__ ) );
 
+// Include helper functions.
+require_once {{namespace|upper}}_DIR . 'inc/helper-functions.php';
+
 // Include the Core class.
 require_once {{namespace|upper}}_DIR . 'inc/class-core.php';
 

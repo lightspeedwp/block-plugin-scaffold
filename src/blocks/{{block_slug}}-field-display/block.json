@@ -51,6 +51,14 @@
 		"fallbackText": {
 			"type": "string",
 			"default": ""
+		},
+		"iconType": {
+			"type": "string",
+			"default": "outline"
+		},
+		"iconName": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"usesContext": [

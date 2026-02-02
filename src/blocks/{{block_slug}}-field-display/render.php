@@ -31,6 +31,8 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 		$prefix        = isset( $attributes['prefix'] ) ? $attributes['prefix'] : '';
 		$prefix_bold   = isset( $attributes['prefixBold'] ) ? (bool) $attributes['prefixBold'] : false;
 		$fallback_text = isset( $attributes['fallbackText'] ) ? $attributes['fallbackText'] : '';
+		$icon_type     = isset( $attributes['iconType'] ) ? sanitize_key( $attributes['iconType'] ) : 'outline';
+		$icon_name     = isset( $attributes['iconName'] ) ? preg_replace( '/[^a-zA-Z0-9]/', '', $attributes['iconName'] ) : '';
 
 		if ( empty( $field_key ) ) {
 			return '';
@@ -72,7 +74,7 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 		}
 
 		// Build wrapper classes.
-		$wrapper_classes = array( 'wp-block-{{slug}}-{{block_slug}}-field-display' );
+		$wrapper_classes = array( 'wp-block-{{slug}}-{{block_slug}}-field-display', 'wp-block-group', 'is-layout-flex', 'is-nowrap' );
 		if ( ! empty( $attributes['className'] ) ) {
 			$wrapper_classes[] = esc_attr( $attributes['className'] );
 		}
@@ -80,13 +82,36 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 			$wrapper_classes[] = 'align' . esc_attr( $attributes['align'] );
 		}
 
-		// Build output.
+		// Start building the output.
 		$output = sprintf(
-			'<div class="%s"><p class="field-display-value">%s%s</p></div>',
-			esc_attr( implode( ' ', $wrapper_classes ) ),
+			'<div class="%s" style="flex-wrap: nowrap; vertical-align: top;">',
+			esc_attr( implode( ' ', $wrapper_classes ) )
+		);
+
+		// Add icon block if icon is selected.
+		if ( ! empty( $icon_name ) && function_exists( '{{namespace|snakeCase}}_get_icon_svg' ) ) {
+			$svg_content = {{namespace|snakeCase}}_get_icon_svg( $icon_type, $icon_name );
+			if ( ! empty( $svg_content ) ) {
+				$output .= sprintf(
+					'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap; vertical-align: middle;">
+						<span class="block-icon-svg" style="font-size: inherit; display: inline-block;">%s</span>
+					</div>',
+					$svg_content // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content is sanitized in {{namespace|snakeCase}}_get_icon_svg().
+				);
+			}
+		}
+
+		// Add paragraph block with prefix and field value.
+		$output .= sprintf(
+			'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap;">
+				<p class="field-display-value">%s%s</p>
+			</div>',
 			$prefix_html,
 			esc_html( $field_value )
 		);
+
+		// Close wrapper.
+		$output .= '</div>';
 
 		return $output;
 	}
