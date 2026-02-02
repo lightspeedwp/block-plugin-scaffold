@@ -830,6 +830,7 @@ function generatePlugin(config, inPlace = false) {
 		'scripts',
 		'bin',
 		'.dry-run-backup',
+		'plugin-config.json',
 	];
 
 	// Copy scaffold files with mustache replacement
@@ -1004,9 +1005,14 @@ function generatePerCPTBlocks(outputDir, config) {
 					const firstCPTDasherized = firstPostType.slug.replace(/_/g, '-');
 					const currentCPTDasherized = postType.slug.replace(/_/g, '-');
 					
+					// Create snake_case versions for function names
+					const firstCPTSnakeCase = firstPostType.slug.replace(/-/g, '_');
+					const currentCPTSnakeCase = postType.slug.replace(/-/g, '_');
+					
 					// Replace the first post type's slug with the current post type's slug
 					// Handle both underscore version (for variables) and dash version (for block names)
 					content = content.replace(new RegExp(firstCPTDasherized, 'g'), currentCPTDasherized);
+					content = content.replace(new RegExp(firstCPTSnakeCase, 'g'), currentCPTSnakeCase);
 					content = content.replace(new RegExp(firstPostType.slug, 'g'), postType.slug);
 					content = content.replace(new RegExp(firstPostType.singular, 'g'), postType.singular);
 					content = content.replace(new RegExp(firstPostType.plural, 'g'), postType.plural);
