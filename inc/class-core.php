@@ -94,7 +94,15 @@ class Core {
 		}
 
 		foreach ( $blocks as $block_json ) {
-			register_block_type( dirname( $block_json ) );
+			$block_dir = dirname( $block_json );
+			
+			// Load render.php if it exists.
+			$render_file = $block_dir . '/render.php';
+			if ( file_exists( $render_file ) ) {
+				require_once $render_file;
+			}
+			
+			register_block_type( $block_dir );
 		}
 	}
 
