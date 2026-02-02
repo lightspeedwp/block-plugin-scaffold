@@ -31,7 +31,6 @@ class Core {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
-		new Content_Model_Manager();
 		new Repeater_Fields();
 		new Options();
 		new SCF_JSON();
@@ -48,9 +47,6 @@ class Core {
 	 * @return void
 	 */
 	public function load_classes() {
-		// Include Content Model Manager (handles JSON-based post types, taxonomies, and fields).
-		require_once {{namespace|upper}}_DIR . 'inc/class-content-model-manager.php';
-
 		// Include core classes.
 		require_once {{namespace|upper}}_DIR . 'inc/class-repeater-fields.php';
 		require_once {{namespace|upper}}_DIR . 'inc/class-options.php';
@@ -94,7 +90,24 @@ class Core {
 		}
 
 		foreach ( $blocks as $block_json ) {
-			register_block_type( dirname( $block_json ) );
+			$block_dir = dirname( $block_json );
+			
+			// Load render.php if it exists.
+			$render_file = $block_dir . '/render.php';
+			if ( file_exists( $render_file ) ) {
+				require_once $render_file;
+			}
+			
+			// Read block.json to get render callback.
+			$block_metadata = json_decode( file_get_contents( $block_json ), true );
+			$args = array();
+			
+			// If render callback is specified, add it.
+			if ( ! empty( $block_metadata['render'] ) && is_string( $block_metadata['render'] ) && function_exists( $block_metadata['render'] ) ) {
+				$args['render_callback'] = $block_metadata['render'];
+			}
+			
+			register_block_type( $block_dir, $args );
 		}
 	}
 

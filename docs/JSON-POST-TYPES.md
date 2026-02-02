@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation adds a JSON-based loading system for WordPress post types, taxonomies, and custom fields to the Block Plugin Scaffold. The system is inspired by the [Tour Operator content models system](https://github.com/lightspeedwp/tour-operator/tree/develop/plugins/content-models) and provides a declarative way to define content structures.
+This implementation uses Secure Custom Fields (SCF) to register all post types, taxonomies, and custom fields, driven by JSON files. The system is inspired by the [Tour Operator content models system](https://github.com/lightspeedwp/tour-operator/tree/develop/plugins/content-models) and provides a declarative way to define content structures.
 
 ## Features
 
@@ -18,17 +18,14 @@ This implementation adds a JSON-based loading system for WordPress post types, t
 
 ```
 block-plugin-scaffold/
-├── post-types/
-│   ├── README.md           # Documentation for JSON configurations
-│   ├── schema.json         # JSON Schema for validation
-│   └── {{slug}}.json       # Example post type with mustache placeholders
+├── scf-json/
+│   ├── posttype_{slug}.json      # Individual post type config
+│   ├── taxonomy_{slug}.json      # Individual taxonomy config
+│   └── group_{slug}_fields.json  # Individual field group config
 ├── inc/
-│   ├── class-json-loader.php    # JSON loading and parsing
-│   ├── class-post-types.php     # Post type registration (updated)
-│   ├── class-taxonomies.php     # Taxonomy registration (updated)
-│   └── class-fields.php         # Fields registration (updated)
+│   └── class-json-loader.php     # JSON loading and parsing (no registration)
 └── scripts/
-    └── validate-post-types.js   # JSON validation script
+  └── generate-plugin.js        # Plugin generator script
 ```
 
 ### Components

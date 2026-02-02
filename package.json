@@ -65,14 +65,14 @@
 		"ajv-formats": "3.0.1",
 		"axe-core": "^4.10.2",
 		"axe-playwright": "^2.0.3",
-		"glob": "10.5.0",
 		"gray-matter": "^4.0.3",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
 		"playwright": "1.57.0",
 		"puppeteer-core": "21.5.2",
 		"size-limit": "^11.1.6",
-		"webpack-bundle-analyzer": "^4.10.2"
+		"webpack-bundle-analyzer": "^4.10.2",
+		"glob": "13.0.0"
 	},
 	"scripts": {
 		"build": "node scripts/build.js",

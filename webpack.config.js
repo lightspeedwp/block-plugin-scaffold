@@ -8,6 +8,7 @@
 
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Find all block entry points.
 const glob = require('glob');
@@ -55,4 +56,18 @@ module.exports = {
 			'@utils': path.resolve(process.cwd(), 'src', 'utils'),
 		},
 	},
+	plugins: [
+		...defaultConfig.plugins,
+		new CopyWebpackPlugin({
+			patterns: [
+				{
+					from: 'src/blocks/*/render.php',
+					to: ({ context, absoluteFilename }) => {
+						const blockName = path.basename(path.dirname(absoluteFilename));
+						return `blocks/${blockName}/render.php`;
+					},
+				},
+			],
+		}),
+	],
 };

@@ -437,6 +437,7 @@ function applyDefaults(config) {
 	if (result.post_types.length > 0) {
 		const firstPostType = result.post_types[0];
 		result.cpt_slug = firstPostType.slug;
+		result.cpt_name = firstPostType.singular; // Display name for the post type
 		result.block_slug = firstPostType.slug.replace(/_/g, '-'); // Dasherized version for block names
 		result.name_singular = firstPostType.singular;
 		result.name_plural = firstPostType.plural;
@@ -961,6 +962,7 @@ function generatePerCPTBlocks(outputDir, config) {
 			const blockConfig = {
 				...config,
 				cpt_slug: postType.slug,
+				cpt_name: postType.singular, // Display name for the post type
 				block_slug: postType.slug.replace(/_/g, '-'), // Dasherized version for block names
 				cpt_singular: postType.singular,
 				cpt_plural: postType.plural,
@@ -1097,310 +1099,177 @@ function generatePostTypeJSONFiles(outputDir, config) {
 		return;
 	}
 
-	log('INFO', 'Generating post-type JSON files', {
+	log('INFO', 'Generating post-type JSON files in scf-json/', {
 		postTypeCount: config.post_types.length
 	});
 
-	const postTypesDir = path.join(outputDir, 'post-types');
-	if (!fs.existsSync(postTypesDir)) {
-		fs.mkdirSync(postTypesDir, { recursive: true });
-		log('INFO', 'Created post-types directory');
-	}
-
-	// Generate a JSON file for each post type
-	config.post_types.forEach((postType) => {
-		const postTypeJson = {
-			slug: postType.slug,
-			label: postType.singular,
-			pluralLabel: postType.plural,
-			icon: postType.menu_icon || 'dashicons-admin-post',
-			supports: postType.supports || ['title', 'editor', 'thumbnail'],
-			has_archive: postType.has_archive !== false,
-			hierarchical: postType.hierarchical || false,
-			rewrite: postType.slug,
-			template: [[`${config.namespace}/${postType.slug}-single`]],
-			fields: [],
-			taxonomies: []
-		};
-
-		// Add fields from top-level fields array
-		const fieldGroup = config.fields?.find(f => f.post_type === postType.slug);
-		if (fieldGroup && fieldGroup.field_group && fieldGroup.field_group.length > 0) {
-			postTypeJson.fields = fieldGroup.field_group.map(field => ({
-				slug: `${config.namespace}_${field.name}`,
-				type: field.type,
-				label: field.label,
-				description: field.instructions || '',
-				required: field.required || false,
-				placeholder: field.placeholder || '',
-				default_value: field.default_value,
-				choices: field.choices,
-				return_format: field.return_format,
-				min: field.min,
-				max: field.max,
-				step: field.step
-			}));
-		}
-
-		// Add taxonomies - resolve from top-level taxonomies array or use embedded slugs
-		if (postType.taxonomies && postType.taxonomies.length > 0) {
-			postTypeJson.taxonomies = postType.taxonomies.map(taxSlug => {
-				// Find in top-level taxonomies array
-				const taxDef = config.taxonomies?.find(t => t.slug === taxSlug);
-				if (taxDef) {
-					return {
-						slug: taxDef.slug,
-						label: taxDef.singular,
-						pluralLabel: taxDef.plural,
-						hierarchical: taxDef.hierarchical !== false
-					};
-				}
-				// Fallback if taxonomy not found in top-level array
-				return {
-					slug: taxSlug,
-					label: taxSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-					pluralLabel: taxSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + 's',
-					hierarchical: true
-				};
-			});
-		}
-
-		// Write the JSON file
-		const filePath = path.join(postTypesDir, `${postType.slug}.json`);
-		fs.writeFileSync(
-			filePath,
-			JSON.stringify(postTypeJson, null, 2),
-			'utf8'
-		);
-
-		log('INFO', `Generated post-type JSON: ${filePath}`, {
-			slug: postType.slug,
-			fieldCount: postTypeJson.fields.length,
-			taxonomyCount: postTypeJson.taxonomies.length
-		});
-	});
-
-	log('INFO', 'Post-type JSON files generated successfully', {
-		filesGenerated: config.post_types.length
-	});
-}
-
-/**
- * Generate SCF field groups for taxonomies
- * Creates a field group for each unique taxonomy with default fields (thumbnail_id, subtitle)
- * Uses top-level taxonomies array if available, otherwise extracts from post types
- * @param {string} outputDir - Output directory path
- * @param {Object} config - Plugin configuration
- */
-function generateTaxonomySCFGroups(outputDir, config) {
-	// Use top-level taxonomies array if available
-	if (config.taxonomies && config.taxonomies.length > 0) {
-		const scfJsonDir = path.join(outputDir, 'scf-json');
-		if (!fs.existsSync(scfJsonDir)) {
-			fs.mkdirSync(scfJsonDir, { recursive: true });
-			log('INFO', 'Created scf-json directory');
-		}
-
-		// Generate field group for each taxonomy
-		config.taxonomies.forEach(taxonomy => {
-			const fieldGroup = {
-				key: `group_${taxonomy.slug}_fields`,
-				title: `${taxonomy.singular} Fields`,
-				description: `Default fields for ${taxonomy.singular} taxonomy terms`,
-				fields: [
-					{
-						key: `field_${taxonomy.slug}_thumbnail_id`,
-						name: 'thumbnail_id',
-						label: 'Thumbnail',
-						type: 'image',
-						instructions: `Featured image for this ${taxonomy.singular.toLowerCase()}`,
-						required: 0,
-						wrapper: {
-							width: '50',
-							class: '',
-							id: ''
-						},
-						return_format: 'id',
-						preview_size: 'medium',
-						library: 'all'
-					},
-					{
-						key: `field_${taxonomy.slug}_subtitle`,
-						name: 'subtitle',
-						label: 'Subtitle',
-						type: 'text',
-						instructions: `Short subtitle or tagline for this ${taxonomy.singular.toLowerCase()}`,
-						required: 0,
-						wrapper: {
-							width: '50',
-							class: '',
-							id: ''
-						},
-						default_value: '',
-						placeholder: ''
-					}
-				],
-				location: [
-					[
-						{
-							param: 'taxonomy',
-							operator: '==',
-							value: taxonomy.slug
-						}
-					]
-				],
-				menu_order: 0,
-				position: 'normal',
-				style: 'default',
-				label_placement: 'top',
-				instruction_placement: 'label',
-				hide_on_screen: [],
-				active: true
-			};
-
-			const fieldGroupPath = path.join(scfJsonDir, `group_${taxonomy.slug}_fields.json`);
-			fs.writeFileSync(
-				fieldGroupPath,
-				JSON.stringify(fieldGroup, null, 4),
-				'utf8'
-			);
-
-			log('INFO', `Generated taxonomy field group: ${fieldGroupPath}`, {
-				taxonomy: taxonomy.slug,
-				label: taxonomy.singular
-			});
-		});
-
-		log('INFO', 'Taxonomy field groups generated successfully', {
-			taxonomiesGenerated: config.taxonomies.length
-		});
-		return;
-	}
-
-	// Fallback: Extract from post types (legacy format)
-	if (!config.post_types || config.post_types.length === 0) {
-		return;
-	}
-
-	// Collect all unique taxonomies from all post types
-	const taxonomyMap = new Map();
-	
-	config.post_types.forEach(postType => {
-		if (!postType.taxonomies || postType.taxonomies.length === 0) {
-			return;
-		}
-
-		postType.taxonomies.forEach(taxonomy => {
-			// Handle both string slugs and taxonomy objects
-			let taxSlug, taxLabel, taxPlural;
-			
-			if (typeof taxonomy === 'string') {
-				taxSlug = taxonomy;
-				taxLabel = taxonomy.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-				taxPlural = taxLabel + 's';
-			} else if (taxonomy && typeof taxonomy === 'object' && taxonomy.slug) {
-				taxSlug = taxonomy.slug;
-				taxLabel = taxonomy.singular || taxonomy.label || taxonomy.slug;
-				taxPlural = taxonomy.plural || taxonomy.pluralLabel || taxLabel + 's';
-			} else {
-				return;
-			}
-
-			// Store taxonomy config if not already stored
-			if (!taxonomyMap.has(taxSlug)) {
-				taxonomyMap.set(taxSlug, {
-					slug: taxSlug,
-					label: taxLabel,
-					pluralLabel: taxPlural,
-				});
-			}
-		});
-	});
-
-	if (taxonomyMap.size === 0) {
-		log('INFO', 'No taxonomies found, skipping taxonomy field group generation');
-		return;
-	}
-
-	// Ensure scf-json directory exists
 	const scfJsonDir = path.join(outputDir, 'scf-json');
 	if (!fs.existsSync(scfJsonDir)) {
 		fs.mkdirSync(scfJsonDir, { recursive: true });
 		log('INFO', 'Created scf-json directory');
 	}
 
-	// Generate field group for each taxonomy
-	taxonomyMap.forEach((taxonomy, slug) => {
-		const fieldGroup = {
-			key: `group_${slug}_fields`,
-			title: `${taxonomy.label} Fields`,
-			description: `Default fields for ${taxonomy.label} taxonomy terms`,
-			fields: [
-				{
-					key: `field_${slug}_thumbnail_id`,
-					name: 'thumbnail_id',
-					label: 'Thumbnail',
-					type: 'image',
-					instructions: `Featured image for this ${taxonomy.label.toLowerCase()}`,
-					required: 0,
-					wrapper: {
-						width: '50',
-						class: '',
-						id: ''
-					},
-					return_format: 'id',
-					preview_size: 'medium',
-					library: 'all'
-				},
-				{
-					key: `field_${slug}_subtitle`,
-					name: 'subtitle',
-					label: 'Subtitle',
-					type: 'text',
-					instructions: `Short subtitle or tagline for this ${taxonomy.label.toLowerCase()}`,
-					required: 0,
-					wrapper: {
-						width: '50',
-						class: '',
-						id: ''
-					},
-					default_value: '',
-					placeholder: ''
-				}
-			],
-			location: [
-				[
-					{
-						param: 'taxonomy',
-						operator: '==',
-						value: slug
-					}
-				]
-			],
+	// Generate SCF-formatted JSON file for each post type
+	config.post_types.forEach((postType) => {
+		// Create SCF post type format
+		const scfPostType = {
+			key: `post_type_${postType.slug}`,
+			title: postType.singular,
+			post_type: postType.slug,
 			menu_order: 0,
-			position: 'normal',
-			style: 'default',
-			label_placement: 'top',
-			instruction_placement: 'label',
-			hide_on_screen: [],
-			active: true
+			active: true,
+			public: postType.public !== false,
+			hierarchical: postType.hierarchical || false,
+			exclude_from_search: false,
+			publicly_queryable: true,
+			show_ui: true,
+			show_in_menu: true,
+			show_in_nav_menus: true,
+			show_in_rest: true,
+			rest_base: postType.slug + 's',
+			rest_controller_class: '',
+			menu_position: 20,
+			menu_icon: postType.menu_icon || 'dashicons-admin-post',
+			capability_type: 'post',
+			supports: postType.supports || ['title', 'editor', 'thumbnail'],
+			taxonomies: postType.taxonomies || [],
+			has_archive: postType.has_archive !== false,
+			rewrite: {
+				slug: postType.slug,
+				with_front: true
+			},
+			can_export: true,
+			delete_with_user: false,
+			labels: {
+				name: postType.plural,
+				singular_name: postType.singular,
+				menu_name: postType.plural,
+				all_items: `All ${postType.plural}`,
+				add_new: 'Add New',
+				add_new_item: `Add New ${postType.singular}`,
+				edit_item: `Edit ${postType.singular}`,
+				new_item: `New ${postType.singular}`,
+				view_item: `View ${postType.singular}`,
+				view_items: `View ${postType.plural}`,
+				search_items: `Search ${postType.plural}`,
+				not_found: `No ${postType.plural.toLowerCase()} found`,
+				not_found_in_trash: `No ${postType.plural.toLowerCase()} found in Trash`,
+				archives: `${postType.singular} Archives`,
+				attributes: `${postType.singular} Attributes`,
+				insert_into_item: `Insert into ${postType.singular.toLowerCase()}`,
+				uploaded_to_this_item: `Uploaded to this ${postType.singular.toLowerCase()}`,
+				filter_items_list: `Filter ${postType.plural.toLowerCase()} list`,
+				items_list_navigation: `${postType.plural} list navigation`,
+				items_list: `${postType.plural} list`
+			}
 		};
 
-		const fieldGroupPath = path.join(scfJsonDir, `group_${slug}_fields.json`);
+		// Write SCF-formatted JSON file
+		const filePath = path.join(scfJsonDir, `post-type-${postType.slug}.json`);
 		fs.writeFileSync(
-			fieldGroupPath,
-			JSON.stringify(fieldGroup, null, 4),
+			filePath,
+			JSON.stringify(scfPostType, null, '\t'),
 			'utf8'
 		);
 
-		log('INFO', `Generated taxonomy field group: ${fieldGroupPath}`, {
-			taxonomy: slug,
-			label: taxonomy.label
+		log('INFO', `Generated post-type JSON: ${filePath}`, {
+			slug: postType.slug
 		});
 	});
 
-	log('INFO', 'Taxonomy field groups generated successfully', {
-		taxonomiesGenerated: taxonomyMap.size
+	log('INFO', 'Post-type JSON files generated successfully in scf-json/', {
+		filesGenerated: config.post_types.length
+	});
+}
+
+/**
+ * Generate SCF field groups for taxonomies
+ * Creates SCF-formatted taxonomy JSON files that SCF will use to register taxonomies
+ * Uses top-level taxonomies array
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateTaxonomySCFGroups(outputDir, config) {
+	// Use top-level taxonomies array if available
+	if (!config.taxonomies || config.taxonomies.length === 0) {
+		log('INFO', 'No taxonomies defined, skipping taxonomy JSON generation');
+		return;
+	}
+
+	const scfJsonDir = path.join(outputDir, 'scf-json');
+	if (!fs.existsSync(scfJsonDir)) {
+		fs.mkdirSync(scfJsonDir, { recursive: true });
+		log('INFO', 'Created scf-json directory');
+	}
+
+	// Generate SCF-formatted JSON file for each taxonomy
+	config.taxonomies.forEach((taxonomy) => {
+		// Create SCF taxonomy format
+		const scfTaxonomy = {
+			key: `taxonomy_${taxonomy.slug}`,
+			title: taxonomy.singular,
+			taxonomy: taxonomy.slug,
+			menu_order: 0,
+			active: true,
+			object_type: taxonomy.post_types || [],
+			public: true,
+			publicly_queryable: true,
+			hierarchical: taxonomy.hierarchical !== false,
+			show_ui: true,
+			show_in_menu: true,
+			show_in_nav_menus: true,
+			show_in_rest: true,
+			rest_base: taxonomy.slug + 's',
+			rest_controller_class: '',
+			show_tagcloud: true,
+			show_in_quick_edit: true,
+			show_admin_column: true,
+			labels: {
+				name: taxonomy.plural,
+				singular_name: taxonomy.singular,
+				menu_name: taxonomy.plural,
+				search_items: `Search ${taxonomy.plural}`,
+				all_items: `All ${taxonomy.plural}`,
+				edit_item: `Edit ${taxonomy.singular}`,
+				update_item: `Update ${taxonomy.singular}`,
+				add_new_item: `Add New ${taxonomy.singular}`,
+				new_item_name: `New ${taxonomy.singular} Name`
+			},
+			rewrite: {
+				slug: taxonomy.slug,
+				with_front: true,
+				hierarchical: taxonomy.hierarchical !== false
+			}
+		};
+
+		// Add hierarchical-specific labels
+		if (taxonomy.hierarchical) {
+			scfTaxonomy.labels.parent_item = `Parent ${taxonomy.singular}`;
+			scfTaxonomy.labels.parent_item_colon = `Parent ${taxonomy.singular}:`;
+		} else {
+			// Add non-hierarchical specific labels
+			scfTaxonomy.labels.popular_items = `Popular ${taxonomy.plural}`;
+			scfTaxonomy.labels.separate_items_with_commas = `Separate ${taxonomy.plural.toLowerCase()} with commas`;
+			scfTaxonomy.labels.add_or_remove_items = `Add or remove ${taxonomy.plural.toLowerCase()}`;
+			scfTaxonomy.labels.choose_from_most_used = `Choose from the most used ${taxonomy.plural.toLowerCase()}`;
+		}
+
+		// Write SCF-formatted JSON file
+		const filePath = path.join(scfJsonDir, `taxonomy-${taxonomy.slug}.json`);
+		fs.writeFileSync(
+			filePath,
+			JSON.stringify(scfTaxonomy, null, '\t'),
+			'utf8'
+		);
+
+		log('INFO', `Generated taxonomy JSON: ${filePath}`, {
+			slug: taxonomy.slug,
+			postTypes: scfTaxonomy.object_type
+		});
+	});
+
+	log('INFO', 'Taxonomy JSON files generated successfully in scf-json/', {
+		filesGenerated: config.taxonomies.length
 	});
 }
 

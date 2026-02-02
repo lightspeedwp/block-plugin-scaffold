@@ -1,3 +1,7 @@
+## SCF-Driven Content Model
+
+- All post types, taxonomies, and field groups are now output as individual JSON files in `scf-json/` and registered by Secure Custom Fields (SCF).
+- No PHP registration code is generated for post types or taxonomies.
 ---
 title: Documentation Index
 description: Index of all documentation files in the multi-block plugin scaffold
