@@ -84,7 +84,7 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 
 		// Start building the output.
 		$output = sprintf(
-			'<div class="%s" style="flex-wrap: nowrap; vertical-align: top;">',
+			'<div class="%s" style="flex-wrap: nowrap; gap: var(--wp--preset--spacing--20);">',
 			esc_attr( implode( ' ', $wrapper_classes ) )
 		);
 
@@ -93,9 +93,7 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 			$svg_content = {{namespace|snakeCase}}_get_icon_svg( $icon_type, $icon_name );
 			if ( ! empty( $svg_content ) ) {
 				$output .= sprintf(
-					'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap; vertical-align: middle;">
-						<span class="block-icon-svg" style="font-size: inherit; display: inline-block;">%s</span>
-					</div>',
+				'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap;">%s</div>',
 					$svg_content // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content is sanitized in {{namespace|snakeCase}}_get_icon_svg().
 				);
 			}

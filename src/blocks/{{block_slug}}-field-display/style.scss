@@ -5,11 +5,5 @@
  */
 
 .wp-block-{{slug}}-{{block_slug}}-field-display {
-	.field-display-value {
-		margin: 0;
-		
-		strong {
-			font-weight: 700;
-		}
-	}
+	gap: var(--wp--preset--spacing--20);
 }
