@@ -437,6 +437,7 @@ function applyDefaults(config) {
 	if (result.post_types.length > 0) {
 		const firstPostType = result.post_types[0];
 		result.cpt_slug = firstPostType.slug;
+		result.cpt_name = firstPostType.singular; // Display name for the post type
 		result.block_slug = firstPostType.slug.replace(/_/g, '-'); // Dasherized version for block names
 		result.name_singular = firstPostType.singular;
 		result.name_plural = firstPostType.plural;
@@ -961,6 +962,7 @@ function generatePerCPTBlocks(outputDir, config) {
 			const blockConfig = {
 				...config,
 				cpt_slug: postType.slug,
+				cpt_name: postType.singular, // Display name for the post type
 				block_slug: postType.slug.replace(/_/g, '-'), // Dasherized version for block names
 				cpt_singular: postType.singular,
 				cpt_plural: postType.plural,

@@ -23,7 +23,6 @@ class Block_Bindings {
 	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_sources' ) );
-		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 		add_filter( 'render_block', array( $this, 'render_paragraph_prefix_block' ), 20, 3 );
 	}
 
@@ -138,114 +137,5 @@ class Block_Bindings {
 		$block_content = preg_replace( '/^(<p[^>]*>)/', '$1' . $prefix, $block_content );
 
 		return $block_content;
-	}
-
-	/**
-	 * Register REST API routes.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function register_rest_routes() {
-		register_rest_route(
-			'{{slug}}/v1',
-			'/fields/(?P<post_type>[a-zA-Z0-9_-]+)',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_available_fields' ),
-				'permission_callback' => array( $this, 'check_editor_permission' ),
-				'args'                => array(
-					'post_type' => array(
-						'required'          => true,
-						'validate_callback' => function ( $param ) {
-							return is_string( $param ) && post_type_exists( $param );
-						},
-					),
-				),
-			)
-		);
-	}
-
-	/**
-	 * Check if user has permission to edit posts.
-	 *
-	 * @since 1.0.0
-	 * @return bool
-	 */
-	public function check_editor_permission() {
-		return current_user_can( 'edit_posts' );
-	}
-
-	/**
-	 * Get available custom fields for a post type from SCF JSON files.
-	 *
-	 * @since 1.0.0
-	 * @param \WP_REST_Request $request REST request object.
-	 * @return \WP_REST_Response|\WP_Error
-	 */
-	public function get_available_fields( $request ) {
-		$post_type = $request->get_param( 'post_type' );
-		$fields    = array();
-
-		// Get SCF JSON directory.
-		$json_dir = {{namespace|upper}}_DIR . 'scf-json';
-
-		if ( ! is_dir( $json_dir ) ) {
-			return rest_ensure_response( array( 'fields' => $fields ) );
-		}
-
-		// Get all JSON files.
-		$json_files = glob( $json_dir . '/*.json' );
-
-		if ( empty( $json_files ) ) {
-			return rest_ensure_response( array( 'fields' => $fields ) );
-		}
-
-		foreach ( $json_files as $file ) {
-			$json_data = json_decode( file_get_contents( $file ), true );
-
-			if ( ! $json_data || ! isset( $json_data['location'] ) ) {
-				continue;
-			}
-
-			// Check if this field group applies to the post type.
-			$applies_to_post_type = false;
-			foreach ( $json_data['location'] as $location_group ) {
-				foreach ( $location_group as $rule ) {
-					if ( isset( $rule['param'] ) && 'post_type' === $rule['param'] 
-						&& isset( $rule['value'] ) && $rule['value'] === $post_type ) {
-						$applies_to_post_type = true;
-						break 2;
-					}
-				}
-			}
-
-			if ( ! $applies_to_post_type ) {
-				continue;
-			}
-
-			// Extract fields from this group.
-			if ( isset( $json_data['fields'] ) && is_array( $json_data['fields'] ) ) {
-				foreach ( $json_data['fields'] as $field ) {
-					if ( isset( $field['name'] ) && isset( $field['label'] ) ) {
-						$fields[] = array(
-							'value' => $field['name'],
-							'label' => $field['label'],
-							'type'  => isset( $field['type'] ) ? $field['type'] : 'text',
-						);
-					}
-				}
-			}
-		}
-
-		// Sort fields by label.
-		usort(
-			$fields,
-			function ( $a, $b ) {
-				return strcmp( $a['label'], $b['label'] );
-			}
-		);
-
-		return rest_ensure_response( array( 'fields' => $fields ) );
 	}
 }

@@ -9,11 +9,8 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, TextControl, ToggleControl, SelectControl, Spinner } from '@wordpress/components';
-import { useSelect } from '@wordpress/data';
+import { PanelBody, TextControl, ToggleControl } from '@wordpress/components';
 import { useEntityProp } from '@wordpress/core-data';
-import { useState, useEffect } from '@wordpress/element';
-import apiFetch from '@wordpress/api-fetch';
 
 import './editor.scss';
 import './style.scss';
@@ -30,44 +27,9 @@ const Edit = (props) => {
 	const { fieldKey, prefix, prefixBold, fallbackText } = attributes;
 	const { postId, postType } = context;
 
-	const [availableFields, setAvailableFields] = useState([]);
-	const [isLoadingFields, setIsLoadingFields] = useState(true);
-
 	const blockProps = useBlockProps({
 		className: 'wp-block-{{slug}}-{{block_slug}}-field-display',
 	});
-
-	// Fetch available fields from REST API.
-	useEffect(() => {
-		if (!postType) {
-			setIsLoadingFields(false);
-			return;
-		}
-
-		setIsLoadingFields(true);
-		apiFetch({
-			path: `/{{slug}}/v1/fields/${postType}`,
-		})
-			.then((response) => {
-				if (response.fields && Array.isArray(response.fields)) {
-					const fieldOptions = [
-						{ label: __('— Select Field —', '{{textdomain}}'), value: '' },
-						...response.fields.map((field) => ({
-							label: `${field.label} (${field.value})`,
-							value: field.value,
-						})),
-					];
-					setAvailableFields(fieldOptions);
-				}
-				setIsLoadingFields(false);
-			})
-			.catch((error) => {
-				console.error('Error fetching fields:', error);
-				setIsLoadingFields(false);
-				// Fallback to manual input if API fails
-				setAvailableFields([]);
-			});
-	}, [postType]);
 
 	// Get the field value from post meta.
 	const [meta] = useEntityProp('postType', postType, 'meta', postId);
@@ -98,27 +60,12 @@ const Edit = (props) => {
 		<>
 			<InspectorControls>
 				<PanelBody title={__('Field Settings', '{{textdomain}}')} initialOpen={true}>
-					{isLoadingFields ? (
-						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							<Spinner />
-							<span>{__('Loading fields...', '{{textdomain}}')}</span>
-						</div>
-					) : availableFields.length > 0 ? (
-						<SelectControl
-							label={__('Field Key', '{{textdomain}}')}
-							value={fieldKey}
-							options={availableFields}
-							onChange={(value) => setAttributes({ fieldKey: value })}
-							help={__('Select the custom field to display.', '{{textdomain}}')}
-						/>
-					) : (
-						<TextControl
-							label={__('Field Key', '{{textdomain}}')}
-							value={fieldKey}
-							onChange={(value) => setAttributes({ fieldKey: value })}
-							help={__('Enter the meta key of the custom field to display.', '{{textdomain}}')}
-						/>
-					)}
+					<TextControl
+						label={__('Field Key', '{{textdomain}}')}
+						value={fieldKey}
+						onChange={(value) => setAttributes({ fieldKey: value })}
+						help={__('Enter the meta key of the custom field to display.', '{{textdomain}}')}
+					/>
 					<TextControl
 						label={__('Fallback Text', '{{textdomain}}')}
 						value={fallbackText}
