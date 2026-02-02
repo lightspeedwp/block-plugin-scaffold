@@ -13,7 +13,7 @@ This directory contains comprehensive examples of Secure Custom Fields (SCF) fie
 
 ## ⚠️ Important Note
 
-**These are example files for documentation and reference purposes only.** They are not used by the plugin scaffold directly. When generating a plugin, your actual field groups will be created in the `scf-json/` directory based on your plugin configuration.
+**These are example files for documentation and reference purposes only.** When generating a plugin, your actual post types, taxonomies, and field groups will be created as individual JSON files in the `scf-json/` directory based on your plugin configuration. Registration is handled by Secure Custom Fields (SCF).
 
 ## 🎯 Default Taxonomy Fields
 
@@ -25,10 +25,11 @@ All taxonomies defined in your plugin's post-type JSON files automatically get S
 | `subtitle` | text | Subtitle/tagline for taxonomy term |
 
 **How it works:**
-1. The generator scans all `post-types/*.json` files
-2. Collects all unique taxonomies defined across post types
-3. Creates an SCF field group for each taxonomy: `scf-json/group_{taxonomy_slug}_fields.json`
-4. Each field group includes thumbnail_id and subtitle fields by default
+1. The generator scans your plugin config and outputs all post types, taxonomies, and field groups as individual files in `scf-json/`
+2. Each taxonomy gets a field group: `scf-json/group_{taxonomy_slug}_fields.json`
+3. Each post type gets a config: `scf-json/posttype_{slug}.json`
+4. Each taxonomy gets a config: `scf-json/taxonomy_{slug}.json`
+5. Each field group includes default and custom fields as needed
 
 **Generated file example:**
 ```json

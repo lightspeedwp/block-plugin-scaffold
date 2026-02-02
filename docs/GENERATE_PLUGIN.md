@@ -103,7 +103,7 @@ cp scripts/fixtures/plugin-config.example.json my-plugin-config.json
 # Edit with your values
 nano my-plugin-config.json
 
-# Generate plugin
+# Generate plugin (outputs all post types, taxonomies, and field groups as individual files in scf-json/)
 node scripts/generate-plugin.js --config my-plugin-config.json
 ```
 

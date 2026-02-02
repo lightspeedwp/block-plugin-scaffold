@@ -1,3 +1,6 @@
+# SCF-Driven Content Model
+
+All post types, taxonomies, and field groups are now output as individual JSON files in `scf-json/` and registered by Secure Custom Fields (SCF). No PHP registration code is generated for post types or taxonomies.
 ---
 name: "Plugin Generator Agent"
 description: Interactive agent that collects comprehensive requirements and generates a WordPress multi-block plugin with CPT, taxonomies, and SCF fields
