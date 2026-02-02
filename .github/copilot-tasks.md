@@ -32,11 +32,11 @@ date: 2025-12-01
 **Status**: ✅ COMPLETED
 
 - [x] **Custom Post Types**
-  - Location: JSON files in [/post-types/](../post-types/)
+  - Location: JSON files in [/scf-json/](../scf-json/) (post-type-{slug}.json)
   - Registers: {{slug}} post type with block editor support
 
 - [x] **Custom Taxonomies**
-  - Location: JSON files in [/post-types/](../post-types/)
+  - Location: JSON files in [/scf-json/](../scf-json/) (taxonomy-{slug}.json)
   - Registers: {{slug}}_category taxonomy
 
 ---
@@ -46,7 +46,7 @@ date: 2025-12-01
 **Status**: ✅ COMPLETED
 
 - [x] **SCF Field Registration**
-  - Location: JSON files in [/post-types/](../post-types/)
+  - Location: JSON files in [/scf-json/](../scf-json/) (group_{name}.json)
   - Features: Subtitle, featured flag, gallery, related posts
 
 - [x] **Repeater Fields**

@@ -542,39 +542,40 @@ scf-json/group_{{slug}}_fields.json
 
 The SCF_JSON class automatically configures the save/load paths so any field groups created in WordPress admin are saved to `scf-json/` and version controlled.
 
-### 2. Post Types JSON Configuration
+### 2. Post Types & Taxonomies via SCF Local JSON
 
-Post types, taxonomies, and their associated fields can also be defined in JSON format in the `post-types/` directory:
+Post types and taxonomies are defined using Secure Custom Fields' Local JSON format in the `scf-json/` directory:
 
 ```bash
 # Post type JSON configuration:
-post-types/{{slug}}.json
+scf-json/post-type-{{slug}}.json
 
-# Schema for validation:
-.github/schemas/post-types.schema.json
+# Taxonomy JSON configuration:
+scf-json/taxonomy-{{slug}}.json
 ```
 
-**JSON Configuration Example:**
+**SCF Post Type JSON Example:**
 ```json
 {
-  "slug": "product",
-  "label": "Product",
-  "pluralLabel": "Products",
-  "icon": "products",
-  "template": [["my-plugin/product-single"]],
-  "fields": [...],
-  "taxonomies": [...]
+  "key": "post_type_product",
+  "title": "Product",
+  "post_type": "product",
+  "active": true,
+  "labels": {
+    "name": "Products",
+    "singular_name": "Product"
+  }
 }
 ```
 
-**Post Type JSON Benefits:**
-- Declarative content structure definition
-- Mustache template support for generator
-- JSON Schema validation ensures correctness
+**SCF Local JSON Benefits:**
+- Native SCF format for post types, taxonomies, and fields
+- Automatic loading via SCF's Local JSON system
 - Version control friendly
-- Easy to maintain without PHP knowledge
+- No separate Content_Model_Manager needed
+- Edit in WordPress admin, saved automatically to JSON
 
-The Content_Model_Manager class automatically loads all JSON files from `post-types/` and registers the defined post types, taxonomies, and field groups.
+The SCF_JSON class configures SCF to load post types, taxonomies, and field groups from `scf-json/` directory.
 
 ### 3. Block Customisation
 ```bash

@@ -174,14 +174,14 @@ You are an expert WordPress multi-block plugin developer working on {{name}}, a 
 
 ### Custom Post Types
 
-- Register via JSON files in `/post-types/` (handled by `inc/class-content-model-manager.php`)
+- Register via JSON files in `/scf-json/` using SCF Local JSON format (handled by `inc/class-scf-json.php`)
 - Enable block editor support (`show_in_rest`)
 - Define block templates for consistent editing
 
 ### Custom Fields
 
 - Use Secure Custom Fields (SCF) API
-- Register fields via JSON files in `/post-types/` (handled by `inc/class-content-model-manager.php`)
+- Register fields via JSON files in `/scf-json/` using SCF field group format (handled by `inc/class-scf-json.php`)
 - Implement repeater fields for complex data
 - Use Block Bindings for field display
 
@@ -247,7 +247,7 @@ Use these variables in templates and configuration files:
 
 **Adding Custom Fields**
 
-1. Register field group via JSON files in `/post-types/` (handled by `inc/class-content-model-manager.php`)
+1. Register field group via JSON files in `/scf-json/` using SCF format (handled by `inc/class-scf-json.php`)
 2. Use `acf_add_local_field_group()` API
 3. Implement block binding if needed
 4. Test field functionality
