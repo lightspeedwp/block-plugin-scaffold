@@ -1,36 +1,34 @@
 {
   "apiVersion": 3,
-  "name": "{{namespace}}/{{block_slug}}-collection",
-  "title": "{{Block Collection}}",
-  "category": "widgets",
-  "icon": "screenoptions",
-  "description": "A collection block for displaying multiple items.",
-  "keywords": ["collection", "list", "{{block_slug}}", "query", "posts"],
+  "name": "{{slug}}/{{block_slug}}-collection",
+  "title": "{{cpt_singular}} Collection",
+  "category": "{{slug}}",
+  "icon": "{{cpt_icon}}",
+  "description": "A collection block for displaying {{cpt_slug}} items. Extensible and supports custom collection registration and DOM events.",
+  "keywords": ["collection", "list", "{{cpt_slug}}", "query", "posts", "extensible", "event", "filter", "sort"],
   "textdomain": "{{textdomain}}",
   "attributes": {
-    "postsToShow": {
-      "type": "number",
-      "default": 6
+    "postsToShow": { "type": "number", "default": 6 },
+    "columns": { "type": "number", "default": 3 },
+    "displayFeaturedImage": { "type": "boolean", "default": true },
+    "displayTitle": { "type": "boolean", "default": true },
+    "displayExcerpt": { "type": "boolean", "default": false },
+    "displayMeta": { "type": "boolean", "default": false },
+    "collectionType": { "type": "string", "default": "default" },
+    "filters": { "type": "object", "default": {} },
+    "sort": { "type": "string", "default": "date-desc" },
+    "search": { "type": "string", "default": "" },
+    "pagination": { "type": "boolean", "default": true },
+    "page": { "type": "number", "default": 1 },
+    "eventHandlers": {
+      "type": "object",
+      "default": {},
+      "description": "Map of DOM event names to handler function names (for extensibility)."
     },
-    "columns": {
-      "type": "number",
-      "default": 3
-    },
-    "displayFeaturedImage": {
-      "type": "boolean",
-      "default": true
-    },
-    "displayTitle": {
-      "type": "boolean",
-      "default": true
-    },
-    "displayExcerpt": {
-      "type": "boolean",
-      "default": false
-    },
-    "displayMeta": {
-      "type": "boolean",
-      "default": false
+    "registeredCollections": {
+      "type": "array",
+      "default": [],
+      "description": "Registered custom collection types (extensible via JS API)."
     }
   },
   "supports": {
@@ -38,15 +36,13 @@
     "align": ["wide", "full"],
     "anchor": true,
     "customClassName": true,
-    "spacing": {
-      "margin": true,
-      "padding": true
-    },
-    "color": {
-      "background": true,
-      "text": true
-    }
+    "spacing": { "margin": true, "padding": true },
+    "color": { "background": true, "text": true }
   },
+  "providesContext": {
+    "{{slug}}/collectionType": "collectionType"
+  },
+  "usesContext": ["postType", "taxonomy", "queryId"],
   "example": {
     "attributes": {
       "postsToShow": 3,
@@ -54,7 +50,27 @@
       "displayFeaturedImage": true,
       "displayTitle": true,
       "displayExcerpt": true,
-      "displayMeta": true
+      "displayMeta": true,
+      "collectionType": "default",
+      "filters": { "category": "news" },
+      "sort": "date-desc",
+      "pagination": true,
+      "page": 1,
+      "eventHandlers": {
+        "collectionInit": "onCollectionInit",
+        "collectionFilter": "onCollectionFilter",
+        "collectionSort": "onCollectionSort",
+        "collectionPageChange": "onCollectionPageChange",
+        "collectionRegister": "onCollectionRegister"
+      },
+      "registeredCollections": [
+        { "name": "default", "label": "Default" },
+        { "name": "featured", "label": "Featured" }
+      ]
     }
-  }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./index.css",
+  "render": "{{namespace}}_render_{{block_slug|snakeCase}}_collection"
 }

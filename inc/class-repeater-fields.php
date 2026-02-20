@@ -1,7 +1,4 @@
 <?php
-namespace example_plugin\classes;
-
-<?php
 namespace {{namespace}}\classes;
 
 /**
@@ -21,8 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class ExamplePlugin_Repeater_Fields {
-class {{namespace|pascalCase}}_Repeater_Fields {
+class Repeater_Fields {
 
 	/**
 	 * Constructor.

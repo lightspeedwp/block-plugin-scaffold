@@ -83,8 +83,6 @@ function getTargetFiles() {
 		'src/blocks/**/*.scss',
 		'inc/**/*.php',
 		'patterns/**/*.{php,html}',
-		'template-parts/**/*.{php,html}',
-		'templates/**/*.{php,html}',
 		'languages/**/*.pot',
 		'scf-json/**/*.json',
 		'tests/**/*.{js,php}',

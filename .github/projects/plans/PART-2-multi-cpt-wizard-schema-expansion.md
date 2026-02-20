@@ -293,7 +293,7 @@ Variables for custom blocks, generated per CPT.
 For each CPT, generate these block types:
 
 1. `{{cpt_slug}}-card` - Single post card
-2. `{{cpt_slug}}-collection` - Query loop variant
+2. `{{block_slug}}-collection` - Query loop variant
 3. `{{cpt_slug}}-featured` - Featured post display
 4. `{{cpt_slug}}-slider` - Carousel/slider
 

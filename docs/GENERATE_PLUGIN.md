@@ -1,6 +1,6 @@
 # ⚠️ WARNING: Strict Mustache Placeholder Enforcement
 
-All template files, folders, and code **must** use the correct mustache placeholders as defined in `scripts/mustache-variables-registry.json`. Do not use generic placeholders (like `{{slug}}`) where a more specific one is required (e.g., `{{cpt1_slug}}`, `{{taxonomy1_slug}}`).
+All template files, folders, and code **must** use the correct mustache placeholders as defined in `scripts/mustache-variables-registry.json`. Do not use generic placeholders (like `{{slug}}`) where a more specific one is required (e.g., `{{cpt_slug}}`, `{{taxonomy1_slug}}`).
 
 **Do not hard-code any plugin-specific values** in the scaffold. All identifiers, class names, translation domains, and meta keys must use the appropriate placeholder. This ensures the generator can produce multi-entity plugins without manual intervention.
 
@@ -103,7 +103,7 @@ cp scripts/fixtures/plugin-config.example.json my-plugin-config.json
 # Edit with your values
 nano my-plugin-config.json
 
-# Generate plugin
+# Generate plugin (outputs all post types, taxonomies, and field groups as individual files in scf-json/)
 node scripts/generate-plugin.js --config my-plugin-config.json
 ```
 
@@ -153,7 +153,7 @@ Author: LightSpeed
 
 ### CRITICAL: Use Specific Placeholders for Multiple CPTs/Taxonomies/Fields
 
-**WARNING:** When building plugins that support multiple custom post types (CPTs), taxonomies, or custom fields, you MUST use specific mustache placeholders for each entity. Do NOT use generic placeholders like `{{slug}}`, `{{cpt_slug}}`, or `{{taxonomy_slug}}` in your templates or code. Instead, use numbered or uniquely named placeholders for each entity, such as `{{cpt1_slug}}`, `{{cpt2_slug}}`, `{{taxonomy1_slug}}`, `{{taxonomy2_slug}}`, `{{field1_name}}`, etc.
+**WARNING:** When building plugins that support multiple custom post types (CPTs), taxonomies, or custom fields, you MUST use specific mustache placeholders for each entity. Do NOT use generic placeholders like `{{slug}}`, `{{cpt_slug}}`, or `{{taxonomy_slug}}` in your templates or code. Instead, use numbered or uniquely named placeholders for each entity, such as `{{cpt_slug}}`, `{{cpt2_slug}}`, `{{taxonomy1_slug}}`, `{{taxonomy2_slug}}`, `{{field1_name}}`, etc.
 
 **Why?**
 
@@ -179,19 +179,11 @@ Author: LightSpeed
 **Template usage:**
 
 ```php
-// BAD (do not use):
+// GOOD (use specific):
 register_post_type( '{{cpt_slug}}', ... );
 
-// GOOD (use specific):
-register_post_type( '{{cpt1_slug}}', ... );
-register_post_type( '{{cpt2_slug}}', ... );
-
-// BAD:
-register_taxonomy( '{{taxonomy_slug}}', ... );
-
 // GOOD:
-register_taxonomy( '{{taxonomy1_slug}}', ... );
-register_taxonomy( '{{taxonomy2_slug}}', ... );
+register_taxonomy( '{{taxonomy_slug}}', ... );
 ```
 
 **Enforcement:**
@@ -607,7 +599,7 @@ Generate a complete tour operator plugin with:
 - Tours custom post type
 - Destination taxonomy
 - Booking fields using core APIs
-- Card and slider blocks
+- Collection and slider blocks
 - Archive and single templates
 ```
 
@@ -703,9 +695,7 @@ tour-operator/
 │   ├── components/           # Shared React components
 │   ├── hooks/                # Custom React hooks
 │   └── scss/                 # Stylesheets
-├── templates/                # Block templates
 ├── patterns/                 # Block patterns
-├── template-parts/           # Template parts
 └── scf-json/                 # SCF field groups
 ```
 
@@ -1314,7 +1304,40 @@ npm run test
 
 ## Configuration Schema Reference
 
-The complete schema documentation is available in `.github/schemas/plugin-config.schema.json`. Key configuration sections:
+The complete schema documentation is available in `.github/schemas/plugin-config.schema.json`.
+
+### Three-Array Structure (Recommended)
+
+As of version 1.1.0, the plugin generator supports a new three-array structure that separates concerns and enables better reusability:
+
+**Benefits:**
+
+- **Separation of Concerns**: Post types, taxonomies, and fields are defined in dedicated top-level arrays
+- **Reusability**: Taxonomies can be shared across multiple post types without duplication
+- **Maintainability**: Easier to update taxonomy or field definitions in one place
+- **Clarity**: Explicit relationships via slug references instead of nested objects
+- **Scalability**: Better suited for plugins with many post types and shared taxonomies
+
+**Structure Overview:**
+
+```json
+{
+  "post_types": [/* Array of post type definitions */],
+  "taxonomies": [/* Array of taxonomy definitions */],
+  "fields": [/* Array of field group definitions */]
+}
+```
+
+**Key Differences from Legacy Format:**
+
+| Aspect | New Format | Legacy Format |
+|--------|-----------|---------------|
+| **Taxonomies** | Top-level array with `post_types` property | Embedded in each post type |
+| **Fields** | Top-level array with `post_type` + `field_group` | Embedded in each post type |
+| **References** | Post types reference taxonomies by slug | Taxonomies duplicated in each post type |
+| **Sharing** | Easy - one taxonomy, many post types | Hard - must duplicate taxonomy definition |
+
+### Key Configuration Sections
 
 ### Core Configuration
 
@@ -1330,7 +1353,135 @@ The complete schema documentation is available in `.github/schemas/plugin-config
 }
 ```
 
-### Custom Post Type Configuration
+### Post Types Configuration (New Format)
+
+The plugin now supports a three-array structure for better organization and reusability:
+
+```json
+{
+  "post_types": [
+    {
+      "slug": "item",                   // Max 20 chars
+      "singular": "Item",               // Display name singular
+      "plural": "Items",                // Display name plural
+      "supports": [                     // CPT features
+        "title",
+        "editor",
+        "thumbnail"
+      ],
+      "has_archive": true,              // Enable archive page
+      "public": true,                   // Publicly queryable
+      "menu_icon": "dashicons-admin-post",
+      "taxonomies": [                   // Array of taxonomy slugs (references taxonomies array)
+        "category",
+        "tag"
+      ]
+    }
+  ]
+}
+```
+
+### Taxonomies Configuration (New Format)
+
+Taxonomies are now defined in a separate top-level array for better reusability across post types:
+
+```json
+{
+  "taxonomies": [
+    {
+      "slug": "category",               // Taxonomy slug
+      "singular": "Category",           // Display name singular
+      "plural": "Categories",           // Display name plural
+      "hierarchical": true,             // true=categories, false=tags
+      "post_types": [                   // Array of post type slugs
+        "item",
+        "portfolio"
+      ]
+    },
+    {
+      "slug": "tag",
+      "singular": "Tag",
+      "plural": "Tags",
+      "hierarchical": false,
+      "post_types": ["item"]
+    }
+  ]
+}
+```
+
+### Fields Configuration (New Format)
+
+Fields are now organized by post type in a top-level array:
+
+```json
+{
+  "fields": [
+    {
+      "post_type": "item",              // Post type slug
+      "field_group": [                  // Array of field definitions
+        {
+          "name": "price",              // Field key
+          "label": "Price",             // Display label
+          "type": "number",             // SCF field type
+          "required": true,
+          "instructions": "Enter price",
+          "min": 0,
+          "max": 10000
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Legacy Format Support
+
+The generator maintains backward compatibility with the old embedded format:
+
+```json
+{
+  "post_types": [
+    {
+      "slug": "item",
+      "singular": "Item",
+      "plural": "Items",
+      "taxonomies": [                   // Old format: embedded taxonomy objects
+        {
+          "slug": "category",
+          "singular": "Category",
+          "plural": "Categories",
+          "hierarchical": true
+        }
+      ],
+      "fields": [                       // Old format: embedded fields array
+        {
+          "name": "price",
+          "label": "Price",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Note:** Legacy embedded format is automatically converted to the new three-array structure during generation. The generator:
+
+1. Extracts embedded taxonomies and fields from each post type
+2. Deduplicates taxonomies (same slug = same taxonomy)
+3. Creates top-level `taxonomies` and `fields` arrays
+4. Replaces embedded arrays with slug references
+5. Maintains full backward compatibility
+
+You can mix formats, but using the new structure is recommended for new plugins.
+
+### Custom Post Type Configuration (Legacy)
 
 ```json
 {
@@ -1380,7 +1531,7 @@ The complete schema documentation is available in `.github/schemas/plugin-config
 
 ```json
 {
-  "blocks": ["card", "collection", "slider"],
+  "blocks": ["collection", "slider"],
   "templates": ["single", "archive"]
 }
 ```

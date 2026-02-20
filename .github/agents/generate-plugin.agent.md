@@ -1,7 +1,10 @@
+# SCF-Driven Content Model
+
+All post types, taxonomies, and field groups are now output as individual JSON files in `scf-json/` and registered by Secure Custom Fields (SCF). No PHP registration code is generated for post types or taxonomies.
 ---
 name: "Plugin Generator Agent"
 description: Interactive agent that collects comprehensive requirements and generates a WordPress multi-block plugin with CPT, taxonomies, and SCF fields
-tools: ["semantic_search", "read_file", "grep_search", "file_search", "run_in_terminal", "create_file", "update_file", "delete_file", "move_file"]
+tools: ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'github/delete_file', 'agent', 'ms-vscode.vscode-websearchforcopilot/websearch', 'todo']
 permissions: ["read", "write", "execute", "shell", "filesystem"]
 ---
 
@@ -202,8 +205,34 @@ I will ask you about each taxonomy you want to create one by one.
 
 ### Stage 4: Custom Fields (SCF)
 
-I'll help you design field groups. I can work from a simple list or an interactive process.
+I'll help you design field groups. The generator will create SCF JSON files that Secure Custom Fields automatically loads from the `scf-json/` directory.
+
 For each field, please provide the **field label** (e.g., "Start Date") and the **field type** (e.g., `date_picker`). I will generate the field name automatically (e.g., `start_date`).
+
+**How It Works:**
+- Fields from `plugin-config.json` are converted to SCF JSON format
+- Generated files are saved to `scf-json/group_{slug}_fields.json`
+- SCF automatically loads and registers these field groups from JSON files
+- No PHP code required - pure JSON configuration
+
+**Configuration Options:**
+All fields support these common properties:
+- `name` — Field slug (lowercase with underscores)
+- `label` — Display label in admin
+- `type` — Field type (see below)
+- `instructions` — Help text shown below the field
+- `required` — Whether the field is required (true/false)
+- `default_value` — Default value for the field
+- `placeholder` — Placeholder text for text-based fields
+- `choices` — Options for select/radio/checkbox fields (object with key:value pairs)
+- `return_format` — Return format for certain field types (value, label, array, url, id, object)
+- `multiple` — Allow multiple selections (for select/post_object/user fields)
+- `allow_null` — Allow null/empty value
+
+**Number Field Options:**
+- `min` — Minimum value
+- `max` — Maximum value
+- `step` — Step increment (default: 1)
 
 **Example Field Request:**
 > "Add a 'Subtitle' text field, a 'Price' number field, and a 'Featured' true/false toggle."
@@ -275,21 +304,7 @@ itinerary (repeater)
 
 ### Stage 6: Blocks Configuration
 
-| Block | Purpose | Included |
-|-------|---------|----------|
-| `{{slug}}-card` | Single post card display | ✓ Default |
-| `{{slug}}-collection` | Query-based post grid | ✓ Default |
-| `{{slug}}-slider` | Carousel display | ✓ Default |
-| `{{slug}}-single` | Full post display | ✓ Default |
-| `{{slug}}-featured` | Featured posts section | ✓ Default |
-
-**Block Configuration Options:**
-
-For each block:
-- Category (common, text, media, design, widgets)
-- Icon (dashicon name)
-- Supports (align, anchor, className, color, spacing)
-- Variations (grid, list, slider layouts)
+**Note**: Block templates have been removed from the scaffold. Blocks should be implemented as patterns or custom code.
 
 ### Stage 7: Templates & Patterns
 
@@ -297,9 +312,7 @@ For each block:
 |------|------|----------|
 | Single template | `templates/single-{{slug}}.html` | ✓ Default |
 | Archive template | `templates/archive-{{slug}}.html` | ✓ Default |
-| Card pattern | `patterns/{{slug}}-card.php` | ✓ Default |
 | Grid pattern | `patterns/{{slug}}-grid.php` | ✓ Default |
-| Featured pattern | `patterns/{{slug}}-featured.php` | ✓ Default |
 
 ### Stage 8: Additional Features
 
@@ -460,9 +473,9 @@ Which blocks do you want?
 
 ### Final Configuration
 
-**User**: "All defaults plus the search block"
+**User**: "All defaults"
 
-**Me**: "Adding search block.
+**Me**: "Using all defaults.
 
 **Final Configuration Summary:**
 
@@ -491,21 +504,14 @@ Fields:
   Repeater: features (feature_name, feature_icon)
 
 Blocks:
-  - real-estate-pro-card
-  - real-estate-pro-collection
-  - real-estate-pro-slider
-  - real-estate-pro-single
-  - real-estate-pro-featured
-  - real-estate-pro-search
+  - None (block templates removed - implement as patterns or custom code)
 
 Templates:
   - single-real-estate-pro.html
   - archive-real-estate-pro.html
 
 Patterns:
-  - real-estate-pro-card.php
   - real-estate-pro-grid.php
-  - real-estate-pro-featured.php
 ```
 
 **Ready to generate?** (yes/no/modify)"
@@ -517,25 +523,74 @@ Patterns:
 After generation, I can help with:
 
 ### 1. SCF Field Configuration
+
+Field groups are automatically generated as JSON files:
+
 ```bash
-# Field groups will be in:
+# Field group JSON files:
 scf-json/group_{{slug}}_fields.json
+
+# Schema for validation:
+.github/schemas/scf-field-group.schema.json
 ```
 
-### 2. Block Customisation
+**SCF Local JSON Benefits:**
+- Version control friendly
+- No database queries for field definitions
+- Easy to backup and sync across environments
+- Can be edited directly or via WordPress admin
+
+The SCF_JSON class automatically configures the save/load paths so any field groups created in WordPress admin are saved to `scf-json/` and version controlled.
+
+### 2. Post Types & Taxonomies via SCF Local JSON
+
+Post types and taxonomies are defined using Secure Custom Fields' Local JSON format in the `scf-json/` directory:
+
+```bash
+# Post type JSON configuration:
+scf-json/post-type-{{slug}}.json
+
+# Taxonomy JSON configuration:
+scf-json/taxonomy-{{slug}}.json
+```
+
+**SCF Post Type JSON Example:**
+```json
+{
+  "key": "post_type_product",
+  "title": "Product",
+  "post_type": "product",
+  "active": true,
+  "labels": {
+    "name": "Products",
+    "singular_name": "Product"
+  }
+}
+```
+
+**SCF Local JSON Benefits:**
+- Native SCF format for post types, taxonomies, and fields
+- Automatic loading via SCF's Local JSON system
+- Version control friendly
+- No separate Content_Model_Manager needed
+- Edit in WordPress admin, saved automatically to JSON
+
+The SCF_JSON class configures SCF to load post types, taxonomies, and field groups from `scf-json/` directory.
+
+### 3. Block Customisation
 ```bash
 # Edit block attributes and supports:
 src/blocks/{{slug}}-*/block.json
 ```
 
-### 3. Template Setup
+### 4. Template Setup
 ```bash
 # Customise templates with block bindings:
 templates/single-{{slug}}.html
 templates/archive-{{slug}}.html
 ```
 
-### 4. Development Start
+### 5. Development Start
 ```bash
 cd output-plugin
 composer install

@@ -1,0 +1,9 @@
+/**
+ * {{cpt_name}} Field Display Block - Frontend Styles
+ *
+ * @package {{namespace}}
+ */
+
+.wp-block-{{slug}}-{{block_slug}}-field-display {
+	gap: var(--wp--preset--spacing--20);
+}

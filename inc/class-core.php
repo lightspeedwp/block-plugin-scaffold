@@ -1,5 +1,4 @@
 <?php
-namespace example_plugin\classes;
 namespace {{namespace}}\classes;
 
 /**
@@ -28,20 +27,17 @@ class Core {
 
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'init', array( $this, 'register_blocks' ) );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_assets' ) );
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 
 		// Initialize components.
-		new {{namespace|pascalCase}}_Post_Types();
-		new {{namespace|pascalCase}}_Taxonomies();
-		new {{namespace|pascalCase}}_Fields();
-		new {{namespace|pascalCase}}_Repeater_Fields();
-		new {{namespace|pascalCase}}_Options();
-		new {{namespace|pascalCase}}_SCF_JSON();
-		new {{namespace|pascalCase}}_SCF_JSON_Validator();
-		new {{namespace|pascalCase}}_Block_Templates();
-		new {{namespace|pascalCase}}_Block_Bindings();
-		new {{namespace|pascalCase}}_Block_Styles();
-		new {{namespace|pascalCase}}_Patterns();
+		new Repeater_Fields();
+		new Options();
+		new SCF_JSON();
+		new SCF_JSON_Validator();
+		new Block_Bindings();
+		new Block_Styles();
+		new Patterns();
 	}
 
 	/**
@@ -52,17 +48,13 @@ class Core {
 	 */
 	public function load_classes() {
 		// Include core classes.
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-post-types.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-taxonomies.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-fields.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-repeater-fields.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-options.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json-validator.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-scf-json.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-templates.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-bindings.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-block-styles.php';
-		require_once {{namespace|upper}}_PLUGIN_DIR . 'inc/class-patterns.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-repeater-fields.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-options.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json-validator.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-block-bindings.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-block-styles.php';
+		require_once {{namespace|upper}}_DIR . 'inc/class-patterns.php';
 	}
 
 	/**
@@ -84,7 +76,7 @@ class Core {
 	 */
 	public function register_blocks() {
 		// Auto-register all blocks in build/blocks/ (filtered for flexibility).
-		$default_dir = {{namespace|upper}}_PLUGIN_DIR . 'build/blocks/';
+		$default_dir = {{namespace|upper}}_DIR . 'build/blocks/';
 		$blocks_dir = apply_filters( 'example-plugin_blocks_dir', $default_dir );
 
 		if ( ! is_dir( $blocks_dir ) ) {
@@ -98,7 +90,45 @@ class Core {
 		}
 
 		foreach ( $blocks as $block_json ) {
-			register_block_type( dirname( $block_json ) );
+			$block_dir = dirname( $block_json );
+			
+			// Load render.php if it exists.
+			$render_file = $block_dir . '/render.php';
+			if ( file_exists( $render_file ) ) {
+				require_once $render_file;
+			}
+			
+			// Read block.json to get render callback.
+			$block_metadata = json_decode( file_get_contents( $block_json ), true );
+			$args = array();
+			
+			// If render callback is specified, add it.
+			if ( ! empty( $block_metadata['render'] ) && is_string( $block_metadata['render'] ) && function_exists( $block_metadata['render'] ) ) {
+				$args['render_callback'] = $block_metadata['render'];
+			}
+			
+			register_block_type( $block_dir, $args );
+		}
+	}
+
+	/**
+	 * Enqueue editor assets.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function enqueue_editor_assets() {
+		// Enqueue paragraph prefix script.
+		$prefix_script = {{namespace|upper}}_DIR . 'build/js/blocks/paragraph-prefix.js';
+		
+		if ( file_exists( $prefix_script ) ) {
+			wp_enqueue_script(
+				'{{slug}}-paragraph-prefix',
+				{{namespace|upper}}_URL . 'build/js/blocks/paragraph-prefix.js',
+				array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-hooks' ),
+				{{namespace|upper}}_VERSION,
+				true
+			);
 		}
 	}
 
@@ -132,7 +162,7 @@ class Core {
 		load_plugin_textdomain(
 			'{{textdomain}}',
 			false,
-			dirname( {{namespace|upper}}_PLUGIN_BASENAME ) . '/languages'
+			dirname( {{namespace|upper}}_BASENAME ) . '/languages'
 		);
 	}
 }

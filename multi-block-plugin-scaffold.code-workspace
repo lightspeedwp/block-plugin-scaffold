@@ -2,6 +2,12 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../../../../medicalacademic/app/public/wp-content/plugins"
+		},
+		{
+			"path": "../../../../../../medicalacademic/app/public/wp-content/themes"
 		}
 	],
 	"settings": {

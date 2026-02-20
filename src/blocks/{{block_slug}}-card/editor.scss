@@ -1,7 +1,0 @@
-// Editor SCSS for {{block_slug}}-card block
-.wp-block-{{namespace}}-{{block_slug}}-card {
-  outline: none;
-  &:focus {
-    box-shadow: 0 0 0 2px var(--wp--preset--color--primary, #007cba);
-  }
-}

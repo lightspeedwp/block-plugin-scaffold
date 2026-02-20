@@ -45,23 +45,6 @@
             "minLength": 1,
             "maxLength": 500
         },
-        "name_singular": {
-            "type": "string",
-            "x-stage": 2,
-            "description": "Singular name for the custom post type",
-            "minLength": 1,
-            "maxLength": 50,
-            "examples": [
-                "Tour",
-                "Event",
-                "Portfolio Item"
-            ]
-        },
-        "name_plural": {
-            "type": "string",
-            "x-stage": 2,
-            "description": "Plural name for the custom post type"
-        },
         "author": {
             "type": "string",
             "x-stage": 1,
@@ -150,78 +133,357 @@
                 "GPL-3.0-or-later"
             ]
         },
-        "cpt_slug": {
-            "type": "string",
-            "description": "Custom post type slug (max 20 chars, lowercase, underscores allowed)",
-            "pattern": "^[a-z][a-z0-9_]{0,18}[a-z0-9]$",
-            "minLength": 2,
-            "maxLength": 20,
-            "examples": [
-                "tour",
-                "event",
-                "portfolio_item"
-            ]
-        },
-        "cpt_supports": {
+
+        "post_types": {
             "type": "array",
-            "description": "Features supported by the custom post type",
-            "default": [
-                "title",
-                "editor",
-                "thumbnail",
-                "excerpt",
-                "custom-fields",
-                "revisions"
-            ],
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "title",
-                    "editor",
-                    "author",
-                    "thumbnail",
-                    "excerpt",
-                    "trackbacks",
-                    "custom-fields",
-                    "comments",
-                    "revisions",
-                    "page-attributes",
-                    "post-formats"
-                ]
-            }
-        },
-        "cpt_has_archive": {
-            "type": "boolean",
-            "description": "Enable archive page for the custom post type",
-            "default": true
-        },
-        "cpt_public": {
-            "type": "boolean",
-            "description": "Make the custom post type publicly queryable",
-            "default": true
-        },
-        "cpt_menu_icon": {
-            "type": "string",
-            "description": "Dashicon class name for admin menu (e.g., 'dashicons-palmtree')",
-            "pattern": "^dashicons-[a-z0-9-]+$",
-            "default": "dashicons-admin-post",
-            "examples": [
-                "dashicons-palmtree",
-                "dashicons-calendar-alt",
-                "dashicons-portfolio"
-            ]
-        },
-        "taxonomies": {
-            "type": "array",
-            "description": "Custom taxonomies for the post type",
+            "description": "Custom post types to register for this plugin",
             "default": [],
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "required": [
                     "slug",
                     "singular",
                     "plural"
+                ],
+                "properties": {
+                    "slug": {
+                        "type": "string",
+                        "description": "Custom post type slug (max 20 chars, lowercase, underscores allowed)",
+                        "pattern": "^[a-z][a-z0-9_]{0,18}[a-z0-9]$",
+                        "minLength": 2,
+                        "maxLength": 20,
+                        "examples": [
+                            "tour",
+                            "event",
+                            "portfolio_item"
+                        ]
+                    },
+                    "singular": {
+                        "type": "string",
+                        "description": "Singular name for the custom post type",
+                        "minLength": 1,
+                        "maxLength": 50,
+                        "examples": [
+                            "Tour",
+                            "Event",
+                            "Portfolio Item"
+                        ]
+                    },
+                    "plural": {
+                        "type": "string",
+                        "description": "Plural name for the custom post type",
+                        "minLength": 1,
+                        "maxLength": 50,
+                        "examples": [
+                            "Tours",
+                            "Events",
+                            "Portfolio Items"
+                        ]
+                    },
+                    "supports": {
+                        "type": "array",
+                        "description": "Features supported by the custom post type",
+                        "default": [
+                            "title",
+                            "editor",
+                            "thumbnail",
+                            "excerpt",
+                            "custom-fields",
+                            "revisions"
+                        ],
+                        "uniqueItems": true,
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "title",
+                                "editor",
+                                "author",
+                                "thumbnail",
+                                "excerpt",
+                                "trackbacks",
+                                "custom-fields",
+                                "comments",
+                                "revisions",
+                                "page-attributes",
+                                "post-formats"
+                            ]
+                        }
+                    },
+                    "has_archive": {
+                        "type": "boolean",
+                        "description": "Enable archive page for the custom post type",
+                        "default": true
+                    },
+                    "public": {
+                        "type": "boolean",
+                        "description": "Make the custom post type publicly queryable",
+                        "default": true
+                    },
+                    "menu_icon": {
+                        "type": "string",
+                        "description": "Dashicon class name for admin menu (e.g., 'dashicons-palmtree')",
+                        "pattern": "^dashicons-[a-z0-9-]+$",
+                        "default": "dashicons-admin-post",
+                        "examples": [
+                            "dashicons-palmtree",
+                            "dashicons-calendar-alt",
+                            "dashicons-portfolio"
+                        ]
+                    },
+                    "taxonomies": {
+                        "description": "Custom taxonomies for this post type - can be array of strings (slugs) or array of objects (legacy)",
+                        "default": [],
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "description": "Array of taxonomy slugs (references taxonomies defined in top-level taxonomies array)",
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]{0,30}[a-z0-9]$",
+                                    "examples": [
+                                        "destination",
+                                        "event_category",
+                                        "portfolio_tag"
+                                    ]
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "description": "Array of taxonomy objects (legacy format - will be converted to top-level taxonomies)",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "slug",
+                                        "singular",
+                                        "plural"
+                                    ],
+                                    "properties": {
+                                        "slug": {
+                                            "type": "string",
+                                            "description": "Taxonomy slug (lowercase, underscores allowed)",
+                                            "pattern": "^[a-z][a-z0-9_]{0,30}[a-z0-9]$",
+                                            "minLength": 2,
+                                            "maxLength": 32,
+                                            "examples": [
+                                                "destination",
+                                                "event_category",
+                                                "portfolio_tag"
+                                            ]
+                                        },
+                                        "singular": {
+                                            "type": "string",
+                                            "description": "Singular label for the taxonomy",
+                                            "minLength": 1,
+                                            "maxLength": 50,
+                                            "examples": [
+                                                "Destination",
+                                                "Event Category",
+                                                "Portfolio Tag"
+                                            ]
+                                        },
+                                        "plural": {
+                                            "type": "string",
+                                            "description": "Plural label for the taxonomy",
+                                            "minLength": 1,
+                                            "maxLength": 50,
+                                            "examples": [
+                                                "Destinations",
+                                                "Event Categories",
+                                                "Portfolio Tags"
+                                            ]
+                                        },
+                                        "hierarchical": {
+                                            "type": "boolean",
+                                            "description": "Whether taxonomy is hierarchical (like categories) or flat (like tags)",
+                                            "default": true
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "fields": {
+                        "description": "SCF field definitions for this post type - can be array of fields (legacy) or use top-level fields array",
+                        "default": [],
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "description": "Legacy format - fields embedded in post type (will be converted to top-level fields)",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "name",
+                                        "label",
+                                        "type"
+                                    ],
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Field key (lowercase, underscores, no spaces)",
+                                            "pattern": "^[a-z][a-z0-9_]*$",
+                                            "minLength": 2,
+                                            "maxLength": 64,
+                                            "examples": [
+                                                "price",
+                                                "duration_days",
+                                                "featured_image_gallery"
+                                            ]
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "description": "Human-readable field label shown in admin",
+                                            "minLength": 1,
+                                            "maxLength": 100,
+                                            "examples": [
+                                                "Price per Person",
+                                                "Duration (Days)",
+                                                "Featured Image Gallery"
+                                            ]
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "description": "SCF field type",
+                                            "enum": [
+                                                "text",
+                                                "textarea",
+                                                "wysiwyg",
+                                                "number",
+                                                "email",
+                                                "url",
+                                                "password",
+                                                "image",
+                                                "file",
+                                                "gallery",
+                                                "select",
+                                                "checkbox",
+                                                "radio",
+                                                "button_group",
+                                                "true_false",
+                                                "date_picker",
+                                                "time_picker",
+                                                "date_time_picker",
+                                                "color_picker",
+                                                "link",
+                                                "post_object",
+                                                "page_link",
+                                                "relationship",
+                                                "taxonomy",
+                                                "user",
+                                                "google_map",
+                                                "message",
+                                                "accordion",
+                                                "tab",
+                                                "group",
+                                                "repeater",
+                                                "flexible_content",
+                                                "clone"
+                                            ]
+                                        },
+                                        "required": {
+                                            "type": "boolean",
+                                            "description": "Whether this field is required",
+                                            "default": false
+                                        },
+                                        "instructions": {
+                                            "type": "string",
+                                            "description": "Help text displayed below the field in admin",
+                                            "maxLength": 500,
+                                            "examples": [
+                                                "Enter the base price for this tour (in your currency)",
+                                                "Number of days for this tour"
+                                            ]
+                                        },
+                                        "default_value": {
+                                            "description": "Default value for the field (type depends on field type)",
+                                            "oneOf": [
+                                                { "type": "string" },
+                                                { "type": "number" },
+                                                { "type": "boolean" },
+                                                { "type": "array" },
+                                                { "type": "null" }
+                                            ]
+                                        },
+                                        "placeholder": {
+                                            "type": "string",
+                                            "description": "Placeholder text for text-based fields",
+                                            "maxLength": 100,
+                                            "examples": [
+                                                "Enter price...",
+                                                "Select option..."
+                                            ]
+                                        },
+                                        "choices": {
+                                            "type": "object",
+                                            "description": "Available choices for select, checkbox, radio, and button_group fields",
+                                            "patternProperties": {
+                                                "^[a-z0-9_-]+$": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "examples": [
+                                                {
+                                                    "easy": "Easy",
+                                                    "moderate": "Moderate",
+                                                    "challenging": "Challenging"
+                                                }
+                                            ]
+                                        },
+                                        "min": {
+                                            "type": "number",
+                                            "description": "Minimum value for number fields"
+                                        },
+                                        "max": {
+                                            "type": "number",
+                                            "description": "Maximum value for number fields"
+                                        },
+                                        "step": {
+                                            "type": "number",
+                                            "description": "Step increment for number fields",
+                                            "default": 1
+                                        },
+                                        "return_format": {
+                                            "type": "string",
+                                            "description": "Return format for various field types",
+                                            "enum": [
+                                                "value",
+                                                "label",
+                                                "array",
+                                                "url",
+                                                "id",
+                                                "object"
+                                            ]
+                                        },
+                                        "multiple": {
+                                            "type": "boolean",
+                                            "description": "Allow multiple selections for select/post_object/user fields",
+                                            "default": false
+                                        },
+                                        "allow_null": {
+                                            "type": "boolean",
+                                            "description": "Allow null/empty value",
+                                            "default": false
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+
+        "taxonomies": {
+            "type": "array",
+            "description": "Top-level taxonomy definitions shared across post types",
+            "default": [],
+            "items": {
+                "type": "object",
+                "required": [
+                    "slug",
+                    "singular",
+                    "plural",
+                    "post_types"
                 ],
                 "properties": {
                     "slug": {
@@ -262,216 +524,176 @@
                         "type": "boolean",
                         "description": "Whether taxonomy is hierarchical (like categories) or flat (like tags)",
                         "default": true
+                    },
+                    "post_types": {
+                        "type": "array",
+                        "description": "Array of post type slugs this taxonomy applies to",
+                        "minItems": 1,
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]{0,18}[a-z0-9]$",
+                            "examples": [
+                                "tour",
+                                "event",
+                                "portfolio_item"
+                            ]
+                        }
                     }
-                },
-                "additionalProperties": false
+                }
             }
         },
+
         "fields": {
             "type": "array",
-            "description": "Secure Custom Fields (SCF) field definitions",
+            "description": "Top-level field group definitions organized by post type",
             "default": [],
             "items": {
                 "type": "object",
                 "required": [
-                    "name",
-                    "label",
-                    "type"
+                    "post_type",
+                    "field_group"
                 ],
                 "properties": {
-                    "name": {
+                    "post_type": {
                         "type": "string",
-                        "description": "Field key (lowercase, underscores, no spaces)",
-                        "pattern": "^[a-z][a-z0-9_]*$",
-                        "minLength": 2,
-                        "maxLength": 64,
+                        "description": "Post type slug this field group applies to",
+                        "pattern": "^[a-z][a-z0-9_]{0,18}[a-z0-9]$",
                         "examples": [
-                            "price",
-                            "duration_days",
-                            "featured_image_gallery"
+                            "tour",
+                            "event",
+                            "portfolio_item"
                         ]
                     },
-                    "label": {
-                        "type": "string",
-                        "description": "Human-readable field label shown in admin",
-                        "minLength": 1,
-                        "maxLength": 100,
-                        "examples": [
-                            "Price per Person",
-                            "Duration (Days)",
-                            "Featured Image Gallery"
-                        ]
-                    },
-                    "type": {
-                        "type": "string",
-                        "description": "SCF field type",
-                        "enum": [
-                            "text",
-                            "textarea",
-                            "wysiwyg",
-                            "number",
-                            "email",
-                            "url",
-                            "password",
-                            "image",
-                            "file",
-                            "gallery",
-                            "select",
-                            "checkbox",
-                            "radio",
-                            "button_group",
-                            "true_false",
-                            "date_picker",
-                            "time_picker",
-                            "date_time_picker",
-                            "color_picker",
-                            "link",
-                            "post_object",
-                            "page_link",
-                            "relationship",
-                            "taxonomy",
-                            "user",
-                            "google_map",
-                            "message",
-                            "accordion",
-                            "tab",
-                            "group",
-                            "repeater",
-                            "flexible_content",
-                            "clone"
-                        ]
-                    },
-                    "required": {
-                        "type": "boolean",
-                        "description": "Whether this field is required",
-                        "default": false
-                    },
-                    "instructions": {
-                        "type": "string",
-                        "description": "Help text displayed below the field in admin",
-                        "maxLength": 500,
-                        "examples": [
-                            "Enter the base price for this tour (in your currency)",
-                            "Number of days for this tour"
-                        ]
-                    },
-                    "default_value": {
-                        "description": "Default value for the field (type depends on field type)",
-                        "oneOf": [
-                            { "type": "string" },
-                            { "type": "number" },
-                            { "type": "boolean" },
-                            { "type": "array" },
-                            { "type": "null" }
-                        ]
-                    },
-                    "placeholder": {
-                        "type": "string",
-                        "description": "Placeholder text for text-based fields",
-                        "maxLength": 100,
-                        "examples": [
-                            "Enter price...",
-                            "Select option..."
-                        ]
-                    },
-                    "choices": {
-                        "type": "object",
-                        "description": "Available choices for select, checkbox, radio, and button_group fields",
-                        "patternProperties": {
-                            "^[a-z0-9_-]+$": {
-                                "type": "string"
+                    "field_group": {
+                        "type": "array",
+                        "description": "Array of field definitions for this post type",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "label",
+                                "type"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Field key (lowercase, underscores, no spaces)",
+                                    "pattern": "^[a-z][a-z0-9_]*$",
+                                    "minLength": 2,
+                                    "maxLength": 64
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "description": "Human-readable field label shown in admin",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "description": "SCF field type",
+                                    "enum": [
+                                        "text",
+                                        "textarea",
+                                        "wysiwyg",
+                                        "number",
+                                        "email",
+                                        "url",
+                                        "password",
+                                        "image",
+                                        "file",
+                                        "gallery",
+                                        "select",
+                                        "checkbox",
+                                        "radio",
+                                        "button_group",
+                                        "true_false",
+                                        "date_picker",
+                                        "time_picker",
+                                        "date_time_picker",
+                                        "color_picker",
+                                        "link",
+                                        "post_object",
+                                        "page_link",
+                                        "relationship",
+                                        "taxonomy",
+                                        "user",
+                                        "google_map",
+                                        "message",
+                                        "accordion",
+                                        "tab",
+                                        "group",
+                                        "repeater",
+                                        "flexible_content",
+                                        "clone"
+                                    ]
+                                },
+                                "required": {
+                                    "type": "boolean",
+                                    "description": "Whether this field is required",
+                                    "default": false
+                                },
+                                "instructions": {
+                                    "type": "string",
+                                    "description": "Help text displayed below the field in admin"
+                                },
+                                "default_value": {
+                                    "description": "Default value for the field"
+                                },
+                                "placeholder": {
+                                    "type": "string",
+                                    "description": "Placeholder text for text-based fields"
+                                },
+                                "choices": {
+                                    "type": "object",
+                                    "description": "Available choices for select, checkbox, radio, and button_group fields"
+                                },
+                                "min": {
+                                    "type": "number",
+                                    "description": "Minimum value for number fields"
+                                },
+                                "max": {
+                                    "type": "number",
+                                    "description": "Maximum value for number fields"
+                                },
+                                "step": {
+                                    "type": "number",
+                                    "description": "Step increment for number fields"
+                                },
+                                "return_format": {
+                                    "type": "string",
+                                    "description": "Return format for various field types"
+                                },
+                                "multiple": {
+                                    "type": "boolean",
+                                    "description": "Allow multiple selections"
+                                },
+                                "allow_null": {
+                                    "type": "boolean",
+                                    "description": "Allow null/empty value"
+                                }
                             }
-                        },
-                        "examples": [
-                            {
-                                "easy": "Easy",
-                                "moderate": "Moderate",
-                                "challenging": "Challenging"
-                            }
-                        ]
-                    },
-                    "min": {
-                        "type": "number",
-                        "description": "Minimum value for number fields"
-                    },
-                    "max": {
-                        "type": "number",
-                        "description": "Maximum value for number fields"
-                    },
-                    "step": {
-                        "type": "number",
-                        "description": "Step increment for number fields",
-                        "default": 1
-                    },
-                    "return_format": {
-                        "type": "string",
-                        "description": "Return format for various field types",
-                        "enum": [
-                            "value",
-                            "label",
-                            "array",
-                            "url",
-                            "id",
-                            "object"
-                        ]
-                    },
-                    "multiple": {
-                        "type": "boolean",
-                        "description": "Allow multiple selections for select/post_object/user fields",
-                        "default": false
-                    },
-                    "allow_null": {
-                        "type": "boolean",
-                        "description": "Allow null/empty value",
-                        "default": false
+                        }
                     }
-                },
-                "additionalProperties": false
+                }
             }
         },
+
         "blocks": {
             "type": "array",
             "description": "Block types to generate for this plugin",
             "default": [
-                "card",
                 "collection",
-                "slider",
-                "featured"
+                "slider"
             ],
             "uniqueItems": true,
             "items": {
                 "type": "string",
                 "enum": [
-                    "card",
-                    "collection",
-                    "slider",
-                    "single",
-                    "featured",
-                    "archive",
-                    "search",
-                    "filter"
+                    "collection"
                 ]
             },
             "minItems": 1
-        },
-        "templates": {
-            "type": "array",
-            "description": "Block templates to generate",
-            "default": [
-                "single",
-                "archive"
-            ],
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "enum": [
-                    "single",
-                    "archive",
-                    "search",
-                    "taxonomy"
-                ]
-            }
         }
     },
-    "additionalProperties": false
+    "additionalProperties": true
 }

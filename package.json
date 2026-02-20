@@ -65,14 +65,14 @@
 		"ajv-formats": "3.0.1",
 		"axe-core": "^4.10.2",
 		"axe-playwright": "^2.0.3",
-		"glob": "10.5.0",
 		"gray-matter": "^4.0.3",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
 		"playwright": "1.57.0",
 		"puppeteer-core": "21.5.2",
 		"size-limit": "^11.1.6",
-		"webpack-bundle-analyzer": "^4.10.2"
+		"webpack-bundle-analyzer": "^4.10.2",
+		"glob": "13.0.0"
 	},
 	"scripts": {
 		"build": "node scripts/build.js",
@@ -121,7 +121,8 @@
 		"validate:schemas": "node scripts/validation/validate-plugin-config.js --schema-only && node scripts/validation/validate-plugin-config.js scripts/fixtures/plugin-config.example.json",
 		"validate:config": "node scripts/validation/validate-plugin-config.js tests/fixtures/plugin-config.mock.json",
 		"validate:frontmatter": "node scripts/validation/audit-frontmatter.js",
-		"validate:all": "npm run validate:config && npm run validate:schemas && npm run validate:frontmatter",
+		"validate:post-types": "node scripts/validate-post-types.js",
+		"validate:all": "npm run validate:config && npm run validate:schemas && npm run validate:frontmatter && npm run validate:post-types",
 		"test": "npm run test:unit",
 		"release:validate": "node scripts/release.agent.js validate",
 		"release:status": "node scripts/release.agent.js status",

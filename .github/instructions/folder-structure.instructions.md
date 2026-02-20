@@ -188,9 +188,9 @@ Use this guide when creating, moving, or auditing files. It covers where to plac
 
 **Block**:
 
-- **Location**: `src/blocks/{{slug}}-{block-name}/`
+- **Location**: `src/blocks/{block-name}/` (custom blocks only, no templates provided)
 - **Files**: `block.json`, `edit.js`, `save.js`, `render.php`, `style.scss`, `editor.scss`
-- **Example**: `src/blocks/{{slug}}-card/`
+- **Example**: `src/blocks/custom-block/`
 
 **Test File**:
 
@@ -496,8 +496,8 @@ fs.rmSync(tmpDir, { recursive: true, force: true });
 ### 2. Mirror Test Structure
 
 ```text
-src/blocks/{{slug}}-card/edit.js
-tests/js/blocks/{{slug}}-card.test.js
+src/blocks/custom-block/edit.js
+tests/js/blocks/custom-block.test.js
 ```
 
 ### 3. Namespace Everything

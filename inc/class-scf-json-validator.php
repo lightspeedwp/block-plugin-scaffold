@@ -1,5 +1,4 @@
 <?php
-namespace example_plugin\classes;
 namespace {{namespace}}\classes;
 
 /**
@@ -25,8 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class ExamplePlugin_SCF_JSON_Validator {
-class {{namespace|pascalCase}}_SCF_JSON_Validator {
+class SCF_JSON_Validator {
 
 	/**
 	 * Path to the JSON schema file.
@@ -34,7 +32,6 @@ class {{namespace|pascalCase}}_SCF_JSON_Validator {
 	 * @var string
 	 */
 	private $schema_path;
-private $schema_path;
 
 	/**
 	 * Decoded schema cache.
@@ -42,15 +39,13 @@ private $schema_path;
 	 * @var array
 	 */
 	private $schema;
-private $schema;
 
 	/**
 	 * SCF JSON handler instance.
 	 *
-	 * @var ExamplePlugin_SCF_JSON
+	 * @var SCF_JSON
 	 */
 	private $scf_json;
-private $scf_json;
 
 	/**
 	 * Valid field types in SCF.
@@ -58,7 +53,6 @@ private $scf_json;
 	 * @var array
 	 */
 	private $valid_field_types = array(
-		private $valid_field_types = array(
 		'tab', 'accordion', 'message',
 		'text', 'textarea', 'email', 'url', 'password', 'number',
 		'wysiwyg', 'oembed',
@@ -75,7 +69,6 @@ private $scf_json;
 	 * @var array
 	 */
 	private $valid_location_params = array(
-		private $valid_location_params = array(
 		'post_type', 'post_format', 'post_status', 'post_taxonomy',
 		'user_role', 'user_form',
 		'taxonomy',
@@ -93,12 +86,10 @@ private $scf_json;
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		$this->schema_path = EXAMPLE_PLUGIN_PLUGIN_DIR . 'scf-json/schema/scf-field-group.schema.json';
-		$this->schema_path = {{namespace|upper}}_PLUGIN_DIR . 'scf-json/schema/scf-field-group.schema.json';
+		$this->schema_path = {{namespace|upper}}_DIR . '.github/schemas/scf-field-group.schema.json';
 
-		if ( class_exists( 'example_plugin\classes\ExamplePlugin_SCF_JSON' ) ) {
-			$this->scf_json = new ExamplePlugin_SCF_JSON();
-				if ( class_exists( '{{namespace}}\\classes\\{{namespace|pascalCase}}_SCF_JSON' ) ) {
+		if ( class_exists( '{{namespace}}\\classes\\SCF_JSON' ) ) {
+			$this->scf_json = new SCF_JSON();
 		}
 
 		$this->load_schema();

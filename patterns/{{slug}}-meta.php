@@ -10,18 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-<div class="wp-block-group {{namespace}}-item-meta has-contrast-background-color has-background" style="margin-top:var(--wp--preset--spacing--40);padding-top:var(--wp--preset--spacing--30);padding-bottom:var(--wp--preset--spacing--30)">
-	<!-- wp:heading {"level":4} -->
-	<h4>' . esc_html__( 'Details', 'example-plugin' ) . '</h4>
-	<!-- /wp:heading -->
-
-	<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap"}} -->
-	<div class="wp-block-group">
-		<!-- wp:post-terms {"term":"category","prefix":"' . esc_attr__( 'Category: ', 'example-plugin' ) . '"} /-->
-	</div>
-	<!-- /wp:group -->
-</div>
-<!-- /wp:group -->',
 return array(
 	'title'       => __( '{{name}} Meta', '{{textdomain}}' ),
 	'slug'        => '{{slug}}/item-meta',

@@ -8,6 +8,7 @@
 
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Find all block entry points.
 const glob = require('glob');
@@ -23,11 +24,22 @@ blockDirs.forEach((blockPath) => {
 	);
 });
 
+// Find all JS files in src/js directory.
+const jsEntries = {};
+const jsDirs = glob.sync('./src/js/**/*.js');
+
+jsDirs.forEach((jsPath) => {
+	const relativePath = path.relative('./src/js', jsPath);
+	const entryName = relativePath.replace(/\.js$/, '');
+	jsEntries[`js/${entryName}`] = path.resolve(process.cwd(), jsPath);
+});
+
 module.exports = {
 	...defaultConfig,
 	entry: {
 		index: path.resolve(process.cwd(), 'src', 'index.js'),
 		...blockEntries,
+		...jsEntries,
 	},
 	output: {
 		filename: '[name].js',
@@ -44,4 +56,18 @@ module.exports = {
 			'@utils': path.resolve(process.cwd(), 'src', 'utils'),
 		},
 	},
+	plugins: [
+		...defaultConfig.plugins,
+		new CopyWebpackPlugin({
+			patterns: [
+				{
+					from: 'src/blocks/*/render.php',
+					to: ({ context, absoluteFilename }) => {
+						const blockName = path.basename(path.dirname(absoluteFilename));
+						return `blocks/${blockName}/render.php`;
+					},
+				},
+			],
+		}),
+	],
 };

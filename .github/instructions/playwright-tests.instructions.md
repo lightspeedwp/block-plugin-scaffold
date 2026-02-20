@@ -79,11 +79,7 @@ tests/
 │   ├── config/
 │   │   └── playwright.config.ts  # Playwright configuration
 │   ├── specs/                    # Test specifications
-│   │   ├── blocks/
-│   │   │   ├── {{slug}}-card.spec.ts
-│   │   │   ├── {{slug}}-collection.spec.ts
-│   │   │   ├── {{slug}}-featured.spec.ts
-│   │   │   └── {{slug}}-slider.spec.ts
+│   │   ├── blocks/               # Custom block tests (no templates)
 │   │   ├── admin/
 │   │   │   ├── cpt-management.spec.ts
 │   │   │   └── settings.spec.ts
@@ -106,7 +102,7 @@ tests/
 - Use kebab-case for filenames
 
 ```
-{{slug}}-card.spec.ts           # Card block tests
+custom-block.spec.ts            # Custom block tests
 cpt-management.spec.ts          # CPT admin tests
 archive-{{slug}}.spec.ts        # Archive page tests
 ```
@@ -197,19 +193,19 @@ TEST_USER_PASS=password123
 ```typescript
 import { test, expect } from '@playwright/test';
 
-test.describe('{{name}} Card Block', () => {
+test.describe('{{name}} Custom Block', () => {
 	test.beforeEach(async ({ page }) => {
 		// Navigate to page before each test
 		await page.goto('/wp-admin/post-new.php');
 	});
 
-	test('should insert card block', async ({ page }) => {
+	test('should insert custom block', async ({ page }) => {
 		await test.step('Open block inserter', async () => {
 			await page.getByRole('button', { name: 'Add block' }).click();
 		});
 
-		await test.step('Search for card block', async () => {
-			await page.getByRole('searchbox', { name: 'Search' }).fill('{{name}} Card');
+		await test.step('Search for custom block', async () => {
+			await page.getByRole('searchbox', { name: 'Search' }).fill('{{name}} Custom');
 		});
 
 		await test.step('Insert block', async () => {
@@ -238,13 +234,13 @@ test.describe('Block Editor Tests', () => {
 		await admin.createNewPost();
 
 		await editor.insertBlock({
-			name: '{{namespace}}/{{slug}}-card',
+			name: '{{namespace}}/custom-block',
 		});
 
 		await editor.openDocumentSettingsSidebar();
 
 		// Verify block exists
-		const block = editor.canvas.getByRole('document', { name: /{{name}} Card/ });
+		const block = editor.canvas.getByRole('document', { name: /{{name}} Custom/ });
 		await expect(block).toBeVisible();
 
 		// Publish post
@@ -293,12 +289,12 @@ test.describe('{{name}} Tests', () => {
 test('insert block using inserter', async ({ page, editor }) => {
 	// Using WordPress utils
 	await editor.insertBlock({
-		name: '{{namespace}}/{{slug}}-card',
+		name: '{{namespace}}/custom-block',
 	});
 
 	// Or manually
 	await page.getByRole('button', { name: 'Add block' }).click();
-	await page.getByRole('option', { name: '{{name}} Card' }).click();
+	await page.getByRole('option', { name: '{{name}} Custom' }).click();
 });
 ```
 
@@ -307,7 +303,7 @@ test('insert block using inserter', async ({ page, editor }) => {
 ```typescript
 test('edit block attributes', async ({ page, editor }) => {
 	await editor.insertBlock({
-		name: '{{namespace}}/{{slug}}-card',
+		name: '{{namespace}}/custom-block',
 	});
 
 	// Open block settings
@@ -378,8 +374,8 @@ test('dynamic block renders correctly', async ({ page, editor }) => {
 	await page.goto(postUrl);
 
 	// Verify frontend rendering
-	const featuredItems = page.locator('.{{slug}}-featured .{{slug}}-card');
-	await expect(featuredItems).toHaveCount(3);
+	const customItems = page.locator('.custom-block .block-item');
+	await expect(customItems).toHaveCount(3);
 });
 ```
 
@@ -417,10 +413,10 @@ await page.locator('#heading-1');
 
 ```typescript
 // Block by data-type attribute
-const block = page.locator('[data-type="{{namespace}}/{{slug}}-card"]');
+const block = page.locator('[data-type="{{namespace}}/{{slug}}-collection"]');
 
 // Block by aria-label
-const block = editor.canvas.getByRole('document', { name: '{{name}} Card' });
+const block = editor.canvas.getByRole('document', { name: '{{name}} Collection' });
 
 // Block toolbar
 const toolbar = page.locator('.block-editor-block-toolbar');
@@ -429,7 +425,7 @@ const toolbar = page.locator('.block-editor-block-toolbar');
 const settings = page.locator('.block-editor-block-inspector');
 
 // Block content area
-const content = editor.canvas.locator('[data-type="{{namespace}}/{{slug}}-card"] .block-content');
+const content = editor.canvas.locator('[data-type="{{namespace}}/{{slug}}-collection"] .block-content');
 ```
 
 ## Assertions and Expectations
@@ -597,7 +593,7 @@ npx playwright test
 npx playwright test {{slug}}-card.spec.ts
 
 # Run tests matching pattern
-npx playwright test --grep "card block"
+npx playwright test --grep "custom block"
 
 # Run in headed mode (see browser)
 npx playwright test --headed
@@ -734,15 +730,15 @@ await page.waitForLoadState('networkidle');
 4. **Independent tests** - Each test should work in isolation
 
 ```typescript
-test.describe('{{name}} Card Block', () => {
+test.describe('{{name}} Custom Block', () => {
 	test.describe('Insertion', () => {
 		test('should insert via inserter', async ({ page }) => {});
 		test('should insert via slash command', async ({ page }) => {});
 	});
 
 	test.describe('Configuration', () => {
-		test('should update heading', async ({ page }) => {});
-		test('should toggle excerpt visibility', async ({ page }) => {});
+		test('should update block settings', async ({ page }) => {});
+		test('should toggle options', async ({ page }) => {});
 	});
 
 	test.describe('Rendering', () => {

@@ -128,7 +128,6 @@ A comprehensive WordPress plugin scaffold with dual-mode generation, mustache te
 
 - **🔧 Dual-Mode Generator** - Template mode (`--in-place`) or output folder mode (default)
 - **🎨 Mustache Templating** - 6 transformation filters (upper, lower, pascalCase, camelCase, kebabCase, snakeCase)
-- **📦 Example Blocks** - Card, Collection, Slider, and Featured blocks ready to use
 - **🧪 130 Unit Tests** - Comprehensive test coverage across 7 test suites
 - **🔍 Complete Linting** - ESLint, Stylelint, PHPCS, and PHPStan configured
 - **📚 15+ Documentation Files** - Comprehensive guides for all aspects

@@ -32,11 +32,11 @@ date: 2025-12-01
 **Status**: ✅ COMPLETED
 
 - [x] **Custom Post Types**
-  - Location: [inc/class-post-types.php](../inc/class-post-types.php)
+  - Location: JSON files in [/scf-json/](../scf-json/) (post-type-{slug}.json)
   - Registers: {{slug}} post type with block editor support
 
 - [x] **Custom Taxonomies**
-  - Location: [inc/class-taxonomies.php](../inc/class-taxonomies.php)
+  - Location: JSON files in [/scf-json/](../scf-json/) (taxonomy-{slug}.json)
   - Registers: {{slug}}_category taxonomy
 
 ---
@@ -46,7 +46,7 @@ date: 2025-12-01
 **Status**: ✅ COMPLETED
 
 - [x] **SCF Field Registration**
-  - Location: [inc/class-fields.php](../inc/class-fields.php)
+  - Location: JSON files in [/scf-json/](../scf-json/) (group_{name}.json)
   - Features: Subtitle, featured flag, gallery, related posts
 
 - [x] **Repeater Fields**
@@ -75,23 +75,11 @@ date: 2025-12-01
 
 ## 5. Block Development
 
-**Status**: 📋 TODO
+**Status**: ❌ REMOVED
 
-- [ ] **Card Block** - Single post card display
-  - Location: `src/blocks/{{slug}}-card/`
-  - Features: Post preview with featured image, title, excerpt
+**Note**: Block templates have been removed from the scaffold. Implement blocks as patterns or custom code as needed.
 
-- [ ] **Collection Block** - Post query/collection
-  - Location: `src/blocks/{{slug}}-collection/`
-  - Features: Grid/list/slider layouts, taxonomy filtering
-
-- [ ] **Slider Block** - Carousel/slider display
-  - Location: `src/blocks/{{slug}}-slider/`
-  - Features: ACF repeater integration, navigation, autoplay
-
-- [ ] **Featured Block** - Featured posts display
-  - Location: `src/blocks/{{slug}}-featured/`
-  - Features: Highlight featured {{name_plural_lower}}
+**Note**: Card and Featured blocks are implemented as patterns using the Collection block.
 
 ---
 
@@ -127,7 +115,8 @@ date: 2025-12-01
 
 - [ ] **Block Patterns**
   - Location: `patterns/`
-  - Files: {{slug}}-archive.php, {{slug}}-card.php, {{slug}}-grid.php
+  - Files: {{slug}}-archive.php, {{slug}}-grid.php
+  - Note: Implement card and featured displays as patterns
 
 ---
 

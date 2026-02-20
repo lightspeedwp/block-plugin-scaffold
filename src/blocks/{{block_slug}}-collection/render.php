@@ -9,9 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-function {{namespace}}_render_{{block_slug}}_collection( $attributes, $content, $block ) {
-	// Output markup for the collection block.
-	return '<div class="wp-block-{{namespace}}-{{block_slug}}-collection">' .
-		'<p>' . esc_html__( 'Collection block output.', '{{textdomain}}' ) . '</p>' .
-	'</div>';
+if ( ! function_exists( '{{namespace}}_render_{{cpt_slug|snakeCase}}_collection' ) ) {
+	function {{namespace}}_render_{{cpt_slug|snakeCase}}_collection( $attributes, $content, $block ) {
+		// Output markup for the CPT1 collection block.
+		return '<div class="wp-block-{{namespace}}-{{block_slug}}-collection">' .
+			'<p>' . esc_html__( 'CPT1 collection block output.', '{{textdomain}}' ) . '</p>' .
+		'</div>';
+	}
 }

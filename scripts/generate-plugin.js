@@ -289,20 +289,6 @@ function applyDefaults(config) {
 		result.namespace = result.namespace || result.slug.replace(/-/g, '_');
 	}
 
-	// Auto-derive CPT slug from first word of slug (tour-operator -> tour)
-	if (!result.cpt_slug && result.slug) {
-		const firstWord = result.slug.split('-')[0];
-		result.cpt_slug = firstWord.substring(0, 20); // Max 20 chars for CPT
-	}
-
-	// Auto-derive singular/plural names
-	if (result.name && !result.name_singular) {
-		result.name_singular = result.name.replace(/s$/, '');
-	}
-	if (result.name_singular && !result.name_plural) {
-		result.name_plural = result.name_singular + 's';
-	}
-
 	// Set defaults
 	result.version = result.version || '1.0.0';
 	result.requires_wp = result.requires_wp || '6.5';
@@ -311,30 +297,159 @@ function applyDefaults(config) {
 	result.description =
 		result.description || 'A WordPress multi-block plugin.';
 
-	// Default blocks
-	result.blocks = result.blocks || [
-		'card',
-		'collection',
-		'slider',
-		'featured',
-	];
+	// Default blocks - no default blocks as templates are removed
+	result.blocks = result.blocks || [];
 
-	// Default templates
-	result.templates = result.templates || ['single', 'archive'];
+	// Initialize arrays
+	result.post_types = result.post_types || [];
+	result.taxonomies = result.taxonomies || [];
+	result.fields = result.fields || [];
+	
+	// If using legacy single post type format, convert to array
+	if (result.cpt_slug || result.name_singular) {
+		const legacyPostType = {
+			slug: result.cpt_slug || result.slug?.split('-')[0]?.substring(0, 20),
+			singular: result.name_singular || result.name?.replace(/s$/, ''),
+			plural: result.name_plural || (result.name_singular ? result.name_singular + 's' : result.name),
+			supports: result.cpt_supports || [
+				'title',
+				'editor',
+				'thumbnail',
+				'excerpt',
+				'revisions',
+			],
+			has_archive: result.cpt_has_archive !== false,
+			public: result.cpt_public !== false,
+			menu_icon: result.cpt_menu_icon || 'dashicons-admin-post',
+			taxonomies: result.taxonomies || [],
+			fields: result.fields || [],
+		};
+		result.post_types = [legacyPostType];
+		
+		// Clean up legacy fields (but don't delete taxonomies and fields yet - need to process them)
+		delete result.cpt_slug;
+		delete result.name_singular;
+		delete result.name_plural;
+		delete result.cpt_supports;
+		delete result.cpt_has_archive;
+		delete result.cpt_public;
+		delete result.cpt_menu_icon;
+	}
 
-	// Default CPT supports
-	result.cpt_supports = result.cpt_supports || [
-		'title',
-		'editor',
-		'thumbnail',
-		'excerpt',
-		'revisions',
-	];
+	// Convert legacy embedded taxonomies/fields to top-level arrays
+	const taxonomyMap = new Map(); // Dedupe taxonomies across post types
+	const postTypeFieldMap = new Map(); // Track fields by post type
+	
+	result.post_types = result.post_types.map((postType) => {
+		const pt = { ...postType };
+		
+		// Auto-derive plural from singular if not set
+		if (pt.singular && !pt.plural) {
+			pt.plural = pt.singular + 's';
+		}
+		
+		// Default supports
+		pt.supports = pt.supports || [
+			'title',
+			'editor',
+			'thumbnail',
+			'excerpt',
+			'revisions',
+		];
+		
+		// Default settings
+		pt.has_archive = pt.has_archive !== false;
+		pt.public = pt.public !== false;
+		pt.menu_icon = pt.menu_icon || 'dashicons-admin-post';
+		
+		// Handle taxonomies - convert to array of slugs if needed
+		if (pt.taxonomies && pt.taxonomies.length > 0) {
+			const taxonomySlugs = [];
+			
+			pt.taxonomies.forEach(tax => {
+				if (typeof tax === 'string') {
+					// Already a slug, keep it
+					taxonomySlugs.push(tax);
+				} else if (tax && typeof tax === 'object' && tax.slug) {
+					// Legacy object format - extract to top-level taxonomies
+					taxonomySlugs.push(tax.slug);
+					
+					if (!taxonomyMap.has(tax.slug)) {
+						taxonomyMap.set(tax.slug, {
+							slug: tax.slug,
+							singular: tax.singular || tax.slug,
+							plural: tax.plural || tax.singular + 's',
+							hierarchical: tax.hierarchical !== false,
+							post_types: [pt.slug]
+						});
+					} else {
+						// Add this post type to existing taxonomy
+						const existing = taxonomyMap.get(tax.slug);
+						if (!existing.post_types.includes(pt.slug)) {
+							existing.post_types.push(pt.slug);
+						}
+					}
+				}
+			});
+			
+			pt.taxonomies = taxonomySlugs;
+		} else {
+			pt.taxonomies = [];
+		}
+		
+		// Handle fields - move to top-level fields array
+		if (pt.fields && pt.fields.length > 0) {
+			postTypeFieldMap.set(pt.slug, pt.fields);
+			delete pt.fields;
+		}
+		
+		return pt;
+	});
 
-	// Default CPT settings
-	result.cpt_has_archive = result.cpt_has_archive !== false;
-	result.cpt_public = result.cpt_public !== false;
-	result.cpt_menu_icon = result.cpt_menu_icon || 'dashicons-admin-post';
+	// Merge extracted taxonomies into top-level array
+	taxonomyMap.forEach(tax => {
+		// Check if already exists in result.taxonomies
+		const existing = result.taxonomies.find(t => t.slug === tax.slug);
+		if (!existing) {
+			result.taxonomies.push(tax);
+		} else {
+			// Merge post_types
+			tax.post_types.forEach(pt => {
+				if (!existing.post_types.includes(pt)) {
+					existing.post_types.push(pt);
+				}
+			});
+		}
+	});
+
+	// Merge extracted fields into top-level array
+	postTypeFieldMap.forEach((fields, postTypeSlug) => {
+		const existing = result.fields.find(f => f.post_type === postTypeSlug);
+		if (!existing) {
+			result.fields.push({
+				post_type: postTypeSlug,
+				field_group: fields
+			});
+		}
+	});
+
+	// For backward compatibility, set first post type properties as top-level
+	if (result.post_types.length > 0) {
+		const firstPostType = result.post_types[0];
+		result.cpt_slug = firstPostType.slug;
+		result.cpt_name = firstPostType.singular; // Display name for the post type
+		result.block_slug = firstPostType.slug.replace(/_/g, '-'); // Dasherized version for block names
+		result.name_singular = firstPostType.singular;
+		result.name_plural = firstPostType.plural;
+		result.cpt_supports = firstPostType.supports;
+		result.cpt_has_archive = firstPostType.has_archive;
+		result.cpt_public = firstPostType.public;
+		result.cpt_menu_icon = firstPostType.menu_icon;
+		
+		// Legacy format expects embedded arrays
+		result.taxonomies_legacy = firstPostType.taxonomies || [];
+		result.fields_legacy = result.fields.find(f => f.post_type === firstPostType.slug)?.field_group || [];
+	}
 
 	return result;
 }
@@ -416,7 +531,14 @@ function replaceMustacheVars(content, config) {
 	// Replace simple variables (e.g., example-plugin)
 	result = result.replace(/\{\{([a-z_]+)\}\}/gi, (match, varName) => {
 		const value = config[varName];
-		return value !== undefined ? String(value) : ''; // Return empty string for undefined
+		if (value === undefined) {
+			return ''; // Return empty string for undefined
+		}
+		// Handle arrays by converting to quoted, comma-separated strings for PHP
+		if (Array.isArray(value)) {
+			return value.map(item => `'${item}'`).join(', ');
+		}
+		return String(value);
 	});
 
 	return result;
@@ -708,6 +830,7 @@ function generatePlugin(config, inPlace = false) {
 		'scripts',
 		'bin',
 		'.dry-run-backup',
+		'plugin-config.json',
 	];
 
 	// Copy scaffold files with mustache replacement
@@ -725,6 +848,17 @@ function generatePlugin(config, inPlace = false) {
 			excludePaths
 		);
 		removeScaffoldOnlyTests(outputDir);
+		
+		// Generate per-CPT blocks after copying
+		if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+			log('INFO', 'Generating per-CPT blocks');
+			generatePerCPTBlocks(outputDir, fullConfig);
+			log('INFO', 'Per-CPT block generation completed');
+		}
+		
+		// Generate src/index.js with dynamic block imports
+		log('INFO', 'Generating src/index.js with block imports');
+		generateSrcIndexFile(outputDir, fullConfig);
 	}
 
 	// Generate package.json
@@ -738,6 +872,22 @@ function generatePlugin(config, inPlace = false) {
 	// Generate README.md
 	log('INFO', 'Generating README.md');
 	generateReadme(outputDir, fullConfig);
+
+	// Generate post-type JSON files
+	if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+		log('INFO', 'Generating post-type JSON files');
+		generatePostTypeJSONFiles(outputDir, fullConfig);
+		
+		// Generate taxonomy SCF field groups
+		log('INFO', 'Generating taxonomy field groups');
+		generateTaxonomySCFGroups(outputDir, fullConfig);
+	}
+
+	// Generate SCF JSON field group
+	if (fullConfig.fields && fullConfig.fields.length > 0) {
+		log('INFO', 'Generating SCF field group JSON');
+		generateSCFFieldGroup(outputDir, fullConfig);
+	}
 
 	log('INFO', 'Plugin generated successfully', {
 		outputDirectory: outputDir,
@@ -759,6 +909,573 @@ function generatePlugin(config, inPlace = false) {
 	console.log(`📝 Log file: ${logFile}\n`);
 
 	return outputDir;
+}
+
+/**
+ * Generate per-CPT blocks from {{cpt_slug}} templates
+ * Duplicates block templates that contain {{cpt_slug}} for each registered post type
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generatePerCPTBlocks(outputDir, config) {
+	if (!config.post_types || config.post_types.length === 0) {
+		log('INFO', 'No post types defined, skipping per-CPT block generation');
+		return;
+	}
+
+	const blocksDir = path.join(outputDir, 'src', 'blocks');
+	if (!fs.existsSync(blocksDir)) {
+		log('WARN', 'Blocks directory not found, skipping per-CPT block generation');
+		return;
+	}
+
+	// After copying, the {{cpt_slug}} template will have been replaced with the FIRST post type's slug
+	// We need to find that block and duplicate it for remaining post types
+	const firstPostType = config.post_types[0];
+	if (!firstPostType) return;
+	
+	// Look for blocks that match the first post type slug pattern (e.g., "cpd_article-collection")
+	const entries = fs.readdirSync(blocksDir, { withFileTypes: true });
+	const firstCPTBlocks = entries.filter(
+		(entry) => entry.isDirectory() && entry.name.startsWith(`${firstPostType.slug}-`)
+	);
+
+	if (firstCPTBlocks.length === 0) {
+		log('INFO', 'No per-CPT block templates found (expected blocks starting with first CPT slug)');
+		return;
+	}
+
+	log('INFO', `Found ${firstCPTBlocks.length} per-CPT block template(s) for first post type`, {
+		templates: firstCPTBlocks.map(t => t.name),
+		firstPostType: firstPostType.slug
+	});
+
+	// For each block template from the first post type
+	firstCPTBlocks.forEach((templateBlock) => {
+		const templatePath = path.join(blocksDir, templateBlock.name);
+		
+		// Extract the block type suffix (e.g., "collection" from "cpd_article-collection")
+		const blockSuffix = templateBlock.name.replace(`${firstPostType.slug}-`, '');
+		
+		// Generate a block for each REMAINING post type (skip first one as it already exists)
+		config.post_types.slice(1).forEach((postType, index) => {
+			// Create block-specific config with CPT variables
+			const blockConfig = {
+				...config,
+				cpt_slug: postType.slug,
+				cpt_name: postType.singular, // Display name for the post type
+				block_slug: postType.slug.replace(/_/g, '-'), // Dasherized version for block names
+				cpt_singular: postType.singular,
+				cpt_plural: postType.plural,
+				cpt_menu_icon: postType.menu_icon,
+				cpt_supports: postType.supports,
+				// Add indexed variables for multi-CPT support
+				[`cpt${index + 2}_slug`]: postType.slug, // +2 because we skipped first
+				[`cpt${index + 2}_singular`]: postType.singular,
+				[`cpt${index + 2}_plural`]: postType.plural,
+			};
+
+			// Create the block directory name for this post type
+			const blockDirName = `${postType.slug}-${blockSuffix}`;
+			const blockPath = path.join(blocksDir, blockDirName);
+
+			// Create the block directory
+			if (!fs.existsSync(blockPath)) {
+				fs.mkdirSync(blockPath, { recursive: true });
+			}
+
+			// Copy all files from template to new block directory
+			const templateFiles = fs.readdirSync(templatePath, { withFileTypes: true });
+			templateFiles.forEach((file) => {
+				const srcPath = path.join(templatePath, file.name);
+				const destName = replaceMustacheVars(file.name, blockConfig);
+				const destPath = path.join(blockPath, destName);
+
+				if (file.isDirectory()) {
+					// Recursively copy subdirectories
+					if (!fs.existsSync(destPath)) {
+						fs.mkdirSync(destPath, { recursive: true });
+					}
+					copyDirWithReplacement(srcPath, destPath, blockConfig, []);
+				} else {
+					// Copy and process file - replace first post type slug with current post type
+					let content = fs.readFileSync(srcPath, 'utf8');
+					
+					// Create dasherized versions for block names
+					const firstCPTDasherized = firstPostType.slug.replace(/_/g, '-');
+					const currentCPTDasherized = postType.slug.replace(/_/g, '-');
+					
+					// Create snake_case versions for function names
+					const firstCPTSnakeCase = firstPostType.slug.replace(/-/g, '_');
+					const currentCPTSnakeCase = postType.slug.replace(/-/g, '_');
+					
+					// Replace the first post type's slug with the current post type's slug
+					// Handle both underscore version (for variables) and dash version (for block names)
+					content = content.replace(new RegExp(firstCPTDasherized, 'g'), currentCPTDasherized);
+					content = content.replace(new RegExp(firstCPTSnakeCase, 'g'), currentCPTSnakeCase);
+					content = content.replace(new RegExp(firstPostType.slug, 'g'), postType.slug);
+					content = content.replace(new RegExp(firstPostType.singular, 'g'), postType.singular);
+					content = content.replace(new RegExp(firstPostType.plural, 'g'), postType.plural);
+					
+					// Also replace any remaining mustache variables
+					content = replaceMustacheVars(content, blockConfig);
+					
+					fs.writeFileSync(destPath, content, 'utf8');
+				}
+			});
+
+			log('INFO', `Generated block: ${blockDirName}`, {
+				postType: postType.slug,
+				template: templateBlock.name,
+				blockSuffix: blockSuffix
+			});
+		});
+	});
+
+	log('INFO', 'Per-CPT block generation completed', {
+		templatesProcessed: firstCPTBlocks.length,
+		blocksGenerated: firstCPTBlocks.length * (config.post_types.length - 1),
+		postTypes: config.post_types.map(pt => pt.slug)
+	});
+}
+
+/**
+ * Generate src/index.js with dynamic block imports
+ * Creates the main entry point file with imports for all generated blocks
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateSrcIndexFile(outputDir, config) {
+	const blocksDir = path.join(outputDir, 'src', 'blocks');
+	const indexPath = path.join(outputDir, 'src', 'index.js');
+	
+	if (!fs.existsSync(blocksDir)) {
+		log('WARN', 'Blocks directory not found, skipping src/index.js generation');
+		return;
+	}
+
+	// Get all block directories
+	const blockDirs = fs.readdirSync(blocksDir, { withFileTypes: true })
+		.filter(entry => entry.isDirectory())
+		.map(entry => entry.name)
+		.sort();
+
+	if (blockDirs.length === 0) {
+		log('WARN', 'No blocks found, skipping src/index.js generation');
+		return;
+	}
+
+	// Generate block imports
+	const blockImports = blockDirs
+		.map(blockDir => `import './blocks/${blockDir}';`)
+		.join('\n');
+
+	// Generate the file content
+	const content = `/**
+ * ${config.name} Plugin - Main Entry Point
+ *
+ * Registers all blocks from the blocks directory.
+ *
+ * @package
+ */
+
+// Import blocks.
+${blockImports}
+
+// Import global styles.
+import './scss/style.scss';
+import './scss/editor.scss';
+`;
+
+	fs.writeFileSync(indexPath, content, 'utf8');
+	
+	log('INFO', `Generated src/index.js with ${blockDirs.length} block imports`, {
+		blocks: blockDirs
+	});
+}
+
+/**
+ * Generate individual post-type JSON files from config
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generatePostTypeJSONFiles(outputDir, config) {
+	if (!config.post_types || config.post_types.length === 0) {
+		log('INFO', 'No post types defined, skipping post-type JSON generation');
+		return;
+	}
+
+	log('INFO', 'Generating post-type JSON files in scf-json/', {
+		postTypeCount: config.post_types.length
+	});
+
+	const scfJsonDir = path.join(outputDir, 'scf-json');
+	if (!fs.existsSync(scfJsonDir)) {
+		fs.mkdirSync(scfJsonDir, { recursive: true });
+		log('INFO', 'Created scf-json directory');
+	}
+
+	// Generate SCF-formatted JSON file for each post type
+	config.post_types.forEach((postType) => {
+		// Create SCF post type format
+		const scfPostType = {
+			key: `post_type_${postType.slug}`,
+			title: postType.singular,
+			post_type: postType.slug,
+			menu_order: 0,
+			active: true,
+			public: postType.public !== false,
+			hierarchical: postType.hierarchical || false,
+			exclude_from_search: false,
+			publicly_queryable: true,
+			show_ui: true,
+			show_in_menu: true,
+			show_in_nav_menus: true,
+			show_in_rest: true,
+			rest_base: postType.slug + 's',
+			rest_controller_class: '',
+			menu_position: 20,
+			menu_icon: postType.menu_icon || 'dashicons-admin-post',
+			capability_type: 'post',
+			supports: postType.supports || ['title', 'editor', 'thumbnail'],
+			taxonomies: postType.taxonomies || [],
+			has_archive: postType.has_archive !== false,
+			rewrite: {
+				slug: postType.slug,
+				with_front: true
+			},
+			can_export: true,
+			delete_with_user: false,
+			labels: {
+				name: postType.plural,
+				singular_name: postType.singular,
+				menu_name: postType.plural,
+				all_items: `All ${postType.plural}`,
+				add_new: 'Add New',
+				add_new_item: `Add New ${postType.singular}`,
+				edit_item: `Edit ${postType.singular}`,
+				new_item: `New ${postType.singular}`,
+				view_item: `View ${postType.singular}`,
+				view_items: `View ${postType.plural}`,
+				search_items: `Search ${postType.plural}`,
+				not_found: `No ${postType.plural.toLowerCase()} found`,
+				not_found_in_trash: `No ${postType.plural.toLowerCase()} found in Trash`,
+				archives: `${postType.singular} Archives`,
+				attributes: `${postType.singular} Attributes`,
+				insert_into_item: `Insert into ${postType.singular.toLowerCase()}`,
+				uploaded_to_this_item: `Uploaded to this ${postType.singular.toLowerCase()}`,
+				filter_items_list: `Filter ${postType.plural.toLowerCase()} list`,
+				items_list_navigation: `${postType.plural} list navigation`,
+				items_list: `${postType.plural} list`
+			}
+		};
+
+		// Write SCF-formatted JSON file
+		const filePath = path.join(scfJsonDir, `post-type-${postType.slug}.json`);
+		fs.writeFileSync(
+			filePath,
+			JSON.stringify(scfPostType, null, '\t'),
+			'utf8'
+		);
+
+		log('INFO', `Generated post-type JSON: ${filePath}`, {
+			slug: postType.slug
+		});
+	});
+
+	log('INFO', 'Post-type JSON files generated successfully in scf-json/', {
+		filesGenerated: config.post_types.length
+	});
+}
+
+/**
+ * Generate SCF field groups for taxonomies
+ * Creates SCF-formatted taxonomy JSON files that SCF will use to register taxonomies
+ * Uses top-level taxonomies array
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateTaxonomySCFGroups(outputDir, config) {
+	// Use top-level taxonomies array if available
+	if (!config.taxonomies || config.taxonomies.length === 0) {
+		log('INFO', 'No taxonomies defined, skipping taxonomy JSON generation');
+		return;
+	}
+
+	const scfJsonDir = path.join(outputDir, 'scf-json');
+	if (!fs.existsSync(scfJsonDir)) {
+		fs.mkdirSync(scfJsonDir, { recursive: true });
+		log('INFO', 'Created scf-json directory');
+	}
+
+	// Generate SCF-formatted JSON file for each taxonomy
+	config.taxonomies.forEach((taxonomy) => {
+		// Create SCF taxonomy format
+		const scfTaxonomy = {
+			key: `taxonomy_${taxonomy.slug}`,
+			title: taxonomy.singular,
+			taxonomy: taxonomy.slug,
+			menu_order: 0,
+			active: true,
+			object_type: taxonomy.post_types || [],
+			public: true,
+			publicly_queryable: true,
+			hierarchical: taxonomy.hierarchical !== false,
+			show_ui: true,
+			show_in_menu: true,
+			show_in_nav_menus: true,
+			show_in_rest: true,
+			rest_base: taxonomy.slug + 's',
+			rest_controller_class: '',
+			show_tagcloud: true,
+			show_in_quick_edit: true,
+			show_admin_column: true,
+			labels: {
+				name: taxonomy.plural,
+				singular_name: taxonomy.singular,
+				menu_name: taxonomy.plural,
+				search_items: `Search ${taxonomy.plural}`,
+				all_items: `All ${taxonomy.plural}`,
+				edit_item: `Edit ${taxonomy.singular}`,
+				update_item: `Update ${taxonomy.singular}`,
+				add_new_item: `Add New ${taxonomy.singular}`,
+				new_item_name: `New ${taxonomy.singular} Name`
+			},
+			rewrite: {
+				slug: taxonomy.slug,
+				with_front: true,
+				hierarchical: taxonomy.hierarchical !== false
+			}
+		};
+
+		// Add hierarchical-specific labels
+		if (taxonomy.hierarchical) {
+			scfTaxonomy.labels.parent_item = `Parent ${taxonomy.singular}`;
+			scfTaxonomy.labels.parent_item_colon = `Parent ${taxonomy.singular}:`;
+		} else {
+			// Add non-hierarchical specific labels
+			scfTaxonomy.labels.popular_items = `Popular ${taxonomy.plural}`;
+			scfTaxonomy.labels.separate_items_with_commas = `Separate ${taxonomy.plural.toLowerCase()} with commas`;
+			scfTaxonomy.labels.add_or_remove_items = `Add or remove ${taxonomy.plural.toLowerCase()}`;
+			scfTaxonomy.labels.choose_from_most_used = `Choose from the most used ${taxonomy.plural.toLowerCase()}`;
+		}
+
+		// Write SCF-formatted JSON file
+		const filePath = path.join(scfJsonDir, `taxonomy-${taxonomy.slug}.json`);
+		fs.writeFileSync(
+			filePath,
+			JSON.stringify(scfTaxonomy, null, '\t'),
+			'utf8'
+		);
+
+		log('INFO', `Generated taxonomy JSON: ${filePath}`, {
+			slug: taxonomy.slug,
+			postTypes: scfTaxonomy.object_type
+		});
+	});
+
+	log('INFO', 'Taxonomy JSON files generated successfully in scf-json/', {
+		filesGenerated: config.taxonomies.length
+	});
+}
+
+/**
+ * Generate SCF JSON field group file from config
+ * Supports both old format (config.fields as array) and new format (config.fields with post_type/field_group)
+ * @param {string} outputDir - Output directory path
+ * @param {Object} config - Plugin configuration
+ */
+function generateSCFFieldGroup(outputDir, config) {
+	if (!config.fields || config.fields.length === 0) {
+		log('INFO', 'No custom fields defined, skipping SCF JSON generation');
+		return;
+	}
+
+	const scfJsonDir = path.join(outputDir, 'scf-json');
+	if (!fs.existsSync(scfJsonDir)) {
+		fs.mkdirSync(scfJsonDir, { recursive: true });
+		log('INFO', 'Created scf-json directory');
+	}
+
+	// Check if using new structure (array of {post_type, field_group})
+	const hasNewStructure = config.fields.some(f => f.post_type && f.field_group);
+
+	if (hasNewStructure) {
+		// New structure: Generate a field group for each post type
+		config.fields.forEach(fieldGroupDef => {
+			if (!fieldGroupDef.post_type || !fieldGroupDef.field_group || fieldGroupDef.field_group.length === 0) {
+				return;
+			}
+
+			const postType = fieldGroupDef.post_type;
+			const fields = fieldGroupDef.field_group;
+
+			log('INFO', `Generating SCF field group for post type: ${postType}`, {
+				fieldCount: fields.length
+			});
+
+			// Map config fields to SCF field format
+			const scfFields = fields.map((field, index) => {
+				const fieldKey = `field_${postType}_${field.name}`;
+				
+				const scfField = {
+					key: fieldKey,
+					label: field.label,
+					name: field.name,
+					type: field.type,
+					instructions: field.instructions || '',
+					required: field.required ? 1 : 0,
+				};
+
+				// Add optional properties
+				if (field.default_value !== undefined) {
+					scfField.default_value = field.default_value;
+				}
+				if (field.placeholder) {
+					scfField.placeholder = field.placeholder;
+				}
+				if (field.choices) {
+					scfField.choices = field.choices;
+				}
+				if (field.return_format) {
+					scfField.return_format = field.return_format;
+				}
+				if (field.multiple !== undefined) {
+					scfField.multiple = field.multiple ? 1 : 0;
+				}
+				if (field.allow_null !== undefined) {
+					scfField.allow_null = field.allow_null ? 1 : 0;
+				}
+
+				// Add type-specific properties
+				if (field.type === 'number') {
+					if (field.min !== undefined) scfField.min = field.min;
+					if (field.max !== undefined) scfField.max = field.max;
+					if (field.step !== undefined) scfField.step = field.step;
+				}
+
+				return scfField;
+			});
+
+			// Get post type label
+			const postTypeDef = config.post_types?.find(pt => pt.slug === postType);
+			const postTypeLabel = postTypeDef?.singular || postType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+			// Create the field group
+			const fieldGroup = {
+				key: `group_${postType}_fields`,
+				title: `${postTypeLabel} Fields`,
+				fields: scfFields,
+				location: [
+					[
+						{
+							param: 'post_type',
+							operator: '==',
+							value: postType,
+						},
+					],
+				],
+				menu_order: 0,
+				position: 'normal',
+				style: 'default',
+				label_placement: 'top',
+				instruction_placement: 'label',
+				hide_on_screen: [],
+				active: true,
+			};
+
+			// Write the JSON file
+			const outputPath = path.join(scfJsonDir, `group_${postType}_fields.json`);
+			fs.writeFileSync(outputPath, JSON.stringify(fieldGroup, null, 4), 'utf8');
+
+			log('INFO', `Generated SCF field group: ${outputPath}`, {
+				postType,
+				fieldCount: scfFields.length
+			});
+		});
+
+		log('INFO', 'All SCF field groups generated successfully', {
+			groupsGenerated: config.fields.length
+		});
+
+	} else {
+		// Old structure: Single field group for main post type (backward compatibility)
+		log('INFO', 'Generating SCF JSON field group (legacy format)');
+
+		// Map config fields to SCF field format
+		const scfFields = config.fields.map((field, index) => {
+			const fieldKey = `field_${config.slug}_${field.name}`;
+			
+			const scfField = {
+				key: fieldKey,
+				label: field.label,
+				name: field.name,
+				type: field.type,
+				instructions: field.instructions || '',
+				required: field.required ? 1 : 0,
+			};
+
+			// Add optional properties
+			if (field.default_value !== undefined) {
+				scfField.default_value = field.default_value;
+			}
+			if (field.placeholder) {
+				scfField.placeholder = field.placeholder;
+			}
+			if (field.choices) {
+				scfField.choices = field.choices;
+			}
+			if (field.return_format) {
+				scfField.return_format = field.return_format;
+			}
+			if (field.multiple !== undefined) {
+				scfField.multiple = field.multiple ? 1 : 0;
+			}
+			if (field.allow_null !== undefined) {
+				scfField.allow_null = field.allow_null ? 1 : 0;
+			}
+
+			// Add type-specific properties
+			if (field.type === 'number') {
+				if (field.min !== undefined) scfField.min = field.min;
+				if (field.max !== undefined) scfField.max = field.max;
+				if (field.step !== undefined) scfField.step = field.step;
+			}
+
+			return scfField;
+		});
+
+		// Create the field group
+		const fieldGroup = {
+			key: `group_${config.slug}_fields`,
+			title: `${config.name} Fields`,
+			fields: scfFields,
+			location: [
+				[
+					{
+						param: 'post_type',
+						operator: '==',
+						value: config.cpt_slug || config.slug,
+					},
+				],
+			],
+			menu_order: 0,
+			position: 'normal',
+			style: 'default',
+			label_placement: 'top',
+			instruction_placement: 'label',
+			hide_on_screen: [],
+			active: true,
+		};
+
+		// Write the JSON file
+		const outputPath = path.join(scfJsonDir, `group_${config.slug}_fields.json`);
+		fs.writeFileSync(outputPath, JSON.stringify(fieldGroup, null, 4), 'utf8');
+
+		log('INFO', `Generated SCF field group: ${outputPath}`, {
+			fieldCount: scfFields.length
+		});
+	}
 }
 
 /**
