@@ -232,27 +232,24 @@
                         ]
                     },
                     "taxonomies": {
-                        "description": "Custom taxonomies for this post type - can be array of strings (slugs) or array of objects (legacy)",
+                        "type": "array",
+                        "description": "Custom taxonomies for this post type - each item is either a taxonomy slug (string) or a legacy taxonomy object",
                         "default": [],
-                        "oneOf": [
-                            {
-                                "type": "array",
-                                "description": "Array of taxonomy slugs (references taxonomies defined in top-level taxonomies array)",
-                                "items": {
+                        "items": {
+                            "oneOf": [
+                                {
                                     "type": "string",
+                                    "description": "Taxonomy slug (references a taxonomy defined in the top-level taxonomies array)",
                                     "pattern": "^[a-z][a-z0-9_]{0,30}[a-z0-9]$",
                                     "examples": [
                                         "destination",
                                         "event_category",
                                         "portfolio_tag"
                                     ]
-                                }
-                            },
-                            {
-                                "type": "array",
-                                "description": "Array of taxonomy objects (legacy format - will be converted to top-level taxonomies)",
-                                "items": {
+                                },
+                                {
                                     "type": "object",
+                                    "description": "Legacy taxonomy object (will be converted to a top-level taxonomy)",
                                     "required": [
                                         "slug",
                                         "singular",
@@ -300,8 +297,8 @@
                                         }
                                     }
                                 }
-                            }
-                        ]
+                            ]
+                        }
                     },
                     "fields": {
                         "description": "SCF field definitions for this post type - can be array of fields (legacy) or use top-level fields array",
