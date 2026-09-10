@@ -8,7 +8,7 @@
 		"WordPress/theme-developer-resources#trunk"
 	],
 	"mappings": {
-		"wp-content/plugins/example-plugin": "."
+		"wp-content/plugins/{{slug}}": "."
 	},
 	"config": {
 		"WP_DEBUG": true,
@@ -16,6 +16,6 @@
 		"SCRIPT_DEBUG": true
 	},
 	"lifecycleScripts": {
-		"afterStart": "wp plugin activate example-plugin"
+		"afterStart": "wp plugin activate {{slug}}"
 	}
 }

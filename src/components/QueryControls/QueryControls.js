@@ -109,7 +109,7 @@ export default function QueryControls({ query, onChange }) {
 					onChange={(termIds) =>
 						updateQuery({
 							taxQuery: termIds.length
-								? { 'example-plugin_category': termIds }
+								? { '{{taxonomy_slug}}_category': termIds }
 								: null,
 						})
 					}

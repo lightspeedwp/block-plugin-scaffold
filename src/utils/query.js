@@ -17,7 +17,7 @@ export function buildQueryArgs(attributes) {
 	const { query = {} } = attributes;
 
 	const args = {
-		post_type: query.postType || 'example-plugin',
+		post_type: query.postType || '{{namespace}}',
 		posts_per_page: query.perPage || 6,
 		order: query.order || 'desc',
 		orderby: query.orderBy || 'date',
@@ -46,7 +46,7 @@ export function buildQueryArgs(attributes) {
 	if (query.featured) {
 		args.meta_query = [
 			{
-				key: 'example-plugin_featured',
+				key: '{{namespace}}_featured',
 				value: '1',
 				compare: '=',
 			},

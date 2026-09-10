@@ -43,7 +43,7 @@ import { useSelect } from '@wordpress/data';
  *   page: 1,
  *   orderBy: 'date',
  *   order: 'desc',
- *   taxQuery: { 'example-plugin_category': [1, 2] },
+ *   taxQuery: { '{{namespace}}_category': [1, 2] },
  *   featured: false,
  * });
  *
@@ -85,7 +85,7 @@ export default function useCollection(query = {}) {
 
 			// Add featured meta query (if using REST API with meta query support).
 			if (featured) {
-				queryArgs.meta_key = 'example-plugin_featured';
+				queryArgs.meta_key = '{{namespace}}_featured';
 				queryArgs.meta_value = '1';
 			}
 
