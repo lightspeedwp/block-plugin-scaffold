@@ -7,7 +7,6 @@ namespace {{namespace}}\classes;
  * Comprehensive JSON Schema validation for SCF field groups using
  * JSON Schema Draft 7 validation.
  *
- * @package example_plugin
  * @package {{namespace}}
  * @see https://github.com/WordPress/secure-custom-fields/blob/trunk/docs/tutorials/local-json.md
  * @since 1.0.0
