@@ -104,8 +104,8 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 - [X] T016 [P] Update `CHANGELOG.md` with an entry for the audit (per LS-3726 DoD "Documentation/changelog updated (if applicable)"), or note explicitly why no entry is needed if the audit produces no user-facing change
 - [X] T017 Re-run the full quickstart.md validation sequence (search reproduction, classification completeness, remediation completeness, checklist) against the finished `audit-report.md` and confirm no gaps remain
-- [ ] T018 Confirm the branch `refactor/core-plugin-prefix-audit` and PR reference LS-3726, that the PR description links to `audit-report.md`, and that PR/issue labels match org standards (`type:audit`, `area:core`, per LS-3726's existing labels), per LS-3726 DoD ("PR uses correct branch prefix (audit/)" — note: this repo's PR will use `refactor/` per prior explicit decision — flag this deviation in the PR description)
-- [ ] T020 Before requesting review, add a note in the PR description explicitly asking the reviewer to confirm SC-004: that they can identify risk + remediation for any given unreplaced finding using only `audit-report.md`
+- [X] T018 Confirm the branch `refactor/core-plugin-prefix-audit` and PR reference LS-3726, that the PR description links to `audit-report.md`, and that PR/issue labels match org standards (`type:audit`, `area:core`, per LS-3726's existing labels), per LS-3726 DoD ("PR uses correct branch prefix (audit/)" — note: this repo's PR will use `refactor/` per prior explicit decision — flag this deviation in the PR description)
+- [X] T020 Before requesting review, add a note in the PR description explicitly asking the reviewer to confirm SC-004: that they can identify risk + remediation for any given unreplaced finding using only `audit-report.md`
 
 ---
 
