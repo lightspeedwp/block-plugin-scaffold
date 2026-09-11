@@ -36,6 +36,10 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - `package.json` validation scripts and `docs/GENERATE_PLUGIN.md` now call `scripts/validation/validate-plugin-config.js`, keeping CLI validation aligned with the action-first naming scheme.
 - Instructions and prompts reference `.github/reports/`, `.github/projects/plans/`, and `tmp/` for reporting, planning, and temporary data, and the new frontmatter doc is linked from the docs index.
 
+### Fixed
+
+- `.github/schemas/plugin-config.schema.json`: moved the `oneOf` for post type `taxonomies` entries from the array level to the `items` level, so each taxonomy entry (string slug or legacy object) is validated individually instead of requiring the whole array to be one type or the other.
+
 ## [1.0.1] - 2025-12-15
 
 ### Fixed
