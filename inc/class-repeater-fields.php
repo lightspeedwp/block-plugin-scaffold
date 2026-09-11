@@ -93,7 +93,7 @@ class Repeater_Fields {
 						array(
 							'param'    => 'post_type',
 							'operator' => '==',
-							'value'    => '{{namespace}}',
+							'value'    => '{{cpt_slug}}',
 						),
 					),
 				),
@@ -174,7 +174,7 @@ class Repeater_Fields {
 						array(
 							'param'    => 'post_type',
 							'operator' => '==',
-							'value'    => '{{namespace}}',
+							'value'    => '{{cpt_slug}}',
 						),
 					),
 				),

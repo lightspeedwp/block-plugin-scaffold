@@ -104,12 +104,12 @@ export default function QueryControls({ query, onChange }) {
 				   initialOpen={false}
 			   >
 				<TaxonomyFilter
-					   taxonomy="{{taxonomy_slug}}_category"
-					   value={taxQuery?.['{{taxonomy_slug}}_category'] || []}
+					   taxonomy="{{taxonomy_slug}}"
+					   value={taxQuery?.['{{taxonomy_slug}}'] || []}
 					onChange={(termIds) =>
 						updateQuery({
 							taxQuery: termIds.length
-								? { '{{taxonomy_slug}}_category': termIds }
+								? { '{{taxonomy_slug}}': termIds }
 								: null,
 						})
 					}

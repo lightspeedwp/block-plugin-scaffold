@@ -43,7 +43,7 @@ import { useSelect } from '@wordpress/data';
  *   page: 1,
  *   orderBy: 'date',
  *   order: 'desc',
- *   taxQuery: { '{{namespace}}_category': [1, 2] },
+ *   taxQuery: { '{{taxonomy_slug}}': [1, 2] },
  *   featured: false,
  * });
  *

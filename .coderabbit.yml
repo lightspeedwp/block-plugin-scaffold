@@ -13,6 +13,7 @@ path_filters:
   - "!node_modules/**"
   - "!assets/css/*.map"
   - "!logs/**"
+  - "!.github/**"
 auto_review:
   enabled: true
   drafts: false
