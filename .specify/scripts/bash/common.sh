@@ -128,6 +128,37 @@ read_feature_json_feature_directory() {
     return 0
 }
 
+# Safely read .specify/init-options.json's "specs_dir" value.
+# Prints the raw value (repo-root-relative), or empty string if the file is
+# missing, unparseable, or does not contain the key. Always returns 0 so
+# callers under `set -e` cannot be aborted by parser failure.
+# Parser order mirrors read_feature_json_feature_directory: jq -> python3 -> grep/sed.
+read_init_options_specs_dir() {
+    local repo_root="$1"
+    local io="$repo_root/.specify/init-options.json"
+    [[ -f "$io" ]] || { printf '%s' ''; return 0; }
+
+    local _sd=''
+    if command -v jq >/dev/null 2>&1; then
+        if ! _sd=$(jq -r '.specs_dir // empty' "$io" 2>/dev/null); then
+            _sd=''
+        fi
+    fi
+    if [[ -z "$_sd" ]] && command -v python3 >/dev/null 2>&1; then
+        if ! _sd=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); v=d.get('specs_dir'); print(v if v else '')" "$io" 2>/dev/null); then
+            _sd=''
+        fi
+    fi
+    if [[ -z "$_sd" ]]; then
+        _sd=$( { grep -E '"specs_dir"[[:space:]]*:' "$io" 2>/dev/null || true; } \
+            | head -n 1 \
+            | sed -E 's/^[^:]*:[[:space:]]*"([^"]*)".*$/\1/' )
+    fi
+
+    printf '%s' "$_sd"
+    return 0
+}
+
 # Persist a feature_directory value to .specify/feature.json.
 # Writes only when the file is missing or the value differs from what's stored.
 # Accepts the raw (possibly relative) path — callers should pass the original

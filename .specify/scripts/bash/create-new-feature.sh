@@ -197,7 +197,12 @@ REPO_ROOT=$(get_repo_root) || exit 1
 
 cd "$REPO_ROOT"
 
-SPECS_DIR="$REPO_ROOT/specs"
+if [[ -n "${SPECIFY_SPECS_DIR:-}" ]]; then
+    SPECS_DIR="$SPECIFY_SPECS_DIR"
+else
+    CONFIGURED_SPECS_DIR=$(read_init_options_specs_dir "$REPO_ROOT")
+    SPECS_DIR="$REPO_ROOT/${CONFIGURED_SPECS_DIR:-.github/spec}"
+fi
 if [ "$DRY_RUN" != true ]; then
     mkdir -p "$SPECS_DIR"
 fi
