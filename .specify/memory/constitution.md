@@ -1,50 +1,120 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: TEMPLATE (unratified placeholders) → 1.0.0 (initial ratification)
+- Modified principles: none (first concrete adoption — all 5 slots filled in for the first time)
+- Added sections: Core Principles I-V (all newly named), Technology & Tooling Constraints,
+  Development Workflow, Governance (all newly populated from placeholder scaffolding)
+- Removed sections: none
+- Templates requiring follow-up: none — plan-template.md's Constitution Check gate already reads
+  this file generically; no template text references old placeholder principle names directly.
+- Deferred items: TODO(RATIFICATION_DATE) — the practices below (AGENTS.md, coding-standards
+  instructions, CONTRIBUTING.md) predate this constitution file; the exact date this project first
+  adopted them as binding was not recorded. Using this amendment's date as Last Amended; a maintainer
+  should backfill Ratified if the true origin date is known.
+-->
+
+# Block Plugin Scaffold Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Org Coding Standards & Linting (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All code (PHP, JS, CSS/SCSS, JSON) MUST follow the org standards defined under
+`.github/instructions/` (coding-standards, linting, html-template, pattern-development,
+php-block, theme-json). PHP MUST follow WordPress PHP Coding Standards with PSR-4 autoloading
+and type hints where PHP 8.0+ allows. Every code change MUST include any required lint fixes as
+part of the same change, not deferred to a follow-up. Documentation and comments MUST use UK
+English per org convention.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale**: This scaffold is consumed by multiple downstream client projects; inconsistent
+standards compound across every fork, so enforcing them once here is far cheaper than fixing
+drift later.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Security & Data Handling (NON-NEGOTIABLE)
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+All input MUST be sanitized and all output escaped following WordPress and OWASP Top 10
+practices. Secrets, API keys, and credentials MUST NEVER be output, logged, or committed.
+Production and customer data MUST be treated as sensitive by default, even in test/example code.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: As a scaffold, insecure patterns here get copied verbatim into every generated
+plugin — a vulnerability introduced in the template is a vulnerability shipped to every client.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Accessibility & Performance
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Accessibility (WCAG-aligned) and performance are non-negotiable acceptance criteria, not optional
+polish. Any change to markup, block output, or asset loading MUST be reviewed for accessibility
+and performance impact, and issues MUST be raised during review rather than deferred silently.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Rationale**: These are structural properties of generated output that are expensive to retrofit
+per-client once a plugin has been generated and customized downstream.
+
+### IV. Test & Lint Gate on Every Change
+
+Every code change MUST be accompanied by relevant automated tests (PHPUnit under `tests/php`,
+Jest/JS tests, and/or e2e tests under `tests/e2e` as applicable) and MUST pass the existing lint
+suite (`npm run lint`, `composer run lint`) and test suite (`npm run test`, `composer run test`)
+before merge. A short rationale summarizing the change MUST accompany the PR.
+
+**Rationale**: The scaffold's generator and templates are exercised indirectly by every
+downstream project; regressions here are silent until a consumer hits them, so the test/lint gate
+is the primary safety net.
+
+### V. Modularity, WordPress-Native Patterns & Scaffold Placeholder Integrity
+
+Prefer minimal, modular solutions using WordPress-native mechanisms (`theme.json`, core block
+components, standard WP APIs) over bespoke code; justify heavier dependencies with a clear
+ROI/maintenance-cost rationale. Scaffold placeholder tokens (mustache variables such as
+`{{slug}}`, `{{name}}`, `{{namespace}}`, and the default example identifiers like
+`example-plugin` they resolve from) MUST remain intentional: they are either resolved by the
+generator for a consuming project, or explicitly documented as example/test-fixture content. An
+unreplaced default placeholder that isn't documented as intentional is a defect.
+
+**Rationale**: This principle formalizes what the LS-3726 prefix audit exists to check —
+placeholder integrity is an ongoing property the scaffold must maintain, not a one-time cleanup.
+
+## Technology & Tooling Constraints
+
+- **Runtime/tooling versions**: Node.js 18.0+ / npm 8.0+, PHP 8.0+ with Composer, WordPress 6.0+
+  for testing.
+- **Build system**: Webpack via `@wordpress/scripts`; block metadata via `block.json`.
+- **Templating**: Mustache variables for plugin/block scaffolding templates; all generated
+  `block.json`/config JSON MUST validate against the schemas under `.github/schemas/`.
+- **Fields**: Secure Custom Fields (SCF) JSON is the supported custom-fields mechanism; SCF JSON
+  changes MUST validate against `.github/schemas/scf-field-group.schema.json`.
+- **Testing stack**: PHPUnit (`tests/php`), Jest (`*.test.js`), Playwright-style e2e specs
+  (`tests/e2e`).
+
+## Development Workflow
+
+- **Branching**: Branch names MUST follow `{type}/{scope}-{short-description}` per the org
+  [branching strategy](https://github.com/lightspeedwp/.github/blob/develop/docs/BRANCHING_STRATEGY.md),
+  using the prefix matching the linked issue's type (e.g. `feat/`, `fix/`, `audit/`, `refactor/`,
+  `docs/`) unless a documented, reviewer-agreed exception applies.
+- **PRs**: Every PR MUST link its originating issue, use the PR template matching the issue/PR
+  type label, include a changelog entry when the change is user-facing, and pass CI (lint + tests)
+  before merge.
+- **Reviews**: Reviewers MUST verify compliance with Principles I-V above; deviations MUST be
+  called out explicitly in the PR description with a rationale, not silently merged.
+- **Project tracking files**: Multi-step task/project tracking documents belong under
+  `.github/projects/active/` (moved to `.github/projects/completed/` when done), never in the
+  repository root or `docs/`, per `.github/custom-instructions.md`.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes ad hoc practice where the two conflict. Amendments require:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. A PR modifying this file with a Sync Impact Report (as an HTML comment) describing what
+   changed and why.
+2. A version bump following semantic versioning: MAJOR for backward-incompatible principle
+   removals/redefinitions, MINOR for new principles or materially expanded guidance, PATCH for
+   wording/clarification-only changes.
+3. Review and approval like any other PR; no self-merged constitutional changes.
+
+All feature plans generated via Spec Kit (`/speckit-plan`) MUST evaluate their Constitution Check
+gate against the principles above, and any justified violation MUST be recorded in that plan's
+Complexity Tracking table rather than silently ignored. Use `AGENTS.md` and
+`.github/custom-instructions.md` for day-to-day operational guidance that implements these
+principles in detail.
+
+**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date of these
+practices (AGENTS.md / coding-standards instructions) was not recorded; backfill if known | **Last Amended**: 2026-09-11
