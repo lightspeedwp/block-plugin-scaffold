@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- Audited the scaffold for unreplaced default-prefix (`example-plugin`) references (LS-3726). Found 10 genuine unreplaced occurrences, including a build-breaking Composer PSR-4 autoload mismatch and a build-breaking `src/index.js` import-path mismatch. See [audit-report.md](.github/spec/001-plugin-prefix-audit/audit-report.md) for full findings and remediation actions; no code was changed as part of the audit itself.
+
 ### Added
 
 #### Shared Components

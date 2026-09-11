@@ -77,7 +77,7 @@ class Core {
 	public function register_blocks() {
 		// Auto-register all blocks in build/blocks/ (filtered for flexibility).
 		$default_dir = {{namespace|upper}}_DIR . 'build/blocks/';
-		$blocks_dir = apply_filters( 'example-plugin_blocks_dir', $default_dir );
+		$blocks_dir = apply_filters( '{{namespace}}_blocks_dir', $default_dir );
 
 		if ( ! is_dir( $blocks_dir ) ) {
 			return;

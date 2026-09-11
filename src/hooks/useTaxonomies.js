@@ -21,7 +21,7 @@ import { useSelect } from '@wordpress/data';
  * arguments. By default fetches all terms (up to 100) including empty terms. Useful
  * for populating filter controls, dropdowns, and term selection interfaces.
  *
- * @param {string} taxonomy Taxonomy slug to query. Default: 'example-plugin_category'.
+ * @param {string} taxonomy Taxonomy slug to query. Default: '{{taxonomy_slug}}'.
  * @param {Object} args     Additional query arguments to merge with defaults.
  *                          - per_page: {number} Number of terms to fetch (default: 100).
  *                          - hide_empty: {boolean} Whether to hide empty terms (default: false).
@@ -34,7 +34,7 @@ import { useSelect } from '@wordpress/data';
  * @throws {Error} If the WordPress data store is unavailable.
  *
  * @example
- * const { terms, isLoading } = useTaxonomies('example-plugin_category', {
+ * const { terms, isLoading } = useTaxonomies('{{taxonomy_slug}}', {
  *   hide_empty: true,
  *   per_page: 50,
  * });
@@ -49,7 +49,7 @@ import { useSelect } from '@wordpress/data';
  * );
  */
 export default function useTaxonomies(
-	taxonomy = 'example-plugin_category',
+	taxonomy = '{{taxonomy_slug}}',
 	args = {}
 ) {
 	return useSelect(

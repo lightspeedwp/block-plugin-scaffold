@@ -1,5 +1,5 @@
 // This file is generated for dry-run and build compatibility.
 // It defines $namespace and $slug for use in partials.
 
-$namespace: "example_plugin";
-$slug: "example-plugin";
+$namespace: "{{namespace}}";
+$slug: "{{slug}}";
