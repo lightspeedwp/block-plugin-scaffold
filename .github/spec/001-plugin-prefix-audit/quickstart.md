@@ -20,16 +20,17 @@ grep -rIln \
 
 ## Validate classification completeness
 
+`audit-report.md` may group several `intentional` files under one bullet for brevity (e.g. all `scripts/` generator files in one line), so counting bullets alone undercounts files — count file paths (each is backtick-quoted) instead:
+
 ```bash
-grep -c '| unreplaced |' .github/spec/001-plugin-prefix-audit/audit-report.md
-grep -c '| intentional |' .github/spec/001-plugin-prefix-audit/audit-report.md
+grep -oE '`[^`]+`' .github/spec/001-plugin-prefix-audit/audit-report.md | sort -u | wc -l
 ```
 
-**Expected outcome**: Every file from the search above appears in exactly one of these two counts (no file omitted, no file double-counted). Cross-check by comparing the search's file list against the "File" column of the report.
+**Expected outcome**: manually cross-check this against the search's file list (minus the self-referential spec-kit artifacts excluded in the report's Scope section — see Scope) and against the report's own stated totals in its Summary paragraph (intentional / unreplaced / needs-review counts, per spec FR-002/FR-002b's three classifications). No file should be omitted, double-counted, or left unclassified.
 
 ## Validate remediation completeness
 
-Open `audit-report.md` and confirm every row classified `unreplaced` has non-empty `Risk` and `Remediation` columns (per data-model.md validation rules).
+Open `audit-report.md` and confirm every finding classified `unreplaced` has a non-empty `- Risk: ...` and `- Remediation: ...` line beneath it (per data-model.md validation rules).
 
 ## Validate the checklist
 

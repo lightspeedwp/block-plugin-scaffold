@@ -29,6 +29,7 @@ The committed document aggregating all findings.
 
 | Field | Type | Description |
 |---|---|---|
+| `summary` | string | Short summary paragraph (scope, total findings, intentional/unreplaced/needs-review counts, top remediation groups), suitable for pasting into the PR description (per tasks.md T015) |
 | `scope` | string | What was searched (paths included/excluded, prefix pattern variants) |
 | `checklist` | list of {item, status} | The LS-3726 audit checklist items and their completion status |
 | `findings` | list of `Finding`, grouped by `area` | The full finding set |

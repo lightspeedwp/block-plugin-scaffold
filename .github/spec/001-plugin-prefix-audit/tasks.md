@@ -28,9 +28,9 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 **Purpose**: Establish the audit report skeleton and confirm the search scope before any classification work begins.
 
-- [ ] T001 Create `.github/spec/001-plugin-prefix-audit/audit-report.md` with a header (title, date, linked Linear issue LS-3726, linked spec.md) and empty section stubs for Scope, Checklist, Findings (by area), and Remediation Summary
-- [ ] T002 Run the repository-wide search from quickstart.md (`grep -rIln -e 'example-plugin' -e 'Example_Plugin' -e 'EXAMPLE_PLUGIN' -e 'example_plugin' -e 'ExamplePlugin' --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=.git --exclude-dir=build --exclude-dir=dist .`) and save the raw file list as the working candidate list for classification
-- [ ] T003 [P] Write the Scope section of `audit-report.md`: paths/patterns searched, exclusions applied (`node_modules`, `vendor`, `.git`, build/dist), and the prefix variants covered (per research.md Decision: Search method and pattern set)
+- [X] T001 Create `.github/spec/001-plugin-prefix-audit/audit-report.md` with a header (title, date, linked Linear issue LS-3726, linked spec.md) and empty section stubs for Scope, Checklist, Findings (by area), and Remediation Summary
+- [X] T002 Run the repository-wide search from quickstart.md (`grep -rIln -e 'example-plugin' -e 'Example_Plugin' -e 'EXAMPLE_PLUGIN' -e 'example_plugin' -e 'ExamplePlugin' --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=.git --exclude-dir=build --exclude-dir=dist .`) and save the raw file list as the working candidate list for classification
+- [X] T003 [P] Write the Scope section of `audit-report.md`: paths/patterns searched, exclusions applied (`node_modules`, `vendor`, `.git`, build/dist), and the prefix variants covered (per research.md Decision: Search method and pattern set)
 
 **Checkpoint**: Candidate file list exists and the report's Scope section documents exactly how it was produced.
 
@@ -42,9 +42,9 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 **⚠️ CRITICAL**: No User Story 2 or 3 work can begin until every candidate file has a classification.
 
-- [ ] T004 For each file in the T002 candidate list, first discard any match that is only a substring of a longer, unrelated identifier (not a complete token per spec FR-002a) as a false positive, noting it once in the report's Scope section; then apply the classification rule from spec FR-002: files under `tests/`, `scripts/`, `.github/schemas/examples/`, or onboarding documentation are `intentional`; other occurrences (`inc/`, `src/`, `patterns/`, root-level `package.json`/`composer.json` non-documentation fields, non-example `.github/schemas/*.schema.json`) are `unreplaced`; anything that cannot be confidently placed in either is `needs-review` with a one-line ambiguity note (spec FR-002b)
-- [ ] T005 Record each classified file as a Finding entry (file, excerpt, area, classification, and `ambiguity_note` if `needs-review`) in `.github/spec/001-plugin-prefix-audit/audit-report.md`, per the Finding fields defined in data-model.md — area MUST be one of `php-core`, `js-build-tooling`, `scss`, `json-config-schema`, `patterns`, `docs-other`
-- [ ] T006 Cross-check that every file from the T002 candidate list has exactly one classification recorded (no omissions, no duplicates), per data-model.md validation rule "Every Finding MUST have a classification of exactly one of the three values"
+- [X] T004 For each file in the T002 candidate list, first discard any match that is only a substring of a longer, unrelated identifier (not a complete token per spec FR-002a) as a false positive, noting it once in the report's Scope section; then apply the classification rule from spec FR-002: files under `tests/`, `scripts/`, `.github/schemas/examples/`, or onboarding documentation are `intentional`; other occurrences (`inc/`, `src/`, `patterns/`, root-level `package.json`/`composer.json` non-documentation fields, non-example `.github/schemas/*.schema.json`) are `unreplaced`; anything that cannot be confidently placed in either is `needs-review` with a one-line ambiguity note (spec FR-002b)
+- [X] T005 Record each classified file as a Finding entry (file, excerpt, area, classification, and `ambiguity_note` if `needs-review`) in `.github/spec/001-plugin-prefix-audit/audit-report.md`, per the Finding fields defined in data-model.md — area MUST be one of `php-core`, `js-build-tooling`, `scss`, `json-config-schema`, `patterns`, `docs-other`
+- [X] T006 Cross-check that every file from the T002 candidate list has exactly one classification recorded (no omissions, no duplicates), per data-model.md validation rule "Every Finding MUST have a classification of exactly one of the three values"
 
 **Checkpoint**: Every candidate file is classified and recorded as a Finding — User Stories 1, 2, and 3 can now proceed.
 
@@ -58,9 +58,9 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Group the Finding entries recorded in T005 by `area` under the audit report's Findings section headings (PHP core, JS/build tooling, SCSS, JSON config/schemas, patterns, docs/other) in `.github/spec/001-plugin-prefix-audit/audit-report.md`
-- [ ] T008 [US1] For each `intentional` Finding, add a one-line rationale (why it's intentional — e.g. "test fixture simulating generator output") next to its entry, per Spec §Acceptance Scenario 2 (User Story 1)
-- [ ] T009 [US1] Run the quickstart.md "Reproduce the search" and "Validate classification completeness" commands against the completed report and confirm the file counts match with none left unclassified
+- [X] T007 [US1] Group the Finding entries recorded in T005 by `area` under the audit report's Findings section headings (PHP core, JS/build tooling, SCSS, JSON config/schemas, patterns, docs/other) in `.github/spec/001-plugin-prefix-audit/audit-report.md`
+- [X] T008 [US1] For each `intentional` Finding, add a one-line rationale (why it's intentional — e.g. "test fixture simulating generator output") next to its entry, per Spec §Acceptance Scenario 2 (User Story 1)
+- [X] T009 [US1] Run the quickstart.md "Reproduce the search" and "Validate classification completeness" commands against the completed report and confirm the file counts match with none left unclassified
 
 **Checkpoint**: User Story 1 is independently complete — the report fully inventories and classifies every occurrence (Spec §SC-001).
 
@@ -74,9 +74,9 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] For each `unreplaced` Finding from Phase 3, add a Risk statement (what breaks/degrades if left unfixed) in `.github/spec/001-plugin-prefix-audit/audit-report.md`, per data-model.md's required `risk` field
-- [ ] T011 [US2] For each `unreplaced` Finding, add a Remediation action (concrete next step, e.g. "replace with `{{slug}}` token", "update generator script in scripts/") in the same report, per data-model.md's required `remediation` field
-- [ ] T012 [US2] [P] Build the Remediation Summary section (`{area, action, count}` per data-model.md's Audit Report entity) grouping remediation actions by area/component so they can be assigned as discrete follow-up tasks (Spec §FR-004, Acceptance Scenario 2 of User Story 2)
+- [X] T010 [US2] For each `unreplaced` Finding from Phase 3, add a Risk statement (what breaks/degrades if left unfixed) in `.github/spec/001-plugin-prefix-audit/audit-report.md`, per data-model.md's required `risk` field
+- [X] T011 [US2] For each `unreplaced` Finding, add a Remediation action (concrete next step, e.g. "replace with `{{slug}}` token", "update generator script in scripts/") in the same report, per data-model.md's required `remediation` field
+- [X] T012 [US2] [P] Build the Remediation Summary section (`{area, action, count}` per data-model.md's Audit Report entity) grouping remediation actions by area/component so they can be assigned as discrete follow-up tasks (Spec §FR-004, Acceptance Scenario 2 of User Story 2)
 
 **Checkpoint**: User Story 2 is independently complete — every unreplaced finding is actionable without re-investigation (Spec §SC-002, SC-004).
 
@@ -90,9 +90,9 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Fill the Checklist section of `.github/spec/001-plugin-prefix-audit/audit-report.md` with the five LS-3726 audit checklist items and mark each satisfied (referencing the report section that satisfies it) or explicitly not-applicable with a reason, per Spec §FR-006
-- [ ] T014 [US3] Walk through `.github/spec/001-plugin-prefix-audit/checklists/audit.md` (requirements-quality checklist) and resolve/clarify any items that materially affect report content before finalizing (e.g. CHK005 classification boundary, CHK012 substring false positives)
-- [ ] T015 [US3] Write a short summary paragraph at the top of the audit report (scope, total findings, intentional vs. unreplaced counts, top remediation groups) suitable for pasting into the PR description, per Spec §Acceptance Scenario 1 of User Story 3
+- [X] T013 [US3] Fill the Checklist section of `.github/spec/001-plugin-prefix-audit/audit-report.md` with the five LS-3726 audit checklist items and mark each satisfied (referencing the report section that satisfies it) or explicitly not-applicable with a reason, per Spec §FR-006
+- [X] T014 [US3] Walk through `.github/spec/001-plugin-prefix-audit/checklists/audit.md` (requirements-quality checklist) and resolve/clarify any items that materially affect report content before finalizing (e.g. CHK005 classification boundary, CHK012 substring false positives)
+- [X] T015 [US3] Write a short summary paragraph at the top of the audit report (scope, total findings, intentional vs. unreplaced counts, top remediation groups) suitable for pasting into the PR description, per Spec §Acceptance Scenario 1 of User Story 3
 
 **Checkpoint**: All three user stories complete — the audit report is reviewable end-to-end and satisfies the LS-3726 Definition of Done's audit-specific items.
 
@@ -102,9 +102,10 @@ Single deliverable file: `.github/spec/001-plugin-prefix-audit/audit-report.md`,
 
 **Purpose**: Final consistency pass and PR preparation.
 
-- [ ] T016 [P] Update `CHANGELOG.md` with an entry for the audit (per LS-3726 DoD "Documentation/changelog updated (if applicable)"), or note explicitly why no entry is needed if the audit produces no user-facing change
-- [ ] T017 Re-run the full quickstart.md validation sequence (search reproduction, classification completeness, remediation completeness, checklist) against the finished `audit-report.md` and confirm no gaps remain
-- [ ] T018 Confirm the branch `refactor/core-plugin-prefix-audit` and PR reference LS-3726, and that the PR description links to `audit-report.md`, per LS-3726 DoD ("PR uses correct branch prefix (audit/)" — note: this repo's PR will use `refactor/` per prior explicit decision — flag this deviation in the PR description)
+- [X] T016 [P] Update `CHANGELOG.md` with an entry for the audit (per LS-3726 DoD "Documentation/changelog updated (if applicable)"), or note explicitly why no entry is needed if the audit produces no user-facing change
+- [X] T017 Re-run the full quickstart.md validation sequence (search reproduction, classification completeness, remediation completeness, checklist) against the finished `audit-report.md` and confirm no gaps remain
+- [ ] T018 Confirm the branch `refactor/core-plugin-prefix-audit` and PR reference LS-3726, that the PR description links to `audit-report.md`, and that PR/issue labels match org standards (`type:audit`, `area:core`, per LS-3726's existing labels), per LS-3726 DoD ("PR uses correct branch prefix (audit/)" — note: this repo's PR will use `refactor/` per prior explicit decision — flag this deviation in the PR description)
+- [ ] T020 Before requesting review, add a note in the PR description explicitly asking the reviewer to confirm SC-004: that they can identify risk + remediation for any given unreplaced finding using only `audit-report.md`
 
 ---
 
@@ -178,4 +179,21 @@ Task: "Run repository-wide grep search and save candidate file list"
 
 **Purpose**: Close gaps found by `/speckit-converge` between the feature's spec/plan/constitution and the current state of the feature's artifacts, appended after the constitution was ratified to v1.0.0 subsequent to this plan's original Constitution Check.
 
-- [ ] T019 Re-evaluate plan.md's Constitution Check section against the now-ratified constitution v1.0.0 (Principles I-V) and update it to state actual compliance, or record any justified violation in Complexity Tracking, per Constitution Governance (contradicts)
+- [X] T019 Re-evaluate plan.md's Constitution Check section against the now-ratified constitution v1.0.0 (Principles I-V) and update it to state actual compliance, or record any justified violation in Complexity Tracking, per Constitution Governance (contradicts)
+
+---
+
+## Phase 8: Convergence
+
+**Purpose**: Close gaps found by a second `/speckit-converge` pass, run after `/speckit-implement` produced `audit-report.md` and after the `/speckit-analyze` remediation (F1-F4) was applied.
+
+- [X] T021 Rewrite quickstart.md's "Validate classification completeness" commands to match audit-report.md's actual bullet-list format (not a markdown table) and to count all three classifications (`intentional`, `unreplaced`, `needs-review`) per spec FR-002/FR-002b (contradicts)
+- [X] T022 Add a `summary` field to the Audit Report entity's field list in data-model.md, matching the summary paragraph audit-report.md actually has (per tasks.md T015) (partial)
+
+---
+
+## Phase 9: Convergence
+
+**Purpose**: Close a gap found by a third `/speckit-converge` pass, run after T021/T022 landed.
+
+- [X] T023 Reword quickstart.md's "Validate remediation completeness" section to match audit-report.md's actual bulleted `Risk:`/`Remediation:` line format instead of "row"/"columns" table language, per data-model.md validation rules (contradicts)

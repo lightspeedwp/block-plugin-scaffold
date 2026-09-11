@@ -32,7 +32,15 @@ Audit the Block Plugin Scaffold repository for every occurrence of the default p
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-`.specify/memory/constitution.md` is still the unpopulated template (all principle names/descriptions are placeholders; no version has been ratified). There are no ratified project principles to check this feature against, so this gate has nothing to enforce. No violations to record in Complexity Tracking.
+**Re-evaluated 2026-09-11** against the now-ratified `.specify/memory/constitution.md` v1.0.0 (this plan was originally written before ratification; see tasks.md T019):
+
+- **I. Org Coding Standards & Linting** — N/A. This feature makes no code changes (audit-only, per FR-007); no lint/standards surface is touched.
+- **II. Security & Data Handling** — N/A. No user input, secrets, or sensitive data are involved.
+- **III. Accessibility & Performance** — N/A. No markup, block output, or asset loading is changed.
+- **IV. Test & Lint Gate on Every Change** — Compliant. No code changes means no new tests are required; existing lint/test suites are unaffected and continue to pass (see Technical Context above).
+- **V. Modularity, WordPress-Native Patterns & Scaffold Placeholder Integrity** — Compliant, and directly served: this audit's entire purpose is to detect exactly the defect this principle names — an unreplaced default placeholder not documented as intentional (see audit-report.md's Findings).
+
+No violations found; nothing to record in Complexity Tracking.
 
 ## Project Structure
 
@@ -44,11 +52,14 @@ Audit the Block Plugin Scaffold repository for every occurrence of the default p
 ├── research.md          # Phase 0 output
 ├── data-model.md         # Phase 1 output
 ├── quickstart.md         # Phase 1 output
+├── tasks.md              # Phase 2 output (/speckit-tasks command)
+├── audit-report.md       # Feature deliverable (/speckit-implement output, see data-model.md)
 └── checklists/
-    └── requirements.md   # Spec quality checklist (/speckit-specify output)
+    ├── requirements.md   # Spec quality checklist (/speckit-specify output)
+    └── audit.md          # Custom requirements-quality checklist (/speckit-checklist output)
 ```
 
-No `tasks.md` yet (created by `/speckit-tasks`, not this command). No `contracts/` — this feature has no external interface (API, CLI contract, schema) to document; the audit report itself is the only deliverable artifact.
+No `contracts/` — this feature has no external interface (API, CLI contract, schema) to document; the audit report itself is the only deliverable artifact.
 
 ### Source Code (repository root)
 
