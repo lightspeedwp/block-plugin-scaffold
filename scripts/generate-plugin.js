@@ -283,6 +283,11 @@ function validateConfig(config) {
 function applyDefaults(config) {
 	const result = { ...config };
 
+	// Derive functional-only mode from the content_model flag. When true,
+	// downstream generation steps skip all post-type/taxonomy scaffolding
+	// regardless of legacy cpt_slug/post_types normalization below.
+	result.isFunctionalOnly = result.content_model === 'none';
+
 	// Auto-derive namespace and textdomain from slug
 	if (result.slug) {
 		result.textdomain = result.textdomain || result.slug;
