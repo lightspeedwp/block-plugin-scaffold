@@ -669,6 +669,59 @@ function removeScaffoldOnlyTests(outputDir) {
 }
 
 /**
+ * Remove barrel-file export lines for content-model hooks/components that
+ * were excluded from the copy in functional-only mode.
+ *
+ * Excluding usePostType.js/useTaxonomies.js/useCollection.js and the
+ * PostSelector/TaxonomyFilter components (see the functional-only
+ * excludePaths block above) leaves src/hooks/index.js and
+ * src/components/index.js still re-exporting them, which would break the
+ * generated plugin's build. This strips just those export lines.
+ *
+ * @param {string} outputDir - Output directory path
+ * @param {boolean} isFunctionalOnly - Whether functional-only mode is active
+ */
+function stripExcludedModuleExports(outputDir, isFunctionalOnly) {
+	if (!isFunctionalOnly) {
+		return;
+	}
+
+	const barrelFiles = [
+		{
+			file: path.join(outputDir, 'src', 'hooks', 'index.js'),
+			excludedNames: ['usePostType', 'useTaxonomies', 'useCollection'],
+		},
+		{
+			file: path.join(outputDir, 'src', 'components', 'index.js'),
+			excludedNames: ['PostSelector', 'TaxonomyFilter'],
+		},
+	];
+
+	for (const { file, excludedNames } of barrelFiles) {
+		if (!fs.existsSync(file)) {
+			continue;
+		}
+
+		const lines = fs.readFileSync(file, 'utf8').split('\n');
+		const filtered = lines.filter((line) => {
+			return !excludedNames.some((name) =>
+				line.includes(`as ${name} }`)
+			);
+		});
+
+		fs.writeFileSync(file, filtered.join('\n'), 'utf8');
+		log(
+			'INFO',
+			`Stripped functional-only exports from ${path.relative(
+				outputDir,
+				file
+			)}`,
+			{ excludedNames }
+		);
+	}
+}
+
+/**
  * Process files in place (template mode)
  * Replaces mustache variables in files in the current directory
  * @param {string} targetDir - Directory to process
@@ -904,7 +957,8 @@ function generatePlugin(config, inPlace = false) {
 			excludePaths
 		);
 		removeScaffoldOnlyTests(outputDir);
-		
+		stripExcludedModuleExports(outputDir, fullConfig.isFunctionalOnly);
+
 		// Generate per-CPT blocks after copying
 		if (fullConfig.post_types && fullConfig.post_types.length > 0) {
 			log('INFO', 'Generating per-CPT blocks');
