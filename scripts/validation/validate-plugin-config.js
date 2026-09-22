@@ -98,6 +98,33 @@ function validateTaxonomies(config) {
 }
 
 /**
+ * Ensure content_model: "none" (functional-only) is not combined with a
+ * populated post_types or taxonomies array.
+ *
+ * @param {Object} config Plugin configuration payload.
+ * @return {string[]} List of validation errors for the content model flag.
+ */
+function validateContentModel(config) {
+	const errors = [];
+	if (config.content_model !== 'none') return errors;
+
+	const postTypeCount = config.post_types ? config.post_types.length : 0;
+	const taxonomyCount = config.taxonomies ? config.taxonomies.length : 0;
+
+	if (postTypeCount > 0 || taxonomyCount > 0) {
+		errors.push(
+			`content_model is "none" (functional-only) but post_types contains ${postTypeCount} entr${
+				postTypeCount === 1 ? 'y' : 'ies'
+			} and taxonomies contains ${taxonomyCount} entr${
+				taxonomyCount === 1 ? 'y' : 'ies'
+			}; remove them or set content_model to "custom"`
+		);
+	}
+
+	return errors;
+}
+
+/**
  * Run best-practice checks on the configuration to generate warnings.
  *
  * @param {Object} config Plugin configuration payload.
@@ -196,6 +223,7 @@ module.exports = {
 	validateConfig,
 	validateFieldTypes,
 	validateTaxonomies,
+	validateContentModel,
 	checkBestPractices,
 	loadConfigFile,
 	runCli,
