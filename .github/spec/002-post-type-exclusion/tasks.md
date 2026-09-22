@@ -28,7 +28,7 @@ Single project (Node.js CLI generator) — paths are relative to the repository 
 
 **Purpose**: Test fixture needed by every later phase's tests
 
-- [ ] T001 Create functional-only fixture config `tests/fixtures/plugin-config.functional-only.json` with `slug`, `name`, `author`, and `"content_model": "none"` (no `post_types`/`taxonomies`/`fields`), per [data-model.md](./data-model.md) and [quickstart.md](./quickstart.md) Scenario A
+- [x] T001 Create functional-only fixture config `tests/fixtures/plugin-config.functional-only.json` with `slug`, `name`, `author`, and `"content_model": "none"` (no `post_types`/`taxonomies`/`fields`), per [data-model.md](./data-model.md) and [quickstart.md](./quickstart.md) Scenario A
 
 ---
 
