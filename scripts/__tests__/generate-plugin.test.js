@@ -237,6 +237,24 @@ describe('validateConfig', () => {
 		const result = validateConfig(completeConfig);
 		expect(result.valid).toBe(true);
 	});
+
+	it('should reject content_model: "none" combined with non-empty post_types', () => {
+		validConfig.content_model = 'none';
+		validConfig.post_types = [
+			{ slug: 'tour', singular: 'Tour', plural: 'Tours' },
+		];
+		const result = validateConfig(validConfig);
+		expect(result.valid).toBe(false);
+		expect(result.errors).toHaveLength(1);
+		expect(result.errors[0].message).toContain('content_model');
+		expect(result.errors[0].message).toContain('post_types');
+	});
+
+	it('should accept content_model: "none" with no post_types/taxonomies', () => {
+		validConfig.content_model = 'none';
+		const result = validateConfig(validConfig);
+		expect(result.valid).toBe(true);
+	});
 });
 
 describe('applyDefaults', () => {
