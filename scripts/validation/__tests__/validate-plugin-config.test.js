@@ -12,6 +12,7 @@ const {
 	validateConfig,
 	validateFieldTypes,
 	validateTaxonomies,
+	validateContentModel,
 	checkBestPractices,
 } = require('../validate-plugin-config');
 
@@ -93,6 +94,53 @@ describe('Plugin configuration validation', () => {
 				expect.stringContaining('slug too long'),
 			])
 		);
+	});
+
+	test('validateContentModel flags content_model "none" combined with post_types/taxonomies', () => {
+		const config = {
+			content_model: 'none',
+			post_types: [
+				{ slug: 'tour', singular: 'Tour', plural: 'Tours' },
+			],
+			taxonomies: [
+				{ slug: 'destination', singular: 'Destination', plural: 'Destinations' },
+			],
+		};
+
+		const errors = validateContentModel(config);
+
+		expect(errors).toEqual(
+			expect.arrayContaining([
+				expect.stringContaining('content_model is "none"'),
+			])
+		);
+		expect(errors[0]).toContain('post_types contains 1 entry');
+		expect(errors[0]).toContain('taxonomies contains 1 entry');
+	});
+
+	test('validateContentModel allows content_model "none" with empty or absent post_types/taxonomies', () => {
+		expect(validateContentModel({ content_model: 'none' })).toEqual([]);
+		expect(
+			validateContentModel({
+				content_model: 'none',
+				post_types: [],
+				taxonomies: [],
+			})
+		).toEqual([]);
+	});
+
+	test('validateContentModel is a no-op when content_model is "custom" or absent', () => {
+		expect(
+			validateContentModel({
+				content_model: 'custom',
+				post_types: [{ slug: 'tour', singular: 'Tour', plural: 'Tours' }],
+			})
+		).toEqual([]);
+		expect(
+			validateContentModel({
+				post_types: [{ slug: 'tour', singular: 'Tour', plural: 'Tours' }],
+			})
+		).toEqual([]);
 	});
 
 	test('checkBestPractices highlights mismatches and missing sections', () => {

@@ -239,6 +239,35 @@ function loadSchema() {
  * @param config
  */
 function validateConfig(config) {
+	// Explicit, human-readable check for the functional-only/content-model
+	// conflict (FR-009): content_model: "none" combined with a non-empty
+	// post_types or taxonomies array is contradictory configuration, not a
+	// valid combination. Checked ahead of the generic schema validation
+	// below so the reported error names the fields directly rather than
+	// surfacing a raw Ajv "must NOT be valid" message.
+	if (
+		config.content_model === 'none' &&
+		((config.post_types && config.post_types.length > 0) ||
+			(config.taxonomies && config.taxonomies.length > 0))
+	) {
+		const conflictMessage =
+			'Configuration error: "content_model" is set to "none" (functional-only) but ' +
+			`"post_types" contains ${config.post_types?.length || 0} entr${
+				config.post_types?.length === 1 ? 'y' : 'ies'
+			} and "taxonomies" contains ${
+				config.taxonomies?.length || 0
+			} entr${config.taxonomies?.length === 1 ? 'y' : 'ies'}. ` +
+			'Remove the post_types/taxonomies entries, or set "content_model" to "custom" (or omit it) to keep them.';
+
+		if (process.env.NODE_ENV !== 'test') {
+			log('ERROR', conflictMessage);
+		}
+		return {
+			valid: false,
+			errors: [{ message: conflictMessage }],
+		};
+	}
+
 	const schema = loadSchema();
 
 	// Suppress Ajv warnings about unknown formats in test mode
@@ -282,6 +311,11 @@ function validateConfig(config) {
  */
 function applyDefaults(config) {
 	const result = { ...config };
+
+	// Derive functional-only mode from the content_model flag. When true,
+	// downstream generation steps skip all post-type/taxonomy scaffolding
+	// regardless of legacy cpt_slug/post_types normalization below.
+	result.isFunctionalOnly = result.content_model === 'none';
 
 	// Auto-derive namespace and textdomain from slug
 	if (result.slug) {
@@ -635,6 +669,59 @@ function removeScaffoldOnlyTests(outputDir) {
 }
 
 /**
+ * Remove barrel-file export lines for content-model hooks/components that
+ * were excluded from the copy in functional-only mode.
+ *
+ * Excluding usePostType.js/useTaxonomies.js/useCollection.js and the
+ * PostSelector/TaxonomyFilter components (see the functional-only
+ * excludePaths block above) leaves src/hooks/index.js and
+ * src/components/index.js still re-exporting them, which would break the
+ * generated plugin's build. This strips just those export lines.
+ *
+ * @param {string} outputDir - Output directory path
+ * @param {boolean} isFunctionalOnly - Whether functional-only mode is active
+ */
+function stripExcludedModuleExports(outputDir, isFunctionalOnly) {
+	if (!isFunctionalOnly) {
+		return;
+	}
+
+	const barrelFiles = [
+		{
+			file: path.join(outputDir, 'src', 'hooks', 'index.js'),
+			excludedNames: ['usePostType', 'useTaxonomies', 'useCollection'],
+		},
+		{
+			file: path.join(outputDir, 'src', 'components', 'index.js'),
+			excludedNames: ['PostSelector', 'TaxonomyFilter'],
+		},
+	];
+
+	for (const { file, excludedNames } of barrelFiles) {
+		if (!fs.existsSync(file)) {
+			continue;
+		}
+
+		const lines = fs.readFileSync(file, 'utf8').split('\n');
+		const filtered = lines.filter((line) => {
+			return !excludedNames.some((name) =>
+				line.includes(`as ${name} }`)
+			);
+		});
+
+		fs.writeFileSync(file, filtered.join('\n'), 'utf8');
+		log(
+			'INFO',
+			`Stripped functional-only exports from ${path.relative(
+				outputDir,
+				file
+			)}`,
+			{ excludedNames }
+		);
+	}
+}
+
+/**
  * Process files in place (template mode)
  * Replaces mustache variables in files in the current directory
  * @param {string} targetDir - Directory to process
@@ -833,6 +920,28 @@ function generatePlugin(config, inPlace = false) {
 		'plugin-config.json',
 	];
 
+	// Functional-only mode: exclude the static content-model files that
+	// copyDirWithReplacement() would otherwise always copy, regardless of
+	// whether any post_types/taxonomies are configured (FR-005).
+	if (fullConfig.isFunctionalOnly) {
+		excludePaths.push(
+			'patterns/{{slug}}-grid.php',
+			'patterns/{{slug}}-archive.php',
+			'patterns/{{slug}}-card.php',
+			'patterns/{{slug}}-featured.php',
+			'patterns/{{slug}}-meta.php',
+			'patterns/{{slug}}-single.php',
+			'patterns/{{slug}}-slider.php',
+			'scf-json/group_{{slug}}_example.json',
+			'src/hooks/usePostType.js',
+			'src/hooks/useTaxonomies.js',
+			'src/hooks/useCollection.js',
+			'src/components/TaxonomyFilter',
+			'src/components/PostSelector',
+			'src/blocks/{{block_slug}}-collection'
+		);
+	}
+
 	// Copy scaffold files with mustache replacement
 	if (inPlace) {
 		log('INFO', 'Replacing mustache variables in current directory...');
@@ -848,9 +957,14 @@ function generatePlugin(config, inPlace = false) {
 			excludePaths
 		);
 		removeScaffoldOnlyTests(outputDir);
-		
+		stripExcludedModuleExports(outputDir, fullConfig.isFunctionalOnly);
+
 		// Generate per-CPT blocks after copying
-		if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+		if (
+			!fullConfig.isFunctionalOnly &&
+			fullConfig.post_types &&
+			fullConfig.post_types.length > 0
+		) {
 			log('INFO', 'Generating per-CPT blocks');
 			generatePerCPTBlocks(outputDir, fullConfig);
 			log('INFO', 'Per-CPT block generation completed');
@@ -874,7 +988,11 @@ function generatePlugin(config, inPlace = false) {
 	generateReadme(outputDir, fullConfig);
 
 	// Generate post-type JSON files
-	if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+	if (
+		!fullConfig.isFunctionalOnly &&
+		fullConfig.post_types &&
+		fullConfig.post_types.length > 0
+	) {
 		log('INFO', 'Generating post-type JSON files');
 		generatePostTypeJSONFiles(outputDir, fullConfig);
 		

@@ -134,11 +134,25 @@
             ]
         },
 
+        "content_model": {
+            "type": "string",
+            "x-stage": 1,
+            "description": "Whether this plugin defines a custom content model (post types/taxonomies) or is functional-only (blocks/settings, no post types or taxonomies). Omitting this property preserves legacy behaviour driven solely by the presence of post_types.",
+            "enum": [
+                "none",
+                "custom"
+            ],
+            "default": "custom",
+            "examples": [
+                "none",
+                "custom"
+            ]
+        },
+
         "post_types": {
             "type": "array",
             "description": "Custom post types to register for this plugin",
             "default": [],
-            "minItems": 1,
             "items": {
                 "type": "object",
                 "required": [
@@ -688,9 +702,32 @@
                 "enum": [
                     "collection"
                 ]
-            },
-            "minItems": 1
+            }
         }
     },
-    "additionalProperties": true
+    "additionalProperties": true,
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "content_model": {
+                        "const": "none"
+                    }
+                },
+                "required": [
+                    "content_model"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "post_types": {
+                        "maxItems": 0
+                    },
+                    "taxonomies": {
+                        "maxItems": 0
+                    }
+                }
+            }
+        }
+    ]
 }
