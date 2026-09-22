@@ -104,7 +104,7 @@ Single project (Node.js CLI generator) — paths are relative to the repository 
 - [x] T017 [P] Add a `"$comment"` to `.github/schemas/post-types.schema.json` noting that per-post-type JSON entries are not generated when the plugin config's top-level `content_model` is `"none"` (cross-reference for anyone editing this schema in isolation)
 - [x] T018 Run `npm run lint` (covers `lint:js`, `lint:pkg-json`, `lint:md:docs`) and fix any issues introduced by this feature's changes, per Constitution Principle I
 - [x] T019 Run `npm run test:unit` and confirm all new tests (T010, T015, T016) and the full existing suite pass, per Constitution Principle IV
-- [ ] T020 Manually execute [quickstart.md](./quickstart.md) Scenarios A–D (or confirm equivalent automated coverage from T010/T015/T016/T019 for A–C) and update quickstart.md if any documented step no longer matches actual behaviour
+- [x] T020 Manually execute [quickstart.md](./quickstart.md) Scenarios A–D (or confirm equivalent automated coverage from T010/T015/T016/T019 for A–C) and update quickstart.md if any documented step no longer matches actual behaviour
 
 ---
 
