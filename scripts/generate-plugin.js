@@ -879,7 +879,13 @@ function generatePlugin(config, inPlace = false) {
 			'patterns/{{slug}}-meta.php',
 			'patterns/{{slug}}-single.php',
 			'patterns/{{slug}}-slider.php',
-			'scf-json/group_{{slug}}_example.json'
+			'scf-json/group_{{slug}}_example.json',
+			'src/hooks/usePostType.js',
+			'src/hooks/useTaxonomies.js',
+			'src/hooks/useCollection.js',
+			'src/components/TaxonomyFilter',
+			'src/components/PostSelector',
+			'src/blocks/{{block_slug}}-collection'
 		);
 	}
 
