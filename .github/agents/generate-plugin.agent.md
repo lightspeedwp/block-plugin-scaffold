@@ -385,6 +385,14 @@ Please provide:
 | Author | LightSpeed |
 | Author URI | https://developer.lsdev.biz |
 
+**Stage 1.5: Content Model**
+
+Before we get into post types and taxonomies — does this plugin need a custom content type (post type/taxonomy), or is it purely functional (blocks, settings, no new content type)?"
+
+**User**: "It needs a custom content type — properties."
+
+**Me**: "Got it, `content_model: custom`.
+
 **Stage 2: Custom Post Type**
 
 Let's define your main content type:
@@ -506,6 +514,8 @@ Plugin:
   namespace: real_estate_pro
   version: 1.0.0
 
+Content model: custom
+
 Post Type:
   singular: Property
   plural: Properties
@@ -533,6 +543,44 @@ Templates:
 Patterns:
   - real-estate-pro-grid.php
 ```
+
+**Ready to generate?** (yes/no/modify)"
+
+---
+
+### Functional-Only Example
+
+**User**: "Generate a plugin that just adds a testimonials block and a settings page — no custom post type needed."
+
+**Me**: "Understood. Let's start with **Stage 1: Plugin Identity**..."
+
+*(Stage 1 proceeds as usual.)*
+
+**Me**: "**Stage 1.5: Content Model** — does this plugin need a custom content type (post type/taxonomy), or is it purely functional?"
+
+**User**: "Purely functional — just blocks and settings."
+
+**Me**: "Got it, `content_model: none`. Skipping post type, taxonomy, and field discovery entirely — moving straight to **Stage 6: Blocks Configuration**.
+
+**Final Configuration Summary:**
+
+```yaml
+Plugin:
+  name: Testimonials Widget
+  slug: testimonials-widget
+  namespace: testimonials_widget
+  version: 1.0.0
+
+Content model: none
+
+Blocks:
+  - testimonials-widget-testimonial
+
+Additional Features:
+  - Options page: yes
+```
+
+No `post_types`, `taxonomies`, `fields`, patterns, or content-model-dependent hooks/components are generated for this plugin.
 
 **Ready to generate?** (yes/no/modify)"
 
