@@ -73,7 +73,7 @@ Single project (Node.js CLI generator) — paths are relative to the repository 
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] In `.github/agents/generate-plugin.agent.md`, insert a new question between "Stage 1: Plugin Identity" and "Stage 2: Custom Post Type (CPT)" asking whether the plugin needs a custom content type (post type/taxonomy) or is functional-only, with an explicit instruction that a functional-only answer sets `content_model: "none"` and skips directly to "Stage 6: Blocks Configuration" (FR-001, FR-002)
+- [x] T011 [US1] In `.github/agents/generate-plugin.agent.md`, insert a new question between "Stage 1: Plugin Identity" and "Stage 2: Custom Post Type (CPT)" asking whether the plugin needs a custom content type (post type/taxonomy) or is functional-only, with an explicit instruction that a functional-only answer sets `content_model: "none"` and skips directly to "Stage 6: Blocks Configuration" (FR-001, FR-002)
 - [ ] T012 [US1] In the same file's "Conversation Flow Example" section, update the example transcript to show the agent asking the new content-model question immediately after Stage 1 and branching to a functional-only path (or note the existing example remains the content-model branch, and add a short functional-only alternative example)
 - [ ] T013 [US1] In the same file's "Final Configuration Summary" example block, add a "Content model: none / custom" line to the yaml-style summary shown before generation confirmation (FR-012)
 
