@@ -867,6 +867,22 @@ function generatePlugin(config, inPlace = false) {
 		'plugin-config.json',
 	];
 
+	// Functional-only mode: exclude the static content-model files that
+	// copyDirWithReplacement() would otherwise always copy, regardless of
+	// whether any post_types/taxonomies are configured (FR-005).
+	if (fullConfig.isFunctionalOnly) {
+		excludePaths.push(
+			'patterns/{{slug}}-grid.php',
+			'patterns/{{slug}}-archive.php',
+			'patterns/{{slug}}-card.php',
+			'patterns/{{slug}}-featured.php',
+			'patterns/{{slug}}-meta.php',
+			'patterns/{{slug}}-single.php',
+			'patterns/{{slug}}-slider.php',
+			'scf-json/group_{{slug}}_example.json'
+		);
+	}
+
 	// Copy scaffold files with mustache replacement
 	if (inPlace) {
 		log('INFO', 'Replacing mustache variables in current directory...');

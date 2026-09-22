@@ -153,7 +153,6 @@
             "type": "array",
             "description": "Custom post types to register for this plugin",
             "default": [],
-            "minItems": 1,
             "items": {
                 "type": "object",
                 "required": [
@@ -703,8 +702,7 @@
                 "enum": [
                     "collection"
                 ]
-            },
-            "minItems": 1
+            }
         }
     },
     "additionalProperties": true,
@@ -721,19 +719,13 @@
                 ]
             },
             "then": {
-                "not": {
-                    "anyOf": [
-                        {
-                            "required": [
-                                "post_types"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "taxonomies"
-                            ]
-                        }
-                    ]
+                "properties": {
+                    "post_types": {
+                        "maxItems": 0
+                    },
+                    "taxonomies": {
+                        "maxItems": 0
+                    }
                 }
             }
         }
