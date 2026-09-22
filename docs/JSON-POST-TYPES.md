@@ -209,6 +209,60 @@ The system maintains full mustache template support for the generator:
 }
 ```
 
+## Functional-Only Generation (No Content Model)
+
+Not every generated plugin needs a custom post type or taxonomy — some are
+purely functional (new blocks, block bindings, an options page). For these,
+`plugin-config.json` supports a top-level `content_model` flag:
+
+```json
+{
+  "slug": "my-plugin",
+  "name": "My Plugin",
+  "author": "LightSpeed",
+  "content_model": "none"
+}
+```
+
+| Value | Meaning |
+|-------|---------|
+| `"custom"` (default) | This plugin defines a content model. Existing `post_types`/`taxonomies` behaviour applies unchanged. |
+| `"none"` | Functional-only. No post type or taxonomy scaffolding is generated at all. |
+
+**`content_model` is distinct from simply omitting `post_types`.** Omitting
+`post_types` already skips the per-post-type JSON generation
+(`generatePostTypeJSONFiles()`, `generateTaxonomySCFGroups()`), but on its
+own it does **not** stop the static content-model files that are otherwise
+always copied into every generated plugin. Setting `content_model: "none"`
+additionally excludes:
+
+- The content-display pattern files: `patterns/{{slug}}-grid.php`,
+  `-archive.php`, `-card.php`, `-featured.php`, `-meta.php`, `-single.php`,
+  `-slider.php`
+- The example SCF field group: `scf-json/group_{{slug}}_example.json`
+- The content-model-dependent JS hooks: `src/hooks/usePostType.js`,
+  `src/hooks/useTaxonomies.js`, `src/hooks/useCollection.js`
+- The content-model-dependent components: `src/components/TaxonomyFilter`,
+  `src/components/PostSelector`
+- The collection block: `src/blocks/{{block_slug}}-collection`
+
+**`content_model: "none"` cannot be combined with a non-empty `post_types`
+or `taxonomies` array** — the generator rejects this as a contradictory
+configuration, with an error naming both fields, before any files are
+written. Remove the `post_types`/`taxonomies` entries, or set
+`content_model` to `"custom"` (or omit it), to keep them.
+
+Blocks, block bindings, the options page, and REST endpoints are unaffected
+by `content_model` — they remain independently selectable regardless of
+whether this plugin has a content model, since they are not post-type or
+taxonomy scaffolding.
+
+The conversational generate-plugin agent asks whether a content model is
+needed immediately after Plugin Identity (Stage 1.5), before any post
+type/taxonomy/field question, and skips those stages entirely for a
+functional-only answer — see
+[`.github/agents/generate-plugin.agent.md`](../.github/agents/generate-plugin.agent.md).
+
 ## Benefits
 
 ### For Developers

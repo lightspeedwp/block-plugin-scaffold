@@ -89,7 +89,7 @@ Single project (Node.js CLI generator) — paths are relative to the repository 
 
 ### Implementation for User Story 3
 
-- [ ] T014 [US3] Document the `content_model` flag (name, allowed values, default, interaction with `post_types`/`taxonomies`, and which generated files it affects) in `docs/JSON-POST-TYPES.md` (FR-010, FR-011)
+- [x] T014 [US3] Document the `content_model` flag (name, allowed values, default, interaction with `post_types`/`taxonomies`, and which generated files it affects) in `docs/JSON-POST-TYPES.md` (FR-010, FR-011)
 - [ ] T015 [US3] Add test case(s) to `scripts/validation/__tests__/validate-plugin-config.test.js` covering `validateContentModel()` from T005: a conflicting config returns an error naming both fields, a non-conflicting config (flag absent, or `"none"` with empty arrays) returns no error
 - [ ] T016 [US3] Add a test case to `scripts/__tests__/generate-plugin.test.js` asserting `validateConfig()` rejects a config with `content_model: "none"` plus a non-empty `post_types` array, and that the returned error is human-readable (FR-009, SC-004)
 
