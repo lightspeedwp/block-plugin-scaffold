@@ -960,7 +960,11 @@ function generatePlugin(config, inPlace = false) {
 		stripExcludedModuleExports(outputDir, fullConfig.isFunctionalOnly);
 
 		// Generate per-CPT blocks after copying
-		if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+		if (
+			!fullConfig.isFunctionalOnly &&
+			fullConfig.post_types &&
+			fullConfig.post_types.length > 0
+		) {
 			log('INFO', 'Generating per-CPT blocks');
 			generatePerCPTBlocks(outputDir, fullConfig);
 			log('INFO', 'Per-CPT block generation completed');
@@ -984,7 +988,11 @@ function generatePlugin(config, inPlace = false) {
 	generateReadme(outputDir, fullConfig);
 
 	// Generate post-type JSON files
-	if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+	if (
+		!fullConfig.isFunctionalOnly &&
+		fullConfig.post_types &&
+		fullConfig.post_types.length > 0
+	) {
 		log('INFO', 'Generating post-type JSON files');
 		generatePostTypeJSONFiles(outputDir, fullConfig);
 		
