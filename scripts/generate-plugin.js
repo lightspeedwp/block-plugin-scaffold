@@ -239,6 +239,35 @@ function loadSchema() {
  * @param config
  */
 function validateConfig(config) {
+	// Explicit, human-readable check for the functional-only/content-model
+	// conflict (FR-009): content_model: "none" combined with a non-empty
+	// post_types or taxonomies array is contradictory configuration, not a
+	// valid combination. Checked ahead of the generic schema validation
+	// below so the reported error names the fields directly rather than
+	// surfacing a raw Ajv "must NOT be valid" message.
+	if (
+		config.content_model === 'none' &&
+		((config.post_types && config.post_types.length > 0) ||
+			(config.taxonomies && config.taxonomies.length > 0))
+	) {
+		const conflictMessage =
+			'Configuration error: "content_model" is set to "none" (functional-only) but ' +
+			`"post_types" contains ${config.post_types?.length || 0} entr${
+				config.post_types?.length === 1 ? 'y' : 'ies'
+			} and "taxonomies" contains ${
+				config.taxonomies?.length || 0
+			} entr${config.taxonomies?.length === 1 ? 'y' : 'ies'}. ` +
+			'Remove the post_types/taxonomies entries, or set "content_model" to "custom" (or omit it) to keep them.';
+
+		if (process.env.NODE_ENV !== 'test') {
+			log('ERROR', conflictMessage);
+		}
+		return {
+			valid: false,
+			errors: [{ message: conflictMessage }],
+		};
+	}
+
 	const schema = loadSchema();
 
 	// Suppress Ajv warnings about unknown formats in test mode
