@@ -42,6 +42,8 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- Committed `package-lock.json` and `composer.lock` (removed from `.gitignore`) so `npm ci`, `composer install` and setup-node npm caching install reproducibly in the scaffold, its CI, and template-mode generated plugins. Generator-mode output excludes the scaffold lockfiles because that mode regenerates `package.json`/`composer.json` with a different dependency graph; run `npm install` there to create the correct fresh lock.
+
 - `.github/schemas/plugin-config.schema.json`: moved the `oneOf` for post type `taxonomies` entries from the array level to the `items` level, so each taxonomy entry (string slug or legacy object) is validated individually instead of requiring the whole array to be one type or the other.
 
 ## [1.0.1] - 2025-12-15

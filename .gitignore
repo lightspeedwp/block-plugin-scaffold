@@ -47,11 +47,8 @@ Thumbs.db
 # WordPress environment
 .wp-env/
 
-# Composer lock (optional for scaffold)
-composer.lock
-
-# NPM package lock (optional for scaffold)
-package-lock.json
+# Lockfiles are committed so `npm ci`, `composer install` and setup-node npm
+# caching work out of the box for the scaffold and generated projects.
 
 # Local development
 .env
