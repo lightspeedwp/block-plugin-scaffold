@@ -831,6 +831,12 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Scaffold lockfiles describe the scaffold's own dependency graph,
+		// not the regenerated package.json/composer.json written below.
+		// Copying them would ship a stale lock, so generator-mode output
+		// starts without one and `npm install` creates a fresh lock.
+		'package-lock.json',
+		'composer.lock',
 	];
 
 	// Copy scaffold files with mustache replacement
