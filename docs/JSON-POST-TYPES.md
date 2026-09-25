@@ -244,7 +244,8 @@ additionally excludes:
   `src/hooks/useTaxonomies.js`, `src/hooks/useCollection.js`
 - The content-model-dependent components: `src/components/TaxonomyFilter`,
   `src/components/PostSelector`
-- The collection block: `src/blocks/{{block_slug}}-collection`
+- The collection block: no `src/blocks/{post-type}-collection` block is
+  generated (it is rendered per post type from `src/blocks/collection`)
 
 **`content_model: "none"` cannot be combined with a non-empty `post_types`
 or `taxonomies` array** — the generator rejects this as a contradictory

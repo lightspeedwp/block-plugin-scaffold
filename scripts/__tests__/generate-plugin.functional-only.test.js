@@ -55,6 +55,29 @@ const ALWAYS_PRESENT_PATHS = [
 ];
 
 /**
+ * Read the registered block name from a generated block's block.json.
+ *
+ * @param {string} outputDir Generated plugin directory.
+ * @param {string} blockDir  Block directory name under src/blocks.
+ * @return {string} The block name.
+ */
+function readBlockName(outputDir, blockDir) {
+	const blockJson = path.join(outputDir, 'src', 'blocks', blockDir, 'block.json');
+	return JSON.parse(fs.readFileSync(blockJson, 'utf8')).name;
+}
+
+/**
+ * List the block import paths in a generated plugin's src/index.js.
+ *
+ * @param {string} outputDir Generated plugin directory.
+ * @return {string[]} Import paths under ./blocks/.
+ */
+function readIndexImports(outputDir) {
+	const index = fs.readFileSync(path.join(outputDir, 'src', 'index.js'), 'utf8');
+	return [...index.matchAll(/import '(\.\/blocks\/[^']+)';/g)].map((m) => m[1]);
+}
+
+/**
  * Run generatePlugin(), removing any pre-existing output directory first
  * (generatePlugin() refuses to overwrite without --force), and track the
  * output dir for cleanup in afterEach.
@@ -101,12 +124,18 @@ describe('generatePlugin: functional-only mode', () => {
 			);
 		});
 
-		// No post types configured, so there is no post-type-derived
-		// block_slug — assert the blocks dir has nothing collection-related.
+		// The collection block is post-type specific, so it is never
+		// generated without post types. Generic blocks keep plain names.
 		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
-		expect(blockDirs.some((dir) => dir.endsWith('-collection'))).toBe(
-			false
+		expect(blockDirs.sort()).toEqual(['field-display', 'icons', 'slider']);
+		expect(readBlockName(outputDir, 'slider')).toBe(`${config.slug}/slider`);
+		expect(readBlockName(outputDir, 'field-display')).toBe(
+			`${config.slug}/field-display`
 		);
+		expect(readIndexImports(outputDir)).toEqual([
+			'./blocks/field-display',
+			'./blocks/slider',
+		]);
 
 		ALWAYS_PRESENT_PATHS.forEach((genericPath) => {
 			expect(fs.existsSync(path.join(outputDir, genericPath))).toBe(
@@ -144,10 +173,17 @@ describe('generatePlugin: functional-only mode', () => {
 		});
 
 		// The collection block is generated under the post type's own
-		// block_slug (here "item"), not the plugin slug.
-		expect(
-			fs.existsSync(path.join(outputDir, 'src', 'blocks', 'item-collection'))
-		).toBe(true);
+		// slug (here "item"); generic blocks are not prefixed with it.
+		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
+		expect(blockDirs.sort()).toEqual([
+			'field-display',
+			'icons',
+			'item-collection',
+			'slider',
+		]);
+		expect(readBlockName(outputDir, 'item-collection')).toBe(
+			`${config.slug}/item-collection`
+		);
 
 		ALWAYS_PRESENT_PATHS.forEach((genericPath) => {
 			expect(fs.existsSync(path.join(outputDir, genericPath))).toBe(
@@ -161,5 +197,55 @@ describe('generatePlugin: functional-only mode', () => {
 				path.join(outputDir, 'scf-json', 'post-type-item.json')
 			)
 		).toBe(true);
+	});
+
+	it('generates one collection block per post type and generic blocks once', () => {
+		const config = {
+			slug: 'multi-cpt-plugin',
+			name: 'Multi CPT Plugin',
+			author: 'LightSpeed',
+			post_types: [
+				{ slug: 'tour', singular: 'Tour', plural: 'Tours' },
+				{ slug: 'travel_style', singular: 'Travel Style', plural: 'Travel Styles' },
+			],
+		};
+		const outputDir = generateAndTrack(config);
+
+		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
+		expect(blockDirs.sort()).toEqual([
+			'field-display',
+			'icons',
+			'slider',
+			'tour-collection',
+			'travel-style-collection',
+		]);
+
+		// Each collection block carries its own post type's variables.
+		const travelStyle = path.join(
+			outputDir,
+			'src',
+			'blocks',
+			'travel-style-collection'
+		);
+		expect(readBlockName(outputDir, 'travel-style-collection')).toBe(
+			'multi-cpt-plugin/travel-style-collection'
+		);
+		const blockJson = JSON.parse(
+			fs.readFileSync(path.join(travelStyle, 'block.json'), 'utf8')
+		);
+		expect(blockJson.title).toBe('Travel Style Collection');
+		expect(blockJson.render).toBe(
+			'multi_cpt_plugin_render_travel_style_collection'
+		);
+		expect(
+			fs.readFileSync(path.join(travelStyle, 'edit.js'), 'utf8')
+		).toContain("context.postType || 'travel_style'");
+
+		expect(readIndexImports(outputDir)).toEqual([
+			'./blocks/field-display',
+			'./blocks/slider',
+			'./blocks/tour-collection',
+			'./blocks/travel-style-collection',
+		]);
 	});
 });

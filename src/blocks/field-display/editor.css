@@ -1,10 +1,10 @@
 /**
- * {{cpt_name}} Field Display Block - Editor Styles (CSS)
+ * {{name}} Field Display Block - Editor Styles (CSS)
  *
  * @package {{namespace}}
  */
 
-.wp-block-{{slug}}-{{block_slug}}-field-display .field-display-value {
+.wp-block-{{slug}}-field-display .field-display-value {
 	margin: 0;
 	padding: 0.5em;
 	background: #f0f0f0;
@@ -12,6 +12,6 @@
 	border-radius: 2px;
 }
 
-.wp-block-{{slug}}-{{block_slug}}-field-display .field-display-value strong {
+.wp-block-{{slug}}-field-display .field-display-value strong {
 	font-weight: 700;
 }

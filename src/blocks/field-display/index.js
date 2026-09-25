@@ -1,5 +1,5 @@
 /**
- * {{cpt_name}} Field Display Block
+ * {{name}} Field Display Block
  *
  * Displays a custom field value with optional prefix.
  *
@@ -72,7 +72,7 @@ const Edit = (props) => {
 	];
 
 	const blockProps = useBlockProps({
-		className: 'wp-block-{{slug}}-{{block_slug}}-field-display',
+		className: 'wp-block-{{slug}}-field-display',
 	});
 
 	// Get the field value from post meta.

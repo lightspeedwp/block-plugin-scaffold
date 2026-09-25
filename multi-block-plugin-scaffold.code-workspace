@@ -1,13 +1,16 @@
 {
 	"folders": [
 		{
+			"name": ".github",
+			"path": "../../../.github"
+		},
+		{
+			"name": "block-plugin-scaffold",
 			"path": "."
 		},
 		{
-			"path": "../../../../../../medicalacademic/app/public/wp-content/plugins"
-		},
-		{
-			"path": "../../../../../../medicalacademic/app/public/wp-content/themes"
+			"name": "block-theme-scaffold",
+			"path": "../block-theme-scaffold"
 		}
 	],
 	"settings": {

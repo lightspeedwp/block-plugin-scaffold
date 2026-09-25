@@ -1,6 +1,6 @@
 <?php
 /**
- * Render callback for the {{block_slug}}-field-display block.
+ * Render callback for the field-display block.
  *
  * @package {{namespace}}
  */
@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_display' ) ) {
+if ( ! function_exists( '{{namespace}}_render_field_display' ) ) {
 	/**
 	 * Render the field display block.
 	 *
@@ -18,7 +18,7 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 	 * @param WP_Block $block      Block instance.
 	 * @return string Rendered block HTML.
 	 */
-	function {{namespace}}_render_{{block_slug|snakeCase}}_field_display( $attributes, $content, $block ) {
+	function {{namespace}}_render_field_display( $attributes, $content, $block ) {
 		// Get post ID from context or current post.
 		$post_id = isset( $block->context['postId'] ) ? (int) $block->context['postId'] : get_the_ID();
 		
@@ -74,7 +74,7 @@ if ( ! function_exists( '{{namespace}}_render_{{block_slug|snakeCase}}_field_dis
 		}
 
 		// Build wrapper classes.
-		$wrapper_classes = array( 'wp-block-{{slug}}-{{block_slug}}-field-display', 'wp-block-group', 'is-layout-flex', 'is-nowrap' );
+		$wrapper_classes = array( 'wp-block-{{slug}}-field-display', 'wp-block-group', 'is-layout-flex', 'is-nowrap' );
 		if ( ! empty( $attributes['className'] ) ) {
 			$wrapper_classes[] = esc_attr( $attributes['className'] );
 		}

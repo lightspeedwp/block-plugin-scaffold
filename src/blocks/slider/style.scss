@@ -1,5 +1,5 @@
-// Frontend SCSS for {{block_slug}}-slider block
-.wp-block-{{namespace}}-{{block_slug}}-slider {
+// Frontend SCSS for slider block
+.wp-block-{{slug}}-slider {
   background: var(--wp--preset--color--base-3, #eee);
   border-radius: 8px;
   padding: var(--wp--preset--spacing--20, 1.5rem);

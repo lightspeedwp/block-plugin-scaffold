@@ -4,7 +4,7 @@
  * @todo Add accessibility and responsive design improvements.
  */
 /**
- * Example Plugin Slider Block - Editor Component
+ * {{name}} Slider Block - Editor Component
  *
  * @package
  */
@@ -78,7 +78,7 @@ export default function Edit({ attributes, setAttributes }) {
 	};
 
 	const blockProps = useBlockProps({
-		className: 'wp-block-{{namespace}}-{{block_slug}}-slider',
+		className: 'wp-block-{{slug}}-slider',
 	});
 
 	return (
@@ -163,17 +163,17 @@ export default function Edit({ attributes, setAttributes }) {
 			<div {...blockProps}>
 				{source === 'custom' && (
 					<>
-						<div className="wp-block-{{namespace}}-{{block_slug}}-slider__viewport">
-							<div className="wp-block-{{namespace}}-{{block_slug}}-slider__track">
+						<div className="wp-block-{{slug}}-slider__viewport">
+							<div className="wp-block-{{slug}}-slider__track">
 								{slides.length > 0 ? (
 									slides.map((slide, index) => (
 										<div
 											key={slide.id}
-											className={`wp-block-{{namespace}}-{{block_slug}}-slider__slide ${index === currentSlide ? 'is-active' : ''}`}
+											className={`wp-block-{{slug}}-slider__slide ${index === currentSlide ? 'is-active' : ''}`}
 										>
 											<MediaUploadCheck>
 												<div
-													className="wp-block-{{namespace}}-{{block_slug}}-slider__image-wrapper"
+													className="wp-block-{{slug}}-slider__image-wrapper"
 													onClick={() => {}}
 													role="button"
 													tabIndex={0}
@@ -189,7 +189,7 @@ export default function Edit({ attributes, setAttributes }) {
 															}
 														/>
 													) : (
-														<div className="wp-block-{{namespace}}-{{block_slug}}-slider__placeholder">
+														<div className="wp-block-{{slug}}-slider__placeholder">
 															{__(
 																'Click to select image',
 																'{{textdomain}}'
@@ -198,7 +198,7 @@ export default function Edit({ attributes, setAttributes }) {
 													)}
 												</div>
 											</MediaUploadCheck>
-											<div className="wp-block-{{namespace}}-{{block_slug}}-slider__slide-content">
+											<div className="wp-block-{{slug}}-slider__slide-content">
 												<TextControl
 													label={__(
 														'Title',
@@ -242,7 +242,7 @@ export default function Edit({ attributes, setAttributes }) {
 												onClick={() =>
 													removeSlide(index)
 												}
-												className="wp-block-{{namespace}}-{{block_slug}}-slider__remove-slide"
+												className="wp-block-{{slug}}-slider__remove-slide"
 											>
 												{__(
 													'Remove Slide',
@@ -252,7 +252,7 @@ export default function Edit({ attributes, setAttributes }) {
 										</div>
 									))
 								) : (
-									<div className="wp-block-{{namespace}}-{{block_slug}}-slider__empty">
+									<div className="wp-block-{{slug}}-slider__empty">
 										{__(
 											'No slides added yet. Click the button below to add slides.',
 											'{{textdomain}}'
@@ -261,11 +261,11 @@ export default function Edit({ attributes, setAttributes }) {
 								)}
 							</div>
 							{slides.length > 1 && (
-								<div className="wp-block-{{namespace}}-{{block_slug}}-slider__nav">
+								<div className="wp-block-{{slug}}-slider__nav">
 									{slides.map((_, index) => (
 										<button
 											key={index}
-											className={`wp-block-{{namespace}}-{{block_slug}}-slider__dot ${index === currentSlide ? 'is-active' : ''}`}
+											className={`wp-block-{{slug}}-slider__dot ${index === currentSlide ? 'is-active' : ''}`}
 											onClick={() =>
 												setCurrentSlide(index)
 											}
@@ -277,7 +277,7 @@ export default function Edit({ attributes, setAttributes }) {
 							<Button
 								variant="primary"
 								onClick={addSlide}
-								className="wp-block-{{namespace}}-{{block_slug}}-slider__add-slide"
+								className="wp-block-{{slug}}-slider__add-slide"
 							>
 								{__('Add Slide', '{{textdomain}}')}
 							</Button>
@@ -286,16 +286,16 @@ export default function Edit({ attributes, setAttributes }) {
 				)}
 
 				{source === 'posts' && (
-					<div className="wp-block-{{namespace}}-{{block_slug}}-slider__posts-notice">
+					<div className="wp-block-{{slug}}-slider__posts-notice">
 						{__(
-							'Slider will display posts from the Example Plugin post type.',
+							'Slider will display posts from the current post type.',
 							'{{textdomain}}'
 						)}
 					</div>
 				)}
 
 				{source === 'repeater' && (
-					<div className="wp-block-{{namespace}}-{{block_slug}}-slider__repeater-notice">
+					<div className="wp-block-{{slug}}-slider__repeater-notice">
 						{__(
 							'Slider will display slides from the repeater field.',
 							'{{textdomain}}'

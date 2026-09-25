@@ -67,14 +67,16 @@ The plugin follows WordPress block development best practices with multiple bloc
 ```
 src/
 ├── index.js            # Main entry point - registers all blocks
-├── {{block_slug}}/   # Block directory
+├── blocks/slider/     # Generic block directory
 │   ├── block.json      # Block metadata and configuration
 │   ├── edit.js         # Editor component (React)
 │   ├── save.js         # Frontend save component
 │   ├── index.js        # Block registration
 │   ├── render.php      # Server-side render callback
 │   └── style.scss      # Block-specific styles
-├── {{block_slug}}/   # Another block
+├── blocks/field-display/ # Another generic block
+│   └── ...
+├── blocks/{post-type}-collection/ # One per post type (content-model plugins only)
 │   └── ...
 └── shared/             # Shared between blocks
     ├── components/     # Shared React components

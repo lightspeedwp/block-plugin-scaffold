@@ -1,9 +1,9 @@
-// Frontend SCSS for {{block_slug}}-collection block
+// Frontend SCSS for {{cpt_slug|kebabCase}}-collection block
 // Accessible, responsive, and theme-friendly
-// Frontend SCSS for {{block_slug}}-collection block
+// Frontend SCSS for {{cpt_slug|kebabCase}}-collection block
 // Accessible, responsive, and theme-friendly
 
-$wp-block: 'wp-block-{{namespace}}-{{block_slug}}-collection';
+$wp-block: 'wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection';
 
 .#{ $wp-block } {
   display: grid;

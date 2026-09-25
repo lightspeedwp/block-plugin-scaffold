@@ -1,11 +1,11 @@
 {
   "apiVersion": 3,
-  "name": "{{slug}}/{{block_slug}}-slider",
+  "name": "{{slug}}/slider",
   "title": "{{name|title}} Slider",
   "category": "{{slug}}",
   "icon": "images-alt2",
   "description": "A slider block for displaying images or content.",
-  "keywords": ["slider", "carousel", "{{block_slug}}", "gallery", "media"],
+  "keywords": ["slider", "carousel", "gallery", "media"],
   "textdomain": "{{textdomain}}",
   "attributes": {
     "slidesToShow": {
@@ -50,5 +50,5 @@
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
   "style": "file:./index.css",
-  "render": "{{namespace}}_render_{{block_slug|snakeCase}}_slider"
+  "render": "{{namespace}}_render_slider"
 }

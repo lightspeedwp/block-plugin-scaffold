@@ -1,13 +1,13 @@
 /**
- * {{cpt_name}} Field Display Block - Frontend Styles (CSS)
+ * {{name}} Field Display Block - Frontend Styles (CSS)
  *
  * @package {{namespace}}
  */
 
-.wp-block-{{slug}}-{{block_slug}}-field-display .field-display-value {
+.wp-block-{{slug}}-field-display .field-display-value {
 	margin: 0;
 }
 
-.wp-block-{{slug}}-{{block_slug}}-field-display .field-display-value strong {
+.wp-block-{{slug}}-field-display .field-display-value strong {
 	font-weight: 700;
 }

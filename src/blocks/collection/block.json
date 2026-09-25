@@ -1,6 +1,6 @@
 {
   "apiVersion": 3,
-  "name": "{{slug}}/{{block_slug}}-collection",
+  "name": "{{slug}}/{{cpt_slug|kebabCase}}-collection",
   "title": "{{cpt_singular}} Collection",
   "category": "{{slug}}",
   "icon": "{{cpt_icon}}",
@@ -72,5 +72,5 @@
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
   "style": "file:./index.css",
-  "render": "{{namespace}}_render_{{block_slug|snakeCase}}_collection"
+  "render": "{{namespace}}_render_{{cpt_slug|snakeCase}}_collection"
 }

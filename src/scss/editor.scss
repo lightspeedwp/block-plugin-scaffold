@@ -9,10 +9,11 @@
 // Editor-specific overrides and styles.
 .editor-styles-wrapper {
 	// Ensure blocks display properly in editor.
-	.wp-block-#{$namespace}-#{$slug}-card,
-	.wp-block-#{$namespace}-#{$slug}-collection,
-	.wp-block-#{$namespace}-#{$slug}-slider,
-	.wp-block-#{$namespace}-#{$slug}-featured {
+	// Collection blocks are generated per post type
+	// (wp-block-{slug}-{post-type}-collection), so match on the suffix.
+	.wp-block-#{$slug}-slider,
+	.wp-block-#{$slug}-field-display,
+	[class*="wp-block-#{$slug}-"][class*="-collection"] {
 		margin-bottom: 1.5rem;
 	}
 }

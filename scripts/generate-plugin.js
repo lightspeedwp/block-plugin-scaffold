@@ -27,6 +27,9 @@ const schemaPath = path.join(
 );
 const outputBaseDir = path.resolve(process.cwd(), 'generated-plugins');
 
+// Block template rendered once per post type (see generatePerCPTBlocks).
+const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
+
 // Template mode flag
 const isTemplateMode =
 	process.argv.includes('--in-place') || process.argv.includes('--template');
@@ -472,7 +475,9 @@ function applyDefaults(config) {
 		const firstPostType = result.post_types[0];
 		result.cpt_slug = firstPostType.slug;
 		result.cpt_name = firstPostType.singular; // Display name for the post type
-		result.block_slug = firstPostType.slug.replace(/_/g, '-'); // Dasherized version for block names
+		result.cpt_singular = firstPostType.singular;
+		result.cpt_plural = firstPostType.plural;
+		result.cpt_icon = firstPostType.menu_icon;
 		result.name_singular = firstPostType.singular;
 		result.name_plural = firstPostType.plural;
 		result.cpt_supports = firstPostType.supports;
@@ -918,6 +923,10 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Per-post-type template: never copied as-is. generatePerCPTBlocks()
+		// renders one {post-type}-collection block from it per post type, and
+		// is skipped entirely in functional-only mode.
+		COLLECTION_BLOCK_TEMPLATE,
 	];
 
 	// Functional-only mode: exclude the static content-model files that
@@ -937,8 +946,7 @@ function generatePlugin(config, inPlace = false) {
 			'src/hooks/useTaxonomies.js',
 			'src/hooks/useCollection.js',
 			'src/components/TaxonomyFilter',
-			'src/components/PostSelector',
-			'src/blocks/{{block_slug}}-collection'
+			'src/components/PostSelector'
 		);
 	}
 
@@ -1030,8 +1038,13 @@ function generatePlugin(config, inPlace = false) {
 }
 
 /**
- * Generate per-CPT blocks from {{cpt_slug}} templates
- * Duplicates block templates that contain {{cpt_slug}} for each registered post type
+ * Generate one collection block per post type from the collection template.
+ *
+ * The template in COLLECTION_BLOCK_TEMPLATE is excluded from the main copy and
+ * rendered here once per post type, with that post type's variables, into
+ * src/blocks/{post-type}-collection. Generic blocks (slider, field-display)
+ * are not post-type specific and are copied once by the main copy step.
+ *
  * @param {string} outputDir - Output directory path
  * @param {Object} config - Plugin configuration
  */
@@ -1041,119 +1054,39 @@ function generatePerCPTBlocks(outputDir, config) {
 		return;
 	}
 
+	const templateDir = path.join(scaffoldDir, COLLECTION_BLOCK_TEMPLATE);
+	if (!fs.existsSync(templateDir)) {
+		log('WARN', `Collection block template not found: ${COLLECTION_BLOCK_TEMPLATE}`);
+		return;
+	}
+
 	const blocksDir = path.join(outputDir, 'src', 'blocks');
-	if (!fs.existsSync(blocksDir)) {
-		log('WARN', 'Blocks directory not found, skipping per-CPT block generation');
-		return;
-	}
 
-	// After copying, the {{cpt_slug}} template will have been replaced with the FIRST post type's slug
-	// We need to find that block and duplicate it for remaining post types
-	const firstPostType = config.post_types[0];
-	if (!firstPostType) return;
-	
-	// Look for blocks that match the first post type slug pattern (e.g., "cpd_article-collection")
-	const entries = fs.readdirSync(blocksDir, { withFileTypes: true });
-	const firstCPTBlocks = entries.filter(
-		(entry) => entry.isDirectory() && entry.name.startsWith(`${firstPostType.slug}-`)
-	);
+	config.post_types.forEach((postType) => {
+		const blockConfig = {
+			...config,
+			cpt_slug: postType.slug,
+			cpt_name: postType.singular, // Display name for the post type
+			cpt_singular: postType.singular,
+			cpt_plural: postType.plural,
+			cpt_icon: postType.menu_icon,
+			cpt_menu_icon: postType.menu_icon,
+			cpt_supports: postType.supports,
+		};
 
-	if (firstCPTBlocks.length === 0) {
-		log('INFO', 'No per-CPT block templates found (expected blocks starting with first CPT slug)');
-		return;
-	}
+		const blockDirName = `${applyFilter(postType.slug, 'kebabCase')}-collection`;
+		const blockPath = path.join(blocksDir, blockDirName);
+		fs.mkdirSync(blockPath, { recursive: true });
+		copyDirWithReplacement(templateDir, blockPath, blockConfig, []);
 
-	log('INFO', `Found ${firstCPTBlocks.length} per-CPT block template(s) for first post type`, {
-		templates: firstCPTBlocks.map(t => t.name),
-		firstPostType: firstPostType.slug
-	});
-
-	// For each block template from the first post type
-	firstCPTBlocks.forEach((templateBlock) => {
-		const templatePath = path.join(blocksDir, templateBlock.name);
-		
-		// Extract the block type suffix (e.g., "collection" from "cpd_article-collection")
-		const blockSuffix = templateBlock.name.replace(`${firstPostType.slug}-`, '');
-		
-		// Generate a block for each REMAINING post type (skip first one as it already exists)
-		config.post_types.slice(1).forEach((postType, index) => {
-			// Create block-specific config with CPT variables
-			const blockConfig = {
-				...config,
-				cpt_slug: postType.slug,
-				cpt_name: postType.singular, // Display name for the post type
-				block_slug: postType.slug.replace(/_/g, '-'), // Dasherized version for block names
-				cpt_singular: postType.singular,
-				cpt_plural: postType.plural,
-				cpt_menu_icon: postType.menu_icon,
-				cpt_supports: postType.supports,
-				// Add indexed variables for multi-CPT support
-				[`cpt${index + 2}_slug`]: postType.slug, // +2 because we skipped first
-				[`cpt${index + 2}_singular`]: postType.singular,
-				[`cpt${index + 2}_plural`]: postType.plural,
-			};
-
-			// Create the block directory name for this post type
-			const blockDirName = `${postType.slug}-${blockSuffix}`;
-			const blockPath = path.join(blocksDir, blockDirName);
-
-			// Create the block directory
-			if (!fs.existsSync(blockPath)) {
-				fs.mkdirSync(blockPath, { recursive: true });
-			}
-
-			// Copy all files from template to new block directory
-			const templateFiles = fs.readdirSync(templatePath, { withFileTypes: true });
-			templateFiles.forEach((file) => {
-				const srcPath = path.join(templatePath, file.name);
-				const destName = replaceMustacheVars(file.name, blockConfig);
-				const destPath = path.join(blockPath, destName);
-
-				if (file.isDirectory()) {
-					// Recursively copy subdirectories
-					if (!fs.existsSync(destPath)) {
-						fs.mkdirSync(destPath, { recursive: true });
-					}
-					copyDirWithReplacement(srcPath, destPath, blockConfig, []);
-				} else {
-					// Copy and process file - replace first post type slug with current post type
-					let content = fs.readFileSync(srcPath, 'utf8');
-					
-					// Create dasherized versions for block names
-					const firstCPTDasherized = firstPostType.slug.replace(/_/g, '-');
-					const currentCPTDasherized = postType.slug.replace(/_/g, '-');
-					
-					// Create snake_case versions for function names
-					const firstCPTSnakeCase = firstPostType.slug.replace(/-/g, '_');
-					const currentCPTSnakeCase = postType.slug.replace(/-/g, '_');
-					
-					// Replace the first post type's slug with the current post type's slug
-					// Handle both underscore version (for variables) and dash version (for block names)
-					content = content.replace(new RegExp(firstCPTDasherized, 'g'), currentCPTDasherized);
-					content = content.replace(new RegExp(firstCPTSnakeCase, 'g'), currentCPTSnakeCase);
-					content = content.replace(new RegExp(firstPostType.slug, 'g'), postType.slug);
-					content = content.replace(new RegExp(firstPostType.singular, 'g'), postType.singular);
-					content = content.replace(new RegExp(firstPostType.plural, 'g'), postType.plural);
-					
-					// Also replace any remaining mustache variables
-					content = replaceMustacheVars(content, blockConfig);
-					
-					fs.writeFileSync(destPath, content, 'utf8');
-				}
-			});
-
-			log('INFO', `Generated block: ${blockDirName}`, {
-				postType: postType.slug,
-				template: templateBlock.name,
-				blockSuffix: blockSuffix
-			});
+		log('INFO', `Generated block: ${blockDirName}`, {
+			postType: postType.slug,
 		});
 	});
 
 	log('INFO', 'Per-CPT block generation completed', {
-		templatesProcessed: firstCPTBlocks.length,
-		blocksGenerated: firstCPTBlocks.length * (config.post_types.length - 1),
-		postTypes: config.post_types.map(pt => pt.slug)
+		blocksGenerated: config.post_types.length,
+		postTypes: config.post_types.map((pt) => pt.slug),
 	});
 }
 
@@ -1172,9 +1105,10 @@ function generateSrcIndexFile(outputDir, config) {
 		return;
 	}
 
-	// Get all block directories
+	// Get all block directories with an entry point (skips asset folders such as icons/)
 	const blockDirs = fs.readdirSync(blocksDir, { withFileTypes: true })
 		.filter(entry => entry.isDirectory())
+		.filter(entry => fs.existsSync(path.join(blocksDir, entry.name, 'index.js')))
 		.map(entry => entry.name)
 		.sort();
 

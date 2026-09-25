@@ -34,7 +34,7 @@ This script enhances paragraph blocks with:
 - Automatically adds space after prefix if needed
 - Renders prefix with optional bold styling
 
-### 3. Field Display Blocks (`src/blocks/{{block_slug}}-field-display/`)
+### 3. Field Display Blocks (`src/blocks/field-display/`)
 
 Dedicated blocks generated per post type that:
 - Display a specific custom field value
@@ -132,7 +132,7 @@ Dedicated blocks generated per post type that:
 2. **Field Display Blocks:**
    - `render.php` callback generates HTML
    - Fetches post meta and formats with prefix
-   - Output: `<div class="wp-block-{{slug}}-{{block_slug}}-field-display"><p><strong>Date:</strong> 2026-03-15</p></div>`
+   - Output: `<div class="wp-block-{{slug}}-field-display"><p><strong>Date:</strong> 2026-03-15</p></div>`
 
 ## Generated Blocks Per Post Type
 
