@@ -34,6 +34,14 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - Validation tools now centralise their naming conventions in `scripts/validation/README.md` and keep all `validate-*`, `audit-*`, `test-*`, and `define-*` scripts within `scripts/validation/`.
 - `scripts/utils/dry-run-release.js` (and its test) produce sanitized copies of the release docs/agents so dry-runs can exercise templated `{{mustache}}` values without parser failures.
 
+#### Functional-Only Generation Mode
+
+- New top-level `content_model: "none" | "custom"` property in `plugin-config.json` lets a generated plugin opt out of all custom-post-type and taxonomy scaffolding for plugins that only need blocks, block bindings, or an options page.
+- The generate-plugin agent now asks a single content-model question immediately after Plugin Identity (Stage 1.5) and skips Stage 2 (Custom Post Type), Stage 3 (Taxonomies), Stage 4 (Custom Fields), Stage 5 (Repeater Fields), and Stage 7 (Templates & Patterns) entirely when the answer is functional-only.
+- When `content_model: "none"` is set, `scripts/generate-plugin.js` excludes the content-display pattern files (`patterns/{{slug}}-grid.php` and siblings), the example SCF field group (`scf-json/group_{{slug}}_example.json`), the content-model-dependent JS hooks (`usePostType`, `useTaxonomies`, `useCollection`), the `TaxonomyFilter`/`PostSelector` components, and the collection block — and strips the corresponding barrel-file exports so the generated plugin's build doesn't break.
+- Configs that combine `content_model: "none"` with a non-empty `post_types` or `taxonomies` array are rejected with a clear, actionable error before any files are written.
+- Documented in `docs/JSON-POST-TYPES.md` (new "Functional-Only Generation" section) and `.github/agents/generate-plugin.agent.md`; specified and planned via `.github/spec/002-post-type-exclusion/`.
+
 ### Changed
 
 - `docs/RELEASE_PROCESS.md` now merges the previous release playbooks, documents reporting/planning folder rules, and highlights the `scripts/utils/dry-run-release.js` helper before `release.agent.js` runs against templated files.
@@ -43,6 +51,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 ### Fixed
 
 - `.github/schemas/plugin-config.schema.json`: moved the `oneOf` for post type `taxonomies` entries from the array level to the `items` level, so each taxonomy entry (string slug or legacy object) is validated individually instead of requiring the whole array to be one type or the other.
+- `.github/schemas/plugin-config.schema.json`: removed incorrect `minItems: 1` constraints on the top-level `post_types` and `blocks` properties, which contradicted `applyDefaults()`'s own `|| []` defaulting behaviour — any minimal config with no post types or explicit blocks previously failed schema validation before generation could even start.
 
 ## [1.0.1] - 2025-12-15
 
