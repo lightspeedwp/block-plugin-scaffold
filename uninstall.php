@@ -2,7 +2,10 @@
 /**
  * {{name}} Uninstall
  *
- * Fired when the plugin is uninstalled to clean up all plugin data.
+ * Fired when the plugin is uninstalled to remove the plugin's own settings.
+ *
+ * Content is deliberately kept: posts, terms and their meta belong to the
+ * site, not the plugin, and remain in place if the plugin is reinstalled.
  *
  * @package {{namespace}}
  */
@@ -14,52 +17,26 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 global $wpdb;
 
-$plugin_slug      = '{{plugin_slug}}';
-$custom_post_type = '{{post_type_slug}}';
-$custom_taxonomy  = '{{taxonomy_slug}}';
+// Prefix shared by every option, transient and cron hook the plugin creates.
+$option_prefix = '{{namespace}}_';
 
-/**
- * Delete all posts of the custom post type.
- */
-$all_posts = get_posts(
-	array(
-		'post_type'      => $custom_post_type,
-		'post_status'    => 'any',
-		'posts_per_page' => -1,
-		'fields'         => 'ids',
-	)
-);
-
-foreach ( $all_posts as $current_post_id ) {
-	wp_delete_post( $current_post_id, true );
+// Never run unscoped: an empty prefix would match unrelated site data.
+if ( '_' === $option_prefix ) {
+	return;
 }
 
 /**
- * Delete all terms from the custom taxonomy.
- */
-$all_terms = get_terms(
-	array(
-		'taxonomy'   => $custom_taxonomy,
-		'hide_empty' => false,
-		'fields'     => 'ids',
-	)
-);
-
-if ( ! is_wp_error( $all_terms ) ) {
-	foreach ( $all_terms as $term_id ) {
-		wp_delete_term( $term_id, $custom_taxonomy );
-	}
-}
-
-/**
- * Delete plugin options.
+ * Delete plugin options, including SCF options page values
+ * (options_{prefix}* and their _options_{prefix}* field references).
  */
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
 $wpdb->query(
 	$wpdb->prepare(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-		$wpdb->esc_like( $plugin_slug . '_' ) . '%'
+		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+		$wpdb->esc_like( $option_prefix ) . '%',
+		$wpdb->esc_like( 'options_' . $option_prefix ) . '%',
+		$wpdb->esc_like( '_options_' . $option_prefix ) . '%'
 	)
 );
 
@@ -70,73 +47,35 @@ $wpdb->query(
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
 $wpdb->query(
 	$wpdb->prepare(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-		$wpdb->esc_like( '_transient_' . $plugin_slug . '_' ) . '%',
-		$wpdb->esc_like( '_site_transient_' . $plugin_slug . '_' ) . '%'
-	)
-);
-
-/**
- * Delete user meta.
- */
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
-$wpdb->query(
-	$wpdb->prepare(
-		"DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE %s",
-		$wpdb->esc_like( $plugin_slug . '_' ) . '%'
-	)
-);
-
-/**
- * Delete post meta (including ACF fields).
- */
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
-$wpdb->query(
-	$wpdb->prepare(
-		"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
-		$wpdb->esc_like( $plugin_slug . '_' ) . '%'
-	)
-);
-
-/**
- * Delete term meta.
- */
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
-$wpdb->query(
-	$wpdb->prepare(
-		"DELETE FROM {$wpdb->termmeta} WHERE meta_key LIKE %s",
-		$wpdb->esc_like( $plugin_slug . '_' ) . '%'
+		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+		$wpdb->esc_like( '_transient_' . $option_prefix ) . '%',
+		$wpdb->esc_like( '_transient_timeout_' . $option_prefix ) . '%',
+		$wpdb->esc_like( '_site_transient_' . $option_prefix ) . '%',
+		$wpdb->esc_like( '_site_transient_timeout_' . $option_prefix ) . '%'
 	)
 );
 
 /**
  * Clear scheduled cron hooks.
  */
-
 $hooks = array(
-	"{$plugin_slug}_cron",
-	"{$plugin_slug}_daily",
-	"{$plugin_slug}_hourly",
-	"{$plugin_slug}_cleanup",
+	$option_prefix . 'cron',
+	$option_prefix . 'daily',
+	$option_prefix . 'hourly',
+	$option_prefix . 'cleanup',
 );
 
 foreach ( $hooks as $hook ) {
-	$timestamp = wp_next_scheduled( $hook );
-	if ( $timestamp ) {
-		wp_unschedule_event( $timestamp, $hook );
-	}
 	wp_clear_scheduled_hook( $hook );
 }
 
 /**
- * Flush rewrite rules.
+ * Flush rewrite rules so the plugin's post type and taxonomy permalinks
+ * are removed.
  */
 flush_rewrite_rules();
 
 /**
- * Clear any cached data.
+ * Clear cached copies of the options deleted above.
  */
 wp_cache_flush();

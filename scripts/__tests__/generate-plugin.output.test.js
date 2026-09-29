@@ -117,6 +117,28 @@ describe('generatePlugin: output with post types', () => {
 		expect(uninstallScripts).toEqual(['uninstall.php']);
 	});
 
+	it('generates an uninstall.php that keeps content and is scoped to the plugin', () => {
+		expect(leftoverPlaceholders('uninstall.php')).toEqual([]);
+
+		const uninstall = fs.readFileSync(
+			path.join(outputDir, 'uninstall.php'),
+			'utf8'
+		);
+		// Posts, terms and their meta belong to the site, not the plugin.
+		[
+			'get_posts',
+			'wp_delete_post',
+			'get_terms',
+			'wp_delete_term',
+			'$wpdb->postmeta',
+			'$wpdb->termmeta',
+			'$wpdb->usermeta',
+		].forEach((call) => {
+			expect(uninstall).not.toContain(call);
+		});
+		expect(uninstall).toContain("$option_prefix = 'output_check_plugin_';");
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',
