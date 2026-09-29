@@ -33,8 +33,6 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - Canonical schema assets live under `.github/schemas/` (block 6.9 reference, mustache registries, plugin config, plus example configs) and are verified by `scripts/validation/__tests__/validate-schemas.test.js`.
 - Validation tools now centralise their naming conventions in `scripts/validation/README.md` and keep all `validate-*`, `audit-*`, `test-*`, and `define-*` scripts within `scripts/validation/`.
 - `scripts/utils/dry-run-release.js` (and its test) produce sanitized copies of the release docs/agents so dry-runs can exercise templated `{{mustache}}` values without parser failures.
-- Functional-only generation mode: set `"content_model": "none"` in `plugin-config.json` (or answer "functional only" in the generate-plugin wizard) to generate a blocks/settings plugin with no custom post types or taxonomies. The generator skips post-type and taxonomy JSON, SCF field groups, the content-display patterns, the example field group, the `usePostType`/`useTaxonomies`/`useCollection` hooks, the `PostSelector`/`TaxonomyFilter` components and the collection blocks, and strips their barrel-file exports. Specification: [.github/spec/002-post-type-exclusion/](.github/spec/002-post-type-exclusion/spec.md).
-- `content_model` schema property (`"custom"` or `"none"`), with validation that rejects `"none"` combined with `post_types`, `taxonomies` or the legacy `cpt_slug`/`name_singular` fields, in both the generator and `scripts/validation/validate-plugin-config.js`.
 - Optional `tested_up_to`, `license_uri` and `contributors` config properties. They default to `requires_wp`, the URL for the selected license, and the author name (lowercased, alphanumerics only).
 - `scripts/__tests__/generate-plugin.output.test.js`, which generates a plugin with post types into a temporary directory and checks the rendered output.
 
@@ -43,7 +41,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - New top-level `content_model: "none" | "custom"` property in `plugin-config.json` lets a generated plugin opt out of all custom-post-type and taxonomy scaffolding for plugins that only need blocks, block bindings, or an options page.
 - The generate-plugin agent now asks a single content-model question immediately after Plugin Identity (Stage 1.5) and skips Stage 2 (Custom Post Type), Stage 3 (Taxonomies), Stage 4 (Custom Fields), Stage 5 (Repeater Fields), and Stage 7 (Templates & Patterns) entirely when the answer is functional-only.
 - When `content_model: "none"` is set, `scripts/generate-plugin.js` excludes the content-display pattern files (`patterns/{{slug}}-grid.php` and siblings), the example SCF field group (`scf-json/group_{{slug}}_example.json`), the content-model-dependent JS hooks (`usePostType`, `useTaxonomies`, `useCollection`), the `TaxonomyFilter`/`PostSelector` components, and the collection block — and strips the corresponding barrel-file exports so the generated plugin's build doesn't break.
-- Configs that combine `content_model: "none"` with a non-empty `post_types` or `taxonomies` array are rejected with a clear, actionable error before any files are written.
+- Configs that combine `content_model: "none"` with a non-empty `post_types` or `taxonomies` array, or with the legacy `cpt_slug`/`name_singular` fields, are rejected with a clear, actionable error before any files are written, by both the generator and `scripts/validation/validate-plugin-config.js`.
 - Documented in `docs/JSON-POST-TYPES.md` (new "Functional-Only Generation" section) and `.github/agents/generate-plugin.agent.md`; specified and planned via `.github/spec/002-post-type-exclusion/`.
 
 ### Changed
@@ -72,12 +70,12 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - The mustache variable registry scanner now skips `generated-plugins/`, `output-plugin/` and `reports/`, which had been feeding stale variables back into the registry.
 - `.coderabbit.yml` now matches CodeRabbit's v2 schema (`path_filters`, `auto_review` and `path_instructions` nested under `reviews`), fixing its "Unrecognized keys" validation error.
 - The functional-only tests no longer delete `generated-plugins/<slug>` in the working copy.
+- `.github/schemas/plugin-config.schema.json`: removed incorrect `minItems: 1` constraints on the top-level `post_types` and `blocks` properties, which contradicted `applyDefaults()`'s own `|| []` defaulting behaviour — any minimal config with no post types or explicit blocks previously failed schema validation before generation could even start.
 
 ### Removed
 
 - Scaffold-only development files are no longer copied into generated plugins: `dryrun-debug.log`, `test-results/`, `multi-block-plugin-scaffold.code-workspace`, `IMPLEMENTATION-SUMMARY.md`, `SCF-JSON-REGISTRATION-CHANGES.md`, `.specify/` and `.todo/`.
 - Removed the placeholder `uninstall-{{slug}}.php`; WordPress only runs `uninstall.php`.
-- `.github/schemas/plugin-config.schema.json`: removed incorrect `minItems: 1` constraints on the top-level `post_types` and `blocks` properties, which contradicted `applyDefaults()`'s own `|| []` defaulting behaviour — any minimal config with no post types or explicit blocks previously failed schema validation before generation could even start.
 
 ## [1.0.1] - 2025-12-15
 
