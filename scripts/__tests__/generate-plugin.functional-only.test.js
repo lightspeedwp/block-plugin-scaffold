@@ -248,6 +248,29 @@ describe('generatePlugin: functional-only mode', () => {
 		]);
 	});
 
+	it('does not generate field-group JSON from top-level fields when content_model is "none"', () => {
+		const outputDir = generateAndTrack({
+			slug: 'functional-fields-plugin',
+			name: 'Functional Fields Plugin',
+			author: 'LightSpeed',
+			content_model: 'none',
+			fields: [
+				{
+					post_type: 'item',
+					field_group: [
+						{ name: 'subtitle', label: 'Subtitle', type: 'text' },
+					],
+				},
+			],
+		});
+
+		const scfJsonDir = path.join(outputDir, 'scf-json');
+		const groupFiles = fs.existsSync(scfJsonDir)
+			? fs.readdirSync(scfJsonDir).filter((file) => file.startsWith('group_'))
+			: [];
+		expect(groupFiles).toEqual([]);
+	});
+
 	it('rejects content_model "none" in in-place mode before touching files', () => {
 		// Run in-place from an empty directory so a regression cannot
 		// rewrite the repo checkout.

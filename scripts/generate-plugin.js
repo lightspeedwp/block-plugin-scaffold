@@ -1024,8 +1024,14 @@ function generatePlugin(config, inPlace = false) {
 		generateTaxonomySCFGroups(outputDir, fullConfig);
 	}
 
-	// Generate SCF JSON field group
-	if (fullConfig.fields && fullConfig.fields.length > 0) {
+	// Generate SCF JSON field group. Skipped in functional-only mode: field
+	// groups belong to a content model, so top-level fields must not produce
+	// field-group JSON (FR-004).
+	if (
+		!fullConfig.isFunctionalOnly &&
+		fullConfig.fields &&
+		fullConfig.fields.length > 0
+	) {
 		log('INFO', 'Generating SCF field group JSON');
 		generateSCFFieldGroup(outputDir, fullConfig);
 	}
