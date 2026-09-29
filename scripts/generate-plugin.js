@@ -1634,7 +1634,23 @@ function generateComposerJson(outputDir, config) {
 		'require-dev': {
 			'phpunit/phpunit': '^9.0',
 			'wp-coding-standards/wpcs': '^3.0',
+			// Registers WPCS with PHPCS so phpcs.xml's WordPress rules resolve.
+			'dealerdirect/phpcodesniffer-composer-installer': '^1.0',
 			'phpstan/phpstan': '^1.10',
+			// Loaded by phpstan.neon for WordPress core stubs.
+			'szepeviktor/phpstan-wordpress': '^1.3',
+		},
+		scripts: {
+			test: 'phpunit',
+			phpcs: 'phpcs',
+			phpcbf: 'phpcbf',
+			phpstan: 'phpstan analyse',
+			lint: 'composer phpcs',
+		},
+		config: {
+			'allow-plugins': {
+				'dealerdirect/phpcodesniffer-composer-installer': true,
+			},
 		},
 	};
 

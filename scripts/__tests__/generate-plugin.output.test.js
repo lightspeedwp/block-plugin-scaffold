@@ -152,6 +152,36 @@ describe('generatePlugin: output with post types', () => {
 		).toContain(`<file>./${CONFIG.slug}.php</file>`);
 	});
 
+	it('generates a composer.json that can run the bundled PHP tooling', () => {
+		const composer = JSON.parse(
+			fs.readFileSync(path.join(outputDir, 'composer.json'), 'utf8')
+		);
+		expect(Object.keys(composer['require-dev'])).toEqual(
+			expect.arrayContaining([
+				'szepeviktor/phpstan-wordpress',
+				'phpstan/phpstan',
+				'wp-coding-standards/wpcs',
+				'dealerdirect/phpcodesniffer-composer-installer',
+			])
+		);
+		expect(composer.scripts).toEqual(
+			expect.objectContaining({
+				phpstan: 'phpstan analyse',
+				phpcs: 'phpcs',
+			})
+		);
+		expect(
+			composer.config['allow-plugins'][
+				'dealerdirect/phpcodesniffer-composer-installer'
+			]
+		).toBe(true);
+
+		// phpstan.neon loads the extension this package provides.
+		expect(
+			fs.readFileSync(path.join(outputDir, 'phpstan.neon'), 'utf8')
+		).toContain('vendor/szepeviktor/phpstan-wordpress/extension.neon');
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',
