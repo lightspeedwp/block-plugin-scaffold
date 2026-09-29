@@ -21,6 +21,8 @@ global $wpdb;
 $option_prefix = '{{namespace}}_';
 
 // Never run unscoped: an empty prefix would match unrelated site data.
+// Always false once rendered correctly; kept to catch a broken render.
+/** @phpstan-ignore-next-line */
 if ( '_' === $option_prefix ) {
 	return;
 }
