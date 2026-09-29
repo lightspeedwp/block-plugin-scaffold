@@ -71,6 +71,13 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - `.coderabbit.yml` now matches CodeRabbit's v2 schema (`path_filters`, `auto_review` and `path_instructions` nested under `reviews`), fixing its "Unrecognized keys" validation error.
 - The functional-only tests no longer delete `generated-plugins/<slug>` in the working copy.
 - `.github/schemas/plugin-config.schema.json`: removed incorrect `minItems: 1` constraints on the top-level `post_types` and `blocks` properties, which contradicted `applyDefaults()`'s own `|| []` defaulting behaviour — any minimal config with no post types or explicit blocks previously failed schema validation before generation could even start.
+- `scripts/agents/generate-plugin.agent.js` now generates plugins. `--config` and interactive mode call the generator (they previously logged success without generating), validation passes the schema (every mode failed with "schema must be object or boolean"), and the interactive wizard asks the staged questions from `.github/agents/generate-plugin.agent.md`: plugin identity, then the content-model question, with post type, taxonomy and field questions only for a custom content model.
+- `runPromptWizard()` no longer crashes on question defaults derived from earlier answers.
+- Functional-only mode now also excludes `src/components/QueryControls`, which imports the excluded `TaxonomyFilter`.
+- Generated plugins get a fresh `CHANGELOG.md` instead of a copy of the scaffold's history.
+- Generated plugins install and build with `npm install && npm run build`: `package.json` now includes `glob`, `copy-webpack-plugin` and `@wordpress/env`, and the scaffold's mismatched `package-lock.json` is no longer copied.
+- `DEVELOPMENT.md` no longer contains `{{block-slug}}` placeholders from the pre-refactor block layout.
+- Fixed regressions from merging `feature/ls-3727` into `develop`: conflict markers in `docs/JSON-POST-TYPES.md`, a duplicate `content_model` schema property, the lost legacy `cpt_slug` validation check, and the pre-review functional-only test suite.
 
 ### Removed
 
