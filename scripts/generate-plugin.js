@@ -958,6 +958,8 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Replaced by generateChangelog(); records the scaffold's history.
+		'CHANGELOG.md',
 		// Scaffold development artefacts that do not belong in a generated plugin.
 		'dryrun-debug.log',
 		'test-results',
@@ -1039,6 +1041,9 @@ function generatePlugin(config, inPlace = false) {
 	// Generate README.md
 	log('INFO', 'Generating README.md');
 	generateReadme(outputDir, fullConfig);
+
+	// Generate CHANGELOG.md
+	generateChangelog(outputDir, fullConfig);
 
 	// Generate post-type JSON files
 	if (
@@ -1722,6 +1727,36 @@ ${config.license}
 	const readmePath = path.join(outputDir, 'README.md');
 	fs.writeFileSync(readmePath, readme, 'utf8');
 	log('INFO', 'Generated README.md');
+}
+
+/**
+ * Generate a fresh CHANGELOG.md for the new plugin.
+ *
+ * The scaffold's own CHANGELOG.md records the scaffold's history, so it is
+ * excluded from the copy and replaced with an initial Keep a Changelog file.
+ *
+ * @param {string} outputDir Output directory path.
+ * @param {Object} config    Plugin configuration.
+ */
+function generateChangelog(outputDir, config) {
+	const changelog = `# Changelog
+
+All notable changes to ${config.name} will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [${config.version}]
+
+### Added
+
+- Initial release of ${config.name}.
+`;
+
+	fs.writeFileSync(path.join(outputDir, 'CHANGELOG.md'), changelog, 'utf8');
+	log('INFO', 'Generated CHANGELOG.md');
 }
 
 /**

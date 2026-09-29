@@ -182,6 +182,19 @@ describe('generatePlugin: output with post types', () => {
 		).toContain('vendor/szepeviktor/phpstan-wordpress/extension.neon');
 	});
 
+	it('generates a fresh CHANGELOG.md instead of copying the scaffold history', () => {
+		const changelog = fs.readFileSync(
+			path.join(outputDir, 'CHANGELOG.md'),
+			'utf8'
+		);
+		expect(changelog).toContain(
+			`All notable changes to ${CONFIG.name} will be documented`
+		);
+		expect(changelog).toContain('## [1.0.0]');
+		expect(changelog).not.toContain('Multi-Block Plugin Scaffold');
+		expect(leftoverPlaceholders('CHANGELOG.md')).toEqual([]);
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',
