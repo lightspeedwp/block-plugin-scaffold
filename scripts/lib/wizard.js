@@ -259,19 +259,25 @@ async function runPromptWizard(options = {}) {
 
 	const normalizedMode = mode || 'cli';
 
-	const defaults = questions.reduce((acc, question) => {
-		const value =
-			typeof question.default === 'function'
-				? question.default()
-				: question.default;
-		if (value !== undefined) {
-			acc[question.name] = value;
-		}
-		return acc;
-	}, {});
-
 	if (normalizedMode === 'mock' || normalizedMode === 'silent') {
-		return { ...defaults, ...(mockAnswers || {}) };
+		// Resolve defaults in order, like inquirer: function defaults and
+		// `when` conditions receive the answers collected so far.
+		return questions.reduce((answers, question) => {
+			if (question.name in answers) {
+				return answers;
+			}
+			if (typeof question.when === 'function' && !question.when(answers)) {
+				return answers;
+			}
+			const value =
+				typeof question.default === 'function'
+					? question.default(answers)
+					: question.default;
+			if (value !== undefined) {
+				answers[question.name] = value;
+			}
+			return answers;
+		}, { ...(mockAnswers || {}) });
 	}
 
 	if (normalizedMode === 'json') {
