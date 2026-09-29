@@ -19,6 +19,7 @@ import { Spinner } from '@wordpress/components';
  *
  * @param {Object}   props           Component props.
  * @param {number}   props.postId    Post ID.
+ * @param {string}   props.postType  Post type of the post (e.g. from block context).
  * @param {string}   props.fieldName Repeater field name.
  * @param {Function} props.renderRow Function to render each row.
  * @param {string}   props.className Additional CSS class.
@@ -27,6 +28,7 @@ import { Spinner } from '@wordpress/components';
  */
 export default function RepeaterField({
 	postId,
+	postType = 'post',
 	fieldName,
 	renderRow,
 	className = '',
@@ -38,9 +40,9 @@ export default function RepeaterField({
 			}
 
 			const post = select('core').getEntityRecord(
-				   'postType',
-				   '{{block_slug}}',
-				   postId
+				'postType',
+				postType,
+				postId
 			);
 			const fieldValue =
 				post?.acf?.[fieldName] ?? post?.meta?.[fieldName] ?? null;
@@ -50,7 +52,7 @@ export default function RepeaterField({
 				isLoading: !post,
 			};
 		},
-		[postId, fieldName]
+		[postId, postType, fieldName]
 	);
 
 	if (isLoading) {

@@ -1,0 +1,198 @@
+/**
+ * Tests for the contents of a generated plugin with post types: rendered
+ * templates must not leak placeholders, and scaffold-only files must not be
+ * copied into the output.
+ *
+ * @package
+ */
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+// generate-plugin.js resolves its output base dir once, at require time,
+// relative to process.cwd(). Require it from a fresh temporary directory so
+// generated output never lands in the repo's own generated-plugins/.
+const TEMP_CWD = fs.mkdtempSync(path.join(os.tmpdir(), 'generate-plugin-output-'));
+const ORIGINAL_CWD = process.cwd();
+process.chdir(TEMP_CWD);
+const { generatePlugin } = require('../generate-plugin');
+process.chdir(ORIGINAL_CWD);
+
+const CONFIG = {
+	slug: 'output-check-plugin',
+	name: 'Output Check Plugin',
+	author: 'LightSpeed',
+	content_model: 'custom',
+	post_types: [
+		{ slug: 'project', singular: 'Project', plural: 'Projects' },
+		{ slug: 'testimonial', singular: 'Testimonial', plural: 'Testimonials' },
+	],
+};
+
+let outputDir;
+
+beforeAll(() => {
+	outputDir = generatePlugin(CONFIG, false);
+});
+
+afterAll(() => {
+	fs.rmSync(TEMP_CWD, { recursive: true, force: true });
+});
+
+/**
+ * Return every {{placeholder}} left in a generated file.
+ *
+ * @param {string} relativePath Path inside the generated plugin.
+ * @return {string[]} Unrendered placeholders.
+ */
+function leftoverPlaceholders(relativePath) {
+	const content = fs.readFileSync(path.join(outputDir, relativePath), 'utf8');
+	return content.match(/\{\{[A-Za-z][\w\s|-]*\}\}/g) || [];
+}
+
+describe('generatePlugin: output with post types', () => {
+	it('renders readme.txt with no placeholders and a complete header', () => {
+		expect(leftoverPlaceholders('readme.txt')).toEqual([]);
+
+		const readme = fs.readFileSync(path.join(outputDir, 'readme.txt'), 'utf8');
+		expect(readme.match(/^=== .+ ===$/gm)).toEqual([
+			'=== Output Check Plugin ===',
+		]);
+		[
+			'Contributors',
+			'Tags',
+			'Requires at least',
+			'Tested up to',
+			'Stable tag',
+			'Requires PHP',
+			'License',
+			'License URI',
+		].forEach((header) => {
+			expect(readme).toMatch(new RegExp(`^${header}: \\S`, 'm'));
+		});
+	});
+
+	it('renders every per-post-type collection block file without placeholders', () => {
+		CONFIG.post_types.forEach(({ slug, singular }) => {
+			const blockDir = path.join('src', 'blocks', `${slug}-collection`);
+			fs.readdirSync(path.join(outputDir, blockDir)).forEach((file) => {
+				expect(leftoverPlaceholders(path.join(blockDir, file))).toEqual([]);
+			});
+
+			const readme = fs.readFileSync(
+				path.join(outputDir, blockDir, 'README.md'),
+				'utf8'
+			);
+			expect(readme).toContain(`# ${singular} Collection Block`);
+		});
+	});
+
+	it('ships icons outside src/blocks where the icon helper loads them', () => {
+		const blocksDir = path.join(outputDir, 'src', 'blocks');
+		fs.readdirSync(blocksDir).forEach((blockDir) => {
+			expect(fs.existsSync(path.join(blocksDir, blockDir, 'block.json'))).toBe(
+				true
+			);
+		});
+
+		['outline', 'solid'].forEach((iconType) => {
+			const svgs = fs
+				.readdirSync(path.join(outputDir, 'icons', iconType))
+				.filter((file) => file.endsWith('.svg'));
+			expect(svgs.length).toBeGreaterThan(0);
+		});
+
+		const helpers = fs.readFileSync(
+			path.join(outputDir, 'inc', 'helper-functions.php'),
+			'utf8'
+		);
+		expect(helpers).toContain("__DIR__ . '/../icons/'");
+	});
+
+	it('generates uninstall.php as the only uninstall script', () => {
+		const uninstallScripts = fs
+			.readdirSync(outputDir)
+			.filter((file) => file.startsWith('uninstall'));
+		expect(uninstallScripts).toEqual(['uninstall.php']);
+	});
+
+	it('generates an uninstall.php that keeps content and is scoped to the plugin', () => {
+		expect(leftoverPlaceholders('uninstall.php')).toEqual([]);
+
+		const uninstall = fs.readFileSync(
+			path.join(outputDir, 'uninstall.php'),
+			'utf8'
+		);
+		// Posts, terms and their meta belong to the site, not the plugin.
+		[
+			'get_posts',
+			'wp_delete_post',
+			'get_terms',
+			'wp_delete_term',
+			'$wpdb->postmeta',
+			'$wpdb->termmeta',
+			'$wpdb->usermeta',
+		].forEach((call) => {
+			expect(uninstall).not.toContain(call);
+		});
+		expect(uninstall).toContain("$option_prefix = 'output_check_plugin_';");
+	});
+
+	it('fills plugin_slug placeholders from slug', () => {
+		['phpunit.xml', 'USAGE.md', 'SUPPORT.md'].forEach((file) => {
+			const content = fs.readFileSync(path.join(outputDir, file), 'utf8');
+			expect(content).toContain(CONFIG.slug);
+		});
+
+		const usage = fs.readFileSync(path.join(outputDir, 'USAGE.md'), 'utf8');
+		expect(usage).toContain(`/${CONFIG.slug}/releases`);
+		expect(
+			fs.readFileSync(path.join(outputDir, 'phpunit.xml'), 'utf8')
+		).toContain(`<file>./${CONFIG.slug}.php</file>`);
+	});
+
+	it('generates a composer.json that can run the bundled PHP tooling', () => {
+		const composer = JSON.parse(
+			fs.readFileSync(path.join(outputDir, 'composer.json'), 'utf8')
+		);
+		expect(Object.keys(composer['require-dev'])).toEqual(
+			expect.arrayContaining([
+				'szepeviktor/phpstan-wordpress',
+				'phpstan/phpstan',
+				'wp-coding-standards/wpcs',
+				'dealerdirect/phpcodesniffer-composer-installer',
+			])
+		);
+		expect(composer.scripts).toEqual(
+			expect.objectContaining({
+				phpstan: 'phpstan analyse',
+				phpcs: 'phpcs',
+			})
+		);
+		expect(
+			composer.config['allow-plugins'][
+				'dealerdirect/phpcodesniffer-composer-installer'
+			]
+		).toBe(true);
+
+		// phpstan.neon loads the extension this package provides.
+		expect(
+			fs.readFileSync(path.join(outputDir, 'phpstan.neon'), 'utf8')
+		).toContain('vendor/szepeviktor/phpstan-wordpress/extension.neon');
+	});
+
+	it('does not copy scaffold development artefacts', () => {
+		[
+			'dryrun-debug.log',
+			'test-results',
+			'multi-block-plugin-scaffold.code-workspace',
+			'IMPLEMENTATION-SUMMARY.md',
+			'SCF-JSON-REGISTRATION-CHANGES.md',
+			'.specify',
+			'.todo',
+		].forEach((artefact) => {
+			expect(fs.existsSync(path.join(outputDir, artefact))).toBe(false);
+		});
+	});
+});

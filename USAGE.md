@@ -100,17 +100,17 @@ You can add custom styles using WordPress's Additional CSS feature:
 
 ```css
 /* Target the block wrapper */
-.wp-block-{{namespace}}-{{block_slug}} {
+.wp-block-{{slug}}-my-block {
     /* Your custom styles */
 }
 
 /* Target the content area */
-.wp-block-{{namespace}}-{{block_slug}}__content {
+.wp-block-{{slug}}-my-block__content {
     /* Content-specific styles */
 }
 
 /* Alignment variations */
-.wp-block-{{namespace}}-{{block_slug}}.has-text-align-left {
+.wp-block-{{slug}}-my-block.has-text-align-left {
     /* Left-aligned styles */
 }
 ```
@@ -258,25 +258,25 @@ Yes! See [CONTRIBUTING.md](../CONTRIBUTING.md) for information on how to contrib
 ### Basic Usage
 
 ```html
-<!-- wp:{{namespace}}/{{block_slug}} {"content":"Hello World","alignment":"center"} -->
-<div class="wp-block-{{namespace}}-{{block_slug}} has-text-align-center">
-    <div class="wp-block-{{namespace}}-{{block_slug}}__content">
+<!-- wp:{{slug}}/my-block {"content":"Hello World","alignment":"center"} -->
+<div class="wp-block-{{slug}}-my-block has-text-align-center">
+    <div class="wp-block-{{slug}}-my-block__content">
         <p>Hello World</p>
     </div>
 </div>
-<!-- /wp:{{namespace}}/{{block_slug}} -->
+<!-- /wp:{{slug}}/my-block -->
 ```
 
 ### With Custom Colors
 
 ```html
-<!-- wp:{{namespace}}/{{block_slug}} {"content":"Styled content","textColor":"primary","backgroundColor":"secondary"} -->
-<div class="wp-block-{{namespace}}-{{block_slug}} has-primary-color has-secondary-background-color has-text-color has-background">
-    <div class="wp-block-{{namespace}}-{{block_slug}}__content">
+<!-- wp:{{slug}}/my-block {"content":"Styled content","textColor":"primary","backgroundColor":"secondary"} -->
+<div class="wp-block-{{slug}}-my-block has-primary-color has-secondary-background-color has-text-color has-background">
+    <div class="wp-block-{{slug}}-my-block__content">
         <p>Styled content</p>
     </div>
 </div>
-<!-- /wp:{{namespace}}/{{block_slug}} -->
+<!-- /wp:{{slug}}/my-block -->
 ```
 
 ### In a Pattern
@@ -284,13 +284,13 @@ Yes! See [CONTRIBUTING.md](../CONTRIBUTING.md) for information on how to contrib
 ```html
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <div class="wp-block-group">
-    <!-- wp:{{namespace}}/{{block_slug}} {"content":"Pattern Example","alignment":"center"} -->
-    <div class="wp-block-{{namespace}}-{{block_slug}} has-text-align-center">
-        <div class="wp-block-{{namespace}}-{{block_slug}}__content">
+    <!-- wp:{{slug}}/my-block {"content":"Pattern Example","alignment":"center"} -->
+    <div class="wp-block-{{slug}}-my-block has-text-align-center">
+        <div class="wp-block-{{slug}}-my-block__content">
             <p>Pattern Example</p>
         </div>
     </div>
-    <!-- /wp:{{namespace}}/{{block_slug}} -->
+    <!-- /wp:{{slug}}/my-block -->
 </div>
 <!-- /wp:group -->
 ```

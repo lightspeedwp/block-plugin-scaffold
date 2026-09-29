@@ -18,7 +18,7 @@ Successfully implemented a comprehensive block bindings system for the block-plu
 - ✅ Automatically adds spacing after prefix
 
 ### 2. Field Display Blocks (Per Post Type)
-**Template:** `src/blocks/{{block_slug}}-field-display/`
+**Template:** `src/blocks/field-display/`
 
 **Features:**
 - ✅ Dedicated block for each post type (e.g., `ma-plugin/webinar-field-display`)
@@ -181,13 +181,13 @@ Block Bindings System
 3. `webpack.config.js` - Added `src/js` entry points
 
 ### New Files
-1. `src/blocks/{{block_slug}}-field-display/block.json`
-2. `src/blocks/{{block_slug}}-field-display/index.js`
-3. `src/blocks/{{block_slug}}-field-display/edit or.scss`
-4. `src/blocks/{{block_slug}}-field-display/style.scss`
-5. `src/blocks/{{block_slug}}-field-display/editor.css`
-6. `src/blocks/{{block_slug}}-field-display/style.css`
-7. `src/blocks/{{block_slug}}-field-display/render.php`
+1. `src/blocks/field-display/block.json`
+2. `src/blocks/field-display/index.js`
+3. `src/blocks/field-display/edit or.scss`
+4. `src/blocks/field-display/style.scss`
+5. `src/blocks/field-display/editor.css`
+6. `src/blocks/field-display/style.css`
+7. `src/blocks/field-display/render.php`
 8. `src/js/blocks/paragraph-prefix.js`
 9. `docs/BLOCK-BINDINGS.md`
 

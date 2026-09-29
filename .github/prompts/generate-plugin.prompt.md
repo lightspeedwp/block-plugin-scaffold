@@ -24,7 +24,7 @@ The wizard produces a config JSON that populates `{{mustache}}` tokens throughou
 
 - `{{name}}`, `{{slug}}`, `{{namespace}}`, `{{textdomain}}`
 - `{{author}}`, `{{author_uri}}`, `{{license}}`, `{{license_uri}}`
-- `{{cpt_slug}}`, `{{name_plural}}`, `{{taxonomy_slug}}`, `{{block_slug}}`
+- `{{cpt_slug}}`, `{{name_plural}}`, `{{taxonomy_slug}}`
 - `{{version}}`, `{{requires_wp}}`, `{{requires_php}}`, `{{requires_php}}`
 
 Ensure the generated config matches `.github/schemas/plugin-config.schema.json` so `npm run validate:config` passes before generation.

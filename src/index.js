@@ -1,5 +1,5 @@
 /**
- * Example Plugin Plugin - Main Entry Point
+ * {{name}} Plugin - Main Entry Point
  *
  * Registers all blocks from the blocks directory.
  *
@@ -7,10 +7,9 @@
  */
 
 // Import blocks.
-import './blocks/example-plugin-card';
-import './blocks/example-plugin-collection';
-import './blocks/example-plugin-slider';
-import './blocks/example-plugin-featured';
+import './blocks/collection';
+import './blocks/field-display';
+import './blocks/slider';
 
 // Import global styles.
 import './scss/style.scss';

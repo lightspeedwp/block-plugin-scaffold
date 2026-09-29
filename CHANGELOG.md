@@ -33,16 +33,42 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - Canonical schema assets live under `.github/schemas/` (block 6.9 reference, mustache registries, plugin config, plus example configs) and are verified by `scripts/validation/__tests__/validate-schemas.test.js`.
 - Validation tools now centralise their naming conventions in `scripts/validation/README.md` and keep all `validate-*`, `audit-*`, `test-*`, and `define-*` scripts within `scripts/validation/`.
 - `scripts/utils/dry-run-release.js` (and its test) produce sanitized copies of the release docs/agents so dry-runs can exercise templated `{{mustache}}` values without parser failures.
+- Functional-only generation mode: set `"content_model": "none"` in `plugin-config.json` (or answer "functional only" in the generate-plugin wizard) to generate a blocks/settings plugin with no custom post types or taxonomies. The generator skips post-type and taxonomy JSON, SCF field groups, the content-display patterns, the example field group, the `usePostType`/`useTaxonomies`/`useCollection` hooks, the `PostSelector`/`TaxonomyFilter` components and the collection blocks, and strips their barrel-file exports. Specification: [.github/spec/002-post-type-exclusion/](.github/spec/002-post-type-exclusion/spec.md).
+- `content_model` schema property (`"custom"` or `"none"`), with validation that rejects `"none"` combined with `post_types`, `taxonomies` or the legacy `cpt_slug`/`name_singular` fields, in both the generator and `scripts/validation/validate-plugin-config.js`.
+- Optional `tested_up_to`, `license_uri` and `contributors` config properties. They default to `requires_wp`, the URL for the selected license, and the author name (lowercased, alphanumerics only).
+- `scripts/__tests__/generate-plugin.output.test.js`, which generates a plugin with post types into a temporary directory and checks the rendered output.
 
 ### Changed
 
 - `docs/RELEASE_PROCESS.md` now merges the previous release playbooks, documents reporting/planning folder rules, and highlights the `scripts/utils/dry-run-release.js` helper before `release.agent.js` runs against templated files.
 - `package.json` validation scripts and `docs/GENERATE_PLUGIN.md` now call `scripts/validation/validate-plugin-config.js`, keeping CLI validation aligned with the action-first naming scheme.
 - Instructions and prompts reference `.github/reports/`, `.github/projects/plans/`, and `tmp/` for reporting, planning, and temporary data, and the new frontmatter doc is linked from the docs index.
+- Generic blocks are no longer prefixed with the first post type's slug. Scaffold block folders are now `src/blocks/slider`, `src/blocks/field-display` and `src/blocks/collection`, and generated block names are `{slug}/slider` and `{slug}/field-display`.
+- The collection block is now generated once per post type, from the `src/blocks/collection` template, as `src/blocks/{post-type}-collection` (block name `{slug}/{post-type}-collection`) with that post type's labels. `src/index.js` imports every generated block.
+- Generated plugins no longer delete content on uninstall. `uninstall.php` keeps all posts, terms and their meta, and removes only the plugin's own `{namespace}_`-prefixed options, SCF options-page values, transients and cron hooks.
+- Moved the SVG icon library from `src/blocks/icons/source-icons/` to a top-level `icons/` folder so it ships in release packages and is not mistaken for a block.
+- Generated `composer.json` now includes `szepeviktor/phpstan-wordpress`, `dealerdirect/phpcodesniffer-composer-installer` (with `allow-plugins`), and `test`, `phpcs`, `phpcbf`, `phpstan` and `lint` scripts.
+- `readme.txt` rewritten as a single WordPress.org readme that documents the real `{namespace}_blocks_dir` filter.
 
 ### Fixed
 
 - `.github/schemas/plugin-config.schema.json`: moved the `oneOf` for post type `taxonomies` entries from the array level to the `items` level, so each taxonomy entry (string slug or legacy object) is validated individually instead of requiring the whole array to be one type or the other.
+- `uninstall.php` deleted unrelated site data: its `{{plugin_slug}}`, `{{post_type_slug}}` and `{{taxonomy_slug}}` placeholders rendered empty, so it force-deleted regular posts and every underscore-prefixed option, post meta, user meta and term meta row.
+- `readme.txt` rendered with 18 unfilled placeholders, blank header fields, and a second readme concatenated partway through.
+- Collection block READMEs were titled `{{CPT1 Collection}}`.
+- The icon helper loaded SVGs from `src/`, which `.distignore` excludes, so icons rendered empty in packaged releases.
+- `{{plugin_slug}}` was never set, leaving blanks in `phpunit.xml`, `USAGE.md`, `SUPPORT.md`, `CONTRIBUTING.md` and `SECURITY.md`. It is now set from `slug`.
+- The main plugin file's `License URI` header rendered blank; it now uses the new `license_uri` default.
+- `phpstan.neon` was malformed (ignore patterns nested under `bootstrapFiles`), and `phpcs.xml` listed a non-existent `./.php` file, so `composer run phpstan` and `composer run phpcs` failed in generated plugins.
+- Functional-only configs now fail with a clear error in `--in-place` mode instead of silently keeping content-model files, and no longer generate SCF field-group JSON from top-level `fields`.
+- The mustache variable registry scanner now skips `generated-plugins/`, `output-plugin/` and `reports/`, which had been feeding stale variables back into the registry.
+- `.coderabbit.yml` now matches CodeRabbit's v2 schema (`path_filters`, `auto_review` and `path_instructions` nested under `reviews`), fixing its "Unrecognized keys" validation error.
+- The functional-only tests no longer delete `generated-plugins/<slug>` in the working copy.
+
+### Removed
+
+- Scaffold-only development files are no longer copied into generated plugins: `dryrun-debug.log`, `test-results/`, `multi-block-plugin-scaffold.code-workspace`, `IMPLEMENTATION-SUMMARY.md`, `SCF-JSON-REGISTRATION-CHANGES.md`, `.specify/` and `.todo/`.
+- Removed the placeholder `uninstall-{{slug}}.php`; WordPress only runs `uninstall.php`.
 
 ## [1.0.1] - 2025-12-15
 

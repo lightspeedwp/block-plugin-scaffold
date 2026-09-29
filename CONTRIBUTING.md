@@ -206,7 +206,7 @@ export default function Edit( { attributes, setAttributes } ) {
 Example:
 
 ```scss
-.wp-block-{{namespace}}-{{block_slug}} {
+.wp-block-{{slug}}-my-block {
     &__content {
         padding: var(--wp--preset--spacing--medium);
         border: 1px solid var(--wp--preset--color--border);

@@ -31,13 +31,13 @@ test.describe('Example Plugin Slider Block', () => {
 
 		// Insert the block.
 		const blockItem = page.locator(
-			'.block-editor-block-types-list__item[data-id="example_plugin/example-plugin-slider"]'
+			'.block-editor-block-types-list__item[data-id="example-plugin/slider"]'
 		);
 		await blockItem.click();
 
 		// Verify block is inserted.
 		const block = page.locator(
-			'.wp-block-example_plugin-example-plugin-slider'
+			'.wp-block-example-plugin-slider'
 		);
 		await expect(block).toBeVisible();
 	});
@@ -50,7 +50,7 @@ test.describe('Example Plugin Slider Block', () => {
 			'Example Plugin Slider'
 		);
 		await page.click(
-			'.block-editor-block-types-list__item[data-id="example_plugin/example-plugin-slider"]'
+			'.block-editor-block-types-list__item[data-id="example-plugin/slider"]'
 		);
 
 		// Click add slide button.
@@ -59,7 +59,7 @@ test.describe('Example Plugin Slider Block', () => {
 
 		// Verify slide was added.
 		const slide = page.locator(
-			'.wp-block-example_plugin-example-plugin-slider__slide'
+			'.wp-block-example-plugin-slider__slide'
 		);
 		await expect(slide).toBeVisible();
 	});
