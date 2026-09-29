@@ -10,17 +10,20 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
-const { generatePlugin } = require('../generate-plugin');
-
 // generate-plugin.js resolves its output base dir once, at require time,
-// relative to process.cwd() — which under Jest is the repo root. Generated
-// output therefore always lands under <repoRoot>/generated-plugins/<slug>
-// regardless of any later process.chdir(), so tests clean that directory up
-// directly rather than trying to relocate output via chdir.
-const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const generatedOutputDirs = [];
+// relative to process.cwd(). Require it from a fresh temporary directory so
+// generated output lands under <tmp>/generated-plugins/<slug> instead of the
+// repo's own generated-plugins/, leaving any plugins generated there intact.
+const TEMP_CWD = fs.mkdtempSync(
+	path.join(os.tmpdir(), 'generate-plugin-functional-only-')
+);
+const ORIGINAL_CWD = process.cwd();
+process.chdir(TEMP_CWD);
+const { generatePlugin } = require('../generate-plugin');
+process.chdir(ORIGINAL_CWD);
 
 // Paths whose name depends only on the plugin slug.
 const CONTENT_MODEL_SLUG_PATHS = [
@@ -78,24 +81,20 @@ function readIndexImports(outputDir) {
 }
 
 /**
- * Run generatePlugin(), removing any pre-existing output directory first
- * (generatePlugin() refuses to overwrite without --force), and track the
- * output dir for cleanup in afterEach.
+ * Run generatePlugin() into the isolated temporary output location. Each test
+ * uses a unique slug, so generatePlugin() still rejects an existing output
+ * directory rather than the test deleting one first.
  *
  * @param {Object} config Plugin configuration to generate from.
  * @return {string} The generated plugin's output directory.
  */
 function generateAndTrack(config) {
-	const outputDir = path.join(REPO_ROOT, 'generated-plugins', config.slug);
-	fs.rmSync(outputDir, { recursive: true, force: true });
-	generatedOutputDirs.push(outputDir);
 	return generatePlugin(config, false);
 }
 
-afterEach(() => {
-	while (generatedOutputDirs.length > 0) {
-		fs.rmSync(generatedOutputDirs.pop(), { recursive: true, force: true });
-	}
+// Only the temporary directory this test file created is removed.
+afterAll(() => {
+	fs.rmSync(TEMP_CWD, { recursive: true, force: true });
 });
 
 describe('generatePlugin: functional-only mode', () => {
