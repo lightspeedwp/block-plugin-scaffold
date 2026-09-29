@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Individual post-type entries validated by this schema are only generated when the plugin-config.json top-level 'content_model' property is not \"none\" — see plugin-config.schema.json and docs/JSON-POST-TYPES.md.",
   "title": "Block Plugin Post Type Configuration",
   "description": "JSON Schema for defining WordPress post types, taxonomies, and custom fields",
   "type": "object",

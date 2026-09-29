@@ -133,12 +133,46 @@
                 "GPL-3.0-or-later"
             ]
         },
+        "license_uri": {
+            "type": "string",
+            "format": "uri",
+            "description": "License URL for the plugin header and readme.txt. Defaults to the URL for the selected license."
+        },
+        "tested_up_to": {
+            "type": "string",
+            "description": "WordPress version the plugin has been tested up to (readme.txt \"Tested up to\"). Defaults to requires_wp.",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+            "examples": [
+                "6.8"
+            ]
+        },
+        "contributors": {
+            "type": "string",
+            "description": "Comma-separated WordPress.org usernames for readme.txt. Defaults to the author name, lowercased with non-alphanumeric characters removed.",
+            "examples": [
+                "lightspeedwp"
+            ]
+        },
+
+        "content_model": {
+            "type": "string",
+            "x-stage": 1,
+            "description": "Whether this plugin defines a custom content model (post types/taxonomies) or is functional-only (blocks/settings, no post types or taxonomies). Omitting this property preserves legacy behaviour driven solely by the presence of post_types.",
+            "enum": [
+                "none",
+                "custom"
+            ],
+            "default": "custom",
+            "examples": [
+                "none",
+                "custom"
+            ]
+        },
 
         "post_types": {
             "type": "array",
             "description": "Custom post types to register for this plugin",
             "default": [],
-            "minItems": 1,
             "items": {
                 "type": "object",
                 "required": [
@@ -688,9 +722,38 @@
                 "enum": [
                     "collection"
                 ]
-            },
-            "minItems": 1
+            }
         }
     },
-    "additionalProperties": true
+    "additionalProperties": true,
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "content_model": {
+                        "const": "none"
+                    }
+                },
+                "required": [
+                    "content_model"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "post_types": {
+                        "maxItems": 0
+                    },
+                    "taxonomies": {
+                        "maxItems": 0
+                    },
+                    "cpt_slug": {
+                        "maxLength": 0
+                    },
+                    "name_singular": {
+                        "maxLength": 0
+                    }
+                }
+            }
+        }
+    ]
 }

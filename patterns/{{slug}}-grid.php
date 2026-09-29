@@ -21,7 +21,7 @@ return array(
 		__( 'collection', '{{textdomain}}' ),
 	),
 	'blockTypes'  => array( 'core/group', 'core/query' ),
-	'postTypes'   => array( 'item' ),
+	'postTypes'   => array( '{{cpt_slug}}' ),
 	'viewportWidth' => 1200,
-	'content'     => '<!-- wp:{{slug}}/item-collection {"layout":"grid","columns":3,"query":{"postType":"item","perPage":6}} /-->',
+	'content'     => '<!-- wp:{{slug}}/{{cpt_slug|kebabCase}}-collection {"layout":"grid","columns":3,"query":{"postType":"{{cpt_slug}}","perPage":6}} /-->',
 );

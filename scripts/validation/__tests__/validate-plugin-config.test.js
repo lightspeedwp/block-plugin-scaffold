@@ -12,6 +12,7 @@ const {
 	validateConfig,
 	validateFieldTypes,
 	validateTaxonomies,
+	validateContentModel,
 	checkBestPractices,
 } = require('../validate-plugin-config');
 
@@ -93,6 +94,103 @@ describe('Plugin configuration validation', () => {
 				expect.stringContaining('slug too long'),
 			])
 		);
+	});
+
+	test('validateContentModel flags content_model "none" combined with post_types/taxonomies', () => {
+		const config = {
+			content_model: 'none',
+			post_types: [
+				{ slug: 'tour', singular: 'Tour', plural: 'Tours' },
+			],
+			taxonomies: [
+				{ slug: 'destination', singular: 'Destination', plural: 'Destinations' },
+			],
+		};
+
+		const errors = validateContentModel(config);
+
+		expect(errors).toEqual(
+			expect.arrayContaining([
+				expect.stringContaining('content_model is "none"'),
+			])
+		);
+		expect(errors[0]).toContain('post_types contains 1 entry');
+		expect(errors[0]).toContain('taxonomies contains 1 entry');
+	});
+
+	test('validateContentModel flags content_model "none" combined with legacy cpt_slug/name_singular', () => {
+		const errors = validateContentModel({
+			content_model: 'none',
+			cpt_slug: 'tour',
+			name_singular: 'Tour',
+			post_types: [],
+			taxonomies: [],
+		});
+
+		expect(errors).toHaveLength(1);
+		expect(errors[0]).toContain('content_model is "none"');
+		expect(errors[0]).toContain('cpt_slug, name_singular');
+	});
+
+	test('schema rejects content_model "none" combined with legacy cpt_slug', () => {
+		const schema = JSON.parse(
+			fs.readFileSync(
+				path.join(
+					__dirname,
+					'..',
+					'..',
+					'..',
+					'.github',
+					'schemas',
+					'plugin-config.schema.json'
+				),
+				'utf8'
+			)
+		);
+		const base = {
+			slug: 'functional-only-plugin',
+			name: 'Functional Only Plugin',
+			author: 'LightSpeed',
+			content_model: 'none',
+		};
+
+		expect(validateConfig(base, schema).valid).toBe(true);
+
+		const result = validateConfig(
+			{ ...base, cpt_slug: 'tour', post_types: [], taxonomies: [] },
+			schema
+		);
+		expect(result.valid).toBe(false);
+		expect(result.errors).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ instancePath: '/cpt_slug' }),
+			])
+		);
+	});
+
+	test('validateContentModel allows content_model "none" with empty or absent post_types/taxonomies', () => {
+		expect(validateContentModel({ content_model: 'none' })).toEqual([]);
+		expect(
+			validateContentModel({
+				content_model: 'none',
+				post_types: [],
+				taxonomies: [],
+			})
+		).toEqual([]);
+	});
+
+	test('validateContentModel is a no-op when content_model is "custom" or absent', () => {
+		expect(
+			validateContentModel({
+				content_model: 'custom',
+				post_types: [{ slug: 'tour', singular: 'Tour', plural: 'Tours' }],
+			})
+		).toEqual([]);
+		expect(
+			validateContentModel({
+				post_types: [{ slug: 'tour', singular: 'Tour', plural: 'Tours' }],
+			})
+		).toEqual([]);
 	});
 
 	test('checkBestPractices highlights mismatches and missing sections', () => {

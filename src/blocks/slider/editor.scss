@@ -1,0 +1,7 @@
+// Editor SCSS for slider block
+.wp-block-{{slug}}-slider {
+  outline: none;
+  &:focus {
+    box-shadow: 0 0 0 2px var(--wp--preset--color--primary, #007cba);
+  }
+}

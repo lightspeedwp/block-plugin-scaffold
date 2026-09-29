@@ -61,6 +61,12 @@ const EXCLUDE_DIRS = [
 	'dist',
 	'build',
 	'output-theme',
+	// Generator output: rendered plugins, not scaffold templates.
+	'generated-plugins',
+	'output-plugin',
+	// Generated reports quote variable names and would feed back into the
+	// registry on every scan.
+	'reports',
 	'.git',
 	'coverage',
 	'test-results',

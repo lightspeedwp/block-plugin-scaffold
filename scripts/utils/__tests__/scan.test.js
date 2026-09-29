@@ -2,10 +2,12 @@
  * Tests for scan utilities
  */
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const {
 	loadIgnorePatterns,
 	shouldIgnorePath,
+	scanDirectory,
 } = require('../scan');
 
 describe('loadIgnorePatterns', () => {
@@ -49,5 +51,24 @@ describe('loadIgnorePatterns', () => {
 		expect(shouldIgnorePath('src/utils/scan.test.js', patterns)).toBe(true);
 		expect(shouldIgnorePath('src/experimental/feature.js', patterns)).toBe(true);
 		expect(shouldIgnorePath('src/utils/scan.js', patterns)).toBe(false);
+	});
+});
+
+describe('scanDirectory', () => {
+	test('skips generator output and report directories', () => {
+		const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scan-exclude-'));
+		try {
+			fs.writeFileSync(path.join(root, 'readme.txt'), '{{name}}');
+			['generated-plugins/demo', 'output-plugin', 'scripts/reports'].forEach((dir) => {
+				fs.mkdirSync(path.join(root, dir), { recursive: true });
+				fs.writeFileSync(path.join(root, dir, 'readme.txt'), '{{name}}');
+			});
+
+			expect(scanDirectory(root).map((file) => file.path)).toEqual([
+				'readme.txt',
+			]);
+		} finally {
+			fs.rmSync(root, { recursive: true, force: true });
+		}
 	});
 });

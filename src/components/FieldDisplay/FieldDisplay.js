@@ -20,6 +20,7 @@ import { Spinner } from '@wordpress/components';
  *
  * @param {Object} props           Component props.
  * @param {number} props.postId    Post ID.
+ * @param {string} props.postType  Post type of the post (e.g. from block context).
  * @param {string} props.fieldName Field name.
  * @param {string} props.fieldType Field type for formatting.
  * @param {string} props.className Additional CSS class.
@@ -28,6 +29,7 @@ import { Spinner } from '@wordpress/components';
  */
 export default function FieldDisplay({
 	postId,
+	postType = 'post',
 	fieldName,
 	fieldType = 'text',
 	className = '',
@@ -40,7 +42,7 @@ export default function FieldDisplay({
 
 			const post = select('core').getEntityRecord(
 				'postType',
-				   '{{block_slug}}',
+				postType,
 				postId
 			);
 
@@ -50,7 +52,7 @@ export default function FieldDisplay({
 				isLoading: !post,
 			};
 		},
-		[postId, fieldName]
+		[postId, postType, fieldName]
 	);
 
 	if (isLoading) {

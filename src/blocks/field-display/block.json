@@ -1,0 +1,74 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "{{slug}}/field-display",
+	"version": "1.0.0",
+	"title": "{{name}} Field Display",
+	"category": "{{slug}}",
+	"icon": "admin-post",
+	"description": "Display a custom field value from the current post with optional prefix.",
+	"keywords": [
+		"field",
+		"meta",
+		"custom"
+	],
+	"textdomain": "{{textdomain}}",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./index.css",
+	"render": "{{namespace}}_render_field_display",
+	"supports": {
+		"html": false,
+		"align": true,
+		"color": {
+			"text": true,
+			"background": true,
+			"link": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"attributes": {
+		"fieldKey": {
+			"type": "string",
+			"default": ""
+		},
+		"prefix": {
+			"type": "string",
+			"default": ""
+		},
+		"prefixBold": {
+			"type": "boolean",
+			"default": false
+		},
+		"fallbackText": {
+			"type": "string",
+			"default": ""
+		},
+		"iconType": {
+			"type": "string",
+			"default": "outline"
+		},
+		"iconName": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"usesContext": [
+		"postId",
+		"postType"
+	],
+	"example": {
+		"attributes": {
+			"fieldKey": "example_field",
+			"prefix": "Label:",
+			"prefixBold": true
+		}
+	}
+}

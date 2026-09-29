@@ -27,6 +27,17 @@ const schemaPath = path.join(
 );
 const outputBaseDir = path.resolve(process.cwd(), 'generated-plugins');
 
+// License URIs for the schema's supported license identifiers.
+const LICENSE_URIS = {
+	'GPL-2.0-or-later': 'https://www.gnu.org/licenses/gpl-2.0.html',
+	'GPL-3.0-or-later': 'https://www.gnu.org/licenses/gpl-3.0.html',
+	MIT: 'https://opensource.org/licenses/MIT',
+	'Apache-2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
+};
+
+// Block template rendered once per post type (see generatePerCPTBlocks).
+const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
+
 // Template mode flag
 const isTemplateMode =
 	process.argv.includes('--in-place') || process.argv.includes('--template');
@@ -239,6 +250,35 @@ function loadSchema() {
  * @param config
  */
 function validateConfig(config) {
+	// Explicit, human-readable check for the functional-only/content-model
+	// conflict (FR-009): content_model: "none" combined with a non-empty
+	// post_types or taxonomies array is contradictory configuration, not a
+	// valid combination. Checked ahead of the generic schema validation
+	// below so the reported error names the fields directly rather than
+	// surfacing a raw Ajv "must NOT be valid" message.
+	if (
+		config.content_model === 'none' &&
+		((config.post_types && config.post_types.length > 0) ||
+			(config.taxonomies && config.taxonomies.length > 0))
+	) {
+		const conflictMessage =
+			'Configuration error: "content_model" is set to "none" (functional-only) but ' +
+			`"post_types" contains ${config.post_types?.length || 0} entr${
+				config.post_types?.length === 1 ? 'y' : 'ies'
+			} and "taxonomies" contains ${
+				config.taxonomies?.length || 0
+			} entr${config.taxonomies?.length === 1 ? 'y' : 'ies'}. ` +
+			'Remove the post_types/taxonomies entries, or set "content_model" to "custom" (or omit it) to keep them.';
+
+		if (process.env.NODE_ENV !== 'test') {
+			log('ERROR', conflictMessage);
+		}
+		return {
+			valid: false,
+			errors: [{ message: conflictMessage }],
+		};
+	}
+
 	const schema = loadSchema();
 
 	// Suppress Ajv warnings about unknown formats in test mode
@@ -283,8 +323,15 @@ function validateConfig(config) {
 function applyDefaults(config) {
 	const result = { ...config };
 
+	// Derive functional-only mode from the content_model flag. When true,
+	// downstream generation steps skip all post-type/taxonomy scaffolding
+	// regardless of legacy cpt_slug/post_types normalization below.
+	result.isFunctionalOnly = result.content_model === 'none';
+
 	// Auto-derive namespace and textdomain from slug
 	if (result.slug) {
+		// Templates use the plugin_slug and slug placeholders interchangeably.
+		result.plugin_slug = result.slug;
 		result.textdomain = result.textdomain || result.slug;
 		result.namespace = result.namespace || result.slug.replace(/-/g, '_');
 	}
@@ -294,6 +341,16 @@ function applyDefaults(config) {
 	result.requires_wp = result.requires_wp || '6.5';
 	result.requires_php = result.requires_php || '8.0';
 	result.license = result.license || 'GPL-2.0-or-later';
+	// readme.txt and plugin header values. Undefined placeholders render as
+	// empty strings, so these must always resolve to something valid.
+	result.license_uri =
+		result.license_uri || LICENSE_URIS[result.license] || '';
+	result.tested_up_to = result.tested_up_to || result.requires_wp;
+	result.contributors =
+		result.contributors ||
+		String(result.author || '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]/g, '');
 	result.description =
 		result.description || 'A WordPress multi-block plugin.';
 
@@ -438,7 +495,9 @@ function applyDefaults(config) {
 		const firstPostType = result.post_types[0];
 		result.cpt_slug = firstPostType.slug;
 		result.cpt_name = firstPostType.singular; // Display name for the post type
-		result.block_slug = firstPostType.slug.replace(/_/g, '-'); // Dasherized version for block names
+		result.cpt_singular = firstPostType.singular;
+		result.cpt_plural = firstPostType.plural;
+		result.cpt_icon = firstPostType.menu_icon;
 		result.name_singular = firstPostType.singular;
 		result.name_plural = firstPostType.plural;
 		result.cpt_supports = firstPostType.supports;
@@ -635,6 +694,59 @@ function removeScaffoldOnlyTests(outputDir) {
 }
 
 /**
+ * Remove barrel-file export lines for content-model hooks/components that
+ * were excluded from the copy in functional-only mode.
+ *
+ * Excluding usePostType.js/useTaxonomies.js/useCollection.js and the
+ * PostSelector/TaxonomyFilter components (see the functional-only
+ * excludePaths block above) leaves src/hooks/index.js and
+ * src/components/index.js still re-exporting them, which would break the
+ * generated plugin's build. This strips just those export lines.
+ *
+ * @param {string} outputDir - Output directory path
+ * @param {boolean} isFunctionalOnly - Whether functional-only mode is active
+ */
+function stripExcludedModuleExports(outputDir, isFunctionalOnly) {
+	if (!isFunctionalOnly) {
+		return;
+	}
+
+	const barrelFiles = [
+		{
+			file: path.join(outputDir, 'src', 'hooks', 'index.js'),
+			excludedNames: ['usePostType', 'useTaxonomies', 'useCollection'],
+		},
+		{
+			file: path.join(outputDir, 'src', 'components', 'index.js'),
+			excludedNames: ['PostSelector', 'TaxonomyFilter'],
+		},
+	];
+
+	for (const { file, excludedNames } of barrelFiles) {
+		if (!fs.existsSync(file)) {
+			continue;
+		}
+
+		const lines = fs.readFileSync(file, 'utf8').split('\n');
+		const filtered = lines.filter((line) => {
+			return !excludedNames.some((name) =>
+				line.includes(`as ${name} }`)
+			);
+		});
+
+		fs.writeFileSync(file, filtered.join('\n'), 'utf8');
+		log(
+			'INFO',
+			`Stripped functional-only exports from ${path.relative(
+				outputDir,
+				file
+			)}`,
+			{ excludedNames }
+		);
+	}
+}
+
+/**
  * Process files in place (template mode)
  * Replaces mustache variables in files in the current directory
  * @param {string} targetDir - Directory to process
@@ -778,6 +890,21 @@ function generatePlugin(config, inPlace = false) {
 		version: fullConfig.version,
 	});
 
+	// Functional-only mode relies on the exclusion-aware copy path and export
+	// stripping, which only run in generator mode. processFilesInPlace() would
+	// leave every content-model file in place, so reject the combination before
+	// any files are touched.
+	if (inPlace && fullConfig.isFunctionalOnly) {
+		const inPlaceMessage =
+			'Configuration error: "content_model" is set to "none" (functional-only), ' +
+			'which is not supported in in-place (--in-place/--template) mode. ' +
+			'Run the generator without --in-place to create a functional-only plugin.';
+		if (process.env.NODE_ENV !== 'test') {
+			log('ERROR', inPlaceMessage);
+		}
+		throw new Error(inPlaceMessage);
+	}
+
 	// Determine output directory based on mode
 	let outputDir;
 	if (inPlace) {
@@ -831,7 +958,40 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Scaffold development artefacts that do not belong in a generated plugin.
+		'dryrun-debug.log',
+		'test-results',
+		'multi-block-plugin-scaffold.code-workspace',
+		'IMPLEMENTATION-SUMMARY.md',
+		'SCF-JSON-REGISTRATION-CHANGES.md',
+		'.specify',
+		'.todo',
+		// Per-post-type template: never copied as-is. generatePerCPTBlocks()
+		// renders one {post-type}-collection block from it per post type, and
+		// is skipped entirely in functional-only mode.
+		COLLECTION_BLOCK_TEMPLATE,
 	];
+
+	// Functional-only mode: exclude the static content-model files that
+	// copyDirWithReplacement() would otherwise always copy, regardless of
+	// whether any post_types/taxonomies are configured (FR-005).
+	if (fullConfig.isFunctionalOnly) {
+		excludePaths.push(
+			'patterns/{{slug}}-grid.php',
+			'patterns/{{slug}}-archive.php',
+			'patterns/{{slug}}-card.php',
+			'patterns/{{slug}}-featured.php',
+			'patterns/{{slug}}-meta.php',
+			'patterns/{{slug}}-single.php',
+			'patterns/{{slug}}-slider.php',
+			'scf-json/group_{{slug}}_example.json',
+			'src/hooks/usePostType.js',
+			'src/hooks/useTaxonomies.js',
+			'src/hooks/useCollection.js',
+			'src/components/TaxonomyFilter',
+			'src/components/PostSelector'
+		);
+	}
 
 	// Copy scaffold files with mustache replacement
 	if (inPlace) {
@@ -848,9 +1008,14 @@ function generatePlugin(config, inPlace = false) {
 			excludePaths
 		);
 		removeScaffoldOnlyTests(outputDir);
-		
+		stripExcludedModuleExports(outputDir, fullConfig.isFunctionalOnly);
+
 		// Generate per-CPT blocks after copying
-		if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+		if (
+			!fullConfig.isFunctionalOnly &&
+			fullConfig.post_types &&
+			fullConfig.post_types.length > 0
+		) {
 			log('INFO', 'Generating per-CPT blocks');
 			generatePerCPTBlocks(outputDir, fullConfig);
 			log('INFO', 'Per-CPT block generation completed');
@@ -874,7 +1039,11 @@ function generatePlugin(config, inPlace = false) {
 	generateReadme(outputDir, fullConfig);
 
 	// Generate post-type JSON files
-	if (fullConfig.post_types && fullConfig.post_types.length > 0) {
+	if (
+		!fullConfig.isFunctionalOnly &&
+		fullConfig.post_types &&
+		fullConfig.post_types.length > 0
+	) {
 		log('INFO', 'Generating post-type JSON files');
 		generatePostTypeJSONFiles(outputDir, fullConfig);
 		
@@ -883,8 +1052,14 @@ function generatePlugin(config, inPlace = false) {
 		generateTaxonomySCFGroups(outputDir, fullConfig);
 	}
 
-	// Generate SCF JSON field group
-	if (fullConfig.fields && fullConfig.fields.length > 0) {
+	// Generate SCF JSON field group. Skipped in functional-only mode: field
+	// groups belong to a content model, so top-level fields must not produce
+	// field-group JSON (FR-004).
+	if (
+		!fullConfig.isFunctionalOnly &&
+		fullConfig.fields &&
+		fullConfig.fields.length > 0
+	) {
 		log('INFO', 'Generating SCF field group JSON');
 		generateSCFFieldGroup(outputDir, fullConfig);
 	}
@@ -912,8 +1087,13 @@ function generatePlugin(config, inPlace = false) {
 }
 
 /**
- * Generate per-CPT blocks from {{cpt_slug}} templates
- * Duplicates block templates that contain {{cpt_slug}} for each registered post type
+ * Generate one collection block per post type from the collection template.
+ *
+ * The template in COLLECTION_BLOCK_TEMPLATE is excluded from the main copy and
+ * rendered here once per post type, with that post type's variables, into
+ * src/blocks/{post-type}-collection. Generic blocks (slider, field-display)
+ * are not post-type specific and are copied once by the main copy step.
+ *
  * @param {string} outputDir - Output directory path
  * @param {Object} config - Plugin configuration
  */
@@ -923,119 +1103,39 @@ function generatePerCPTBlocks(outputDir, config) {
 		return;
 	}
 
+	const templateDir = path.join(scaffoldDir, COLLECTION_BLOCK_TEMPLATE);
+	if (!fs.existsSync(templateDir)) {
+		log('WARN', `Collection block template not found: ${COLLECTION_BLOCK_TEMPLATE}`);
+		return;
+	}
+
 	const blocksDir = path.join(outputDir, 'src', 'blocks');
-	if (!fs.existsSync(blocksDir)) {
-		log('WARN', 'Blocks directory not found, skipping per-CPT block generation');
-		return;
-	}
 
-	// After copying, the {{cpt_slug}} template will have been replaced with the FIRST post type's slug
-	// We need to find that block and duplicate it for remaining post types
-	const firstPostType = config.post_types[0];
-	if (!firstPostType) return;
-	
-	// Look for blocks that match the first post type slug pattern (e.g., "cpd_article-collection")
-	const entries = fs.readdirSync(blocksDir, { withFileTypes: true });
-	const firstCPTBlocks = entries.filter(
-		(entry) => entry.isDirectory() && entry.name.startsWith(`${firstPostType.slug}-`)
-	);
+	config.post_types.forEach((postType) => {
+		const blockConfig = {
+			...config,
+			cpt_slug: postType.slug,
+			cpt_name: postType.singular, // Display name for the post type
+			cpt_singular: postType.singular,
+			cpt_plural: postType.plural,
+			cpt_icon: postType.menu_icon,
+			cpt_menu_icon: postType.menu_icon,
+			cpt_supports: postType.supports,
+		};
 
-	if (firstCPTBlocks.length === 0) {
-		log('INFO', 'No per-CPT block templates found (expected blocks starting with first CPT slug)');
-		return;
-	}
+		const blockDirName = `${applyFilter(postType.slug, 'kebabCase')}-collection`;
+		const blockPath = path.join(blocksDir, blockDirName);
+		fs.mkdirSync(blockPath, { recursive: true });
+		copyDirWithReplacement(templateDir, blockPath, blockConfig, []);
 
-	log('INFO', `Found ${firstCPTBlocks.length} per-CPT block template(s) for first post type`, {
-		templates: firstCPTBlocks.map(t => t.name),
-		firstPostType: firstPostType.slug
-	});
-
-	// For each block template from the first post type
-	firstCPTBlocks.forEach((templateBlock) => {
-		const templatePath = path.join(blocksDir, templateBlock.name);
-		
-		// Extract the block type suffix (e.g., "collection" from "cpd_article-collection")
-		const blockSuffix = templateBlock.name.replace(`${firstPostType.slug}-`, '');
-		
-		// Generate a block for each REMAINING post type (skip first one as it already exists)
-		config.post_types.slice(1).forEach((postType, index) => {
-			// Create block-specific config with CPT variables
-			const blockConfig = {
-				...config,
-				cpt_slug: postType.slug,
-				cpt_name: postType.singular, // Display name for the post type
-				block_slug: postType.slug.replace(/_/g, '-'), // Dasherized version for block names
-				cpt_singular: postType.singular,
-				cpt_plural: postType.plural,
-				cpt_menu_icon: postType.menu_icon,
-				cpt_supports: postType.supports,
-				// Add indexed variables for multi-CPT support
-				[`cpt${index + 2}_slug`]: postType.slug, // +2 because we skipped first
-				[`cpt${index + 2}_singular`]: postType.singular,
-				[`cpt${index + 2}_plural`]: postType.plural,
-			};
-
-			// Create the block directory name for this post type
-			const blockDirName = `${postType.slug}-${blockSuffix}`;
-			const blockPath = path.join(blocksDir, blockDirName);
-
-			// Create the block directory
-			if (!fs.existsSync(blockPath)) {
-				fs.mkdirSync(blockPath, { recursive: true });
-			}
-
-			// Copy all files from template to new block directory
-			const templateFiles = fs.readdirSync(templatePath, { withFileTypes: true });
-			templateFiles.forEach((file) => {
-				const srcPath = path.join(templatePath, file.name);
-				const destName = replaceMustacheVars(file.name, blockConfig);
-				const destPath = path.join(blockPath, destName);
-
-				if (file.isDirectory()) {
-					// Recursively copy subdirectories
-					if (!fs.existsSync(destPath)) {
-						fs.mkdirSync(destPath, { recursive: true });
-					}
-					copyDirWithReplacement(srcPath, destPath, blockConfig, []);
-				} else {
-					// Copy and process file - replace first post type slug with current post type
-					let content = fs.readFileSync(srcPath, 'utf8');
-					
-					// Create dasherized versions for block names
-					const firstCPTDasherized = firstPostType.slug.replace(/_/g, '-');
-					const currentCPTDasherized = postType.slug.replace(/_/g, '-');
-					
-					// Create snake_case versions for function names
-					const firstCPTSnakeCase = firstPostType.slug.replace(/-/g, '_');
-					const currentCPTSnakeCase = postType.slug.replace(/-/g, '_');
-					
-					// Replace the first post type's slug with the current post type's slug
-					// Handle both underscore version (for variables) and dash version (for block names)
-					content = content.replace(new RegExp(firstCPTDasherized, 'g'), currentCPTDasherized);
-					content = content.replace(new RegExp(firstCPTSnakeCase, 'g'), currentCPTSnakeCase);
-					content = content.replace(new RegExp(firstPostType.slug, 'g'), postType.slug);
-					content = content.replace(new RegExp(firstPostType.singular, 'g'), postType.singular);
-					content = content.replace(new RegExp(firstPostType.plural, 'g'), postType.plural);
-					
-					// Also replace any remaining mustache variables
-					content = replaceMustacheVars(content, blockConfig);
-					
-					fs.writeFileSync(destPath, content, 'utf8');
-				}
-			});
-
-			log('INFO', `Generated block: ${blockDirName}`, {
-				postType: postType.slug,
-				template: templateBlock.name,
-				blockSuffix: blockSuffix
-			});
+		log('INFO', `Generated block: ${blockDirName}`, {
+			postType: postType.slug,
 		});
 	});
 
 	log('INFO', 'Per-CPT block generation completed', {
-		templatesProcessed: firstCPTBlocks.length,
-		blocksGenerated: firstCPTBlocks.length * (config.post_types.length - 1),
-		postTypes: config.post_types.map(pt => pt.slug)
+		blocksGenerated: config.post_types.length,
+		postTypes: config.post_types.map((pt) => pt.slug),
 	});
 }
 
@@ -1054,9 +1154,10 @@ function generateSrcIndexFile(outputDir, config) {
 		return;
 	}
 
-	// Get all block directories
+	// Get all block directories with an entry point (skips asset folders such as icons/)
 	const blockDirs = fs.readdirSync(blocksDir, { withFileTypes: true })
 		.filter(entry => entry.isDirectory())
+		.filter(entry => fs.existsSync(path.join(blocksDir, entry.name, 'index.js')))
 		.map(entry => entry.name)
 		.sort();
 
@@ -1533,7 +1634,23 @@ function generateComposerJson(outputDir, config) {
 		'require-dev': {
 			'phpunit/phpunit': '^9.0',
 			'wp-coding-standards/wpcs': '^3.0',
+			// Registers WPCS with PHPCS so phpcs.xml's WordPress rules resolve.
+			'dealerdirect/phpcodesniffer-composer-installer': '^1.0',
 			'phpstan/phpstan': '^1.10',
+			// Loaded by phpstan.neon for WordPress core stubs.
+			'szepeviktor/phpstan-wordpress': '^1.3',
+		},
+		scripts: {
+			test: 'phpunit',
+			phpcs: 'phpcs',
+			phpcbf: 'phpcbf',
+			phpstan: 'phpstan analyse',
+			lint: 'composer phpcs',
+		},
+		config: {
+			'allow-plugins': {
+				'dealerdirect/phpcodesniffer-composer-installer': true,
+			},
 		},
 	};
 

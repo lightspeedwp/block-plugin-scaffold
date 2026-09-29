@@ -162,6 +162,24 @@ To begin, simply say:
 | `{{textdomain}}` | `{{slug}}` | `tour-operator` |
 | `{{license_uri}}` | `{{license}}` | `https://www.gnu.org/licenses/gpl-3.0.html` |
 
+### Stage 1.5: Content Model (Required)
+
+Before asking anything about post types or taxonomies, I will ask:
+
+> **"Does this plugin need a custom content type — a post type or taxonomy — or is it purely functional (e.g. new blocks, block bindings, an options page)?"**
+
+| Question | Variable | Example | Validation |
+|----------|----------|---------|------------|
+| Content model needed? | `{{content_model}}` | "custom" or "none" | One of: `custom`, `none` |
+
+**If the answer is functional-only** (`content_model: "none"`):
+
+- Skip directly to **Stage 6: Blocks Configuration**, then **Stage 8: Additional Features** — Stage 2 (Custom Post Type), Stage 3 (Taxonomies), Stage 4 (Custom Fields), Stage 5 (Repeater Field Configuration), and Stage 7 (Templates & Patterns) are not asked at all, since every item in those stages is tied to a content model.
+- The generated plugin will contain no post-type/taxonomy JSON, no content-display patterns, and no content-model-dependent hooks/components/blocks (`usePostType`, `useTaxonomies`, `useCollection`, `TaxonomyFilter`, `PostSelector`, the collection block).
+- Do not set `post_types` or `taxonomies` in the resulting config — combining `content_model: "none"` with either is a configuration error the generator will reject.
+
+**If the answer is a custom content model** (`content_model: "custom"`, or omitted): continue to Stage 2 as normal — no change to existing behaviour.
+
 ### Stage 2: Custom Post Type (CPT)
 
 | Question | Variable | Example |
@@ -308,6 +326,8 @@ itinerary (repeater)
 
 ### Stage 7: Templates & Patterns
 
+**Content-model only** — every item below is tied to a post type's single/archive display and is skipped entirely in functional-only mode (Stage 1.5).
+
 | Item | File | Include? |
 |------|------|----------|
 | Single template | `templates/single-{{slug}}.html` | ✓ Default |
@@ -364,6 +384,14 @@ Please provide:
 | Description | A professional property listings plugin... |
 | Author | LightSpeed |
 | Author URI | https://developer.lsdev.biz |
+
+**Stage 1.5: Content Model**
+
+Before we get into post types and taxonomies — does this plugin need a custom content type (post type/taxonomy), or is it purely functional (blocks, settings, no new content type)?"
+
+**User**: "It needs a custom content type — properties."
+
+**Me**: "Got it, `content_model: custom`.
 
 **Stage 2: Custom Post Type**
 
@@ -486,6 +514,8 @@ Plugin:
   namespace: real_estate_pro
   version: 1.0.0
 
+Content model: custom
+
 Post Type:
   singular: Property
   plural: Properties
@@ -513,6 +543,44 @@ Templates:
 Patterns:
   - real-estate-pro-grid.php
 ```
+
+**Ready to generate?** (yes/no/modify)"
+
+---
+
+### Functional-Only Example
+
+**User**: "Generate a plugin that just adds a testimonials block and a settings page — no custom post type needed."
+
+**Me**: "Understood. Let's start with **Stage 1: Plugin Identity**..."
+
+*(Stage 1 proceeds as usual.)*
+
+**Me**: "**Stage 1.5: Content Model** — does this plugin need a custom content type (post type/taxonomy), or is it purely functional?"
+
+**User**: "Purely functional — just blocks and settings."
+
+**Me**: "Got it, `content_model: none`. Skipping post type, taxonomy, and field discovery entirely — moving straight to **Stage 6: Blocks Configuration**.
+
+**Final Configuration Summary:**
+
+```yaml
+Plugin:
+  name: Testimonials Widget
+  slug: testimonials-widget
+  namespace: testimonials_widget
+  version: 1.0.0
+
+Content model: none
+
+Blocks:
+  - testimonials-widget-testimonial
+
+Additional Features:
+  - Options page: yes
+```
+
+No `post_types`, `taxonomies`, `fields`, patterns, or content-model-dependent hooks/components are generated for this plugin.
 
 **Ready to generate?** (yes/no/modify)"
 

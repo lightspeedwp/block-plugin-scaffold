@@ -1,0 +1,14 @@
+{
+  "slug": "functional-only-plugin",
+  "name": "Functional Only Plugin",
+  "description": "A blocks/settings-only plugin fixture used to validate functional-only generation mode (no custom post types or taxonomies).",
+  "author": "LightSpeed",
+  "author_uri": "https://developer.lsdev.biz",
+  "version": "1.0.0",
+  "textdomain": "functional-only-plugin",
+  "namespace": "functional_only_plugin",
+  "requires_wp": "6.5",
+  "requires_php": "8.0",
+  "license": "GPL-2.0-or-later",
+  "content_model": "none"
+}
