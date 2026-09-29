@@ -330,6 +330,8 @@ function applyDefaults(config) {
 
 	// Auto-derive namespace and textdomain from slug
 	if (result.slug) {
+		// Templates use the plugin_slug and slug placeholders interchangeably.
+		result.plugin_slug = result.slug;
 		result.textdomain = result.textdomain || result.slug;
 		result.namespace = result.namespace || result.slug.replace(/-/g, '_');
 	}

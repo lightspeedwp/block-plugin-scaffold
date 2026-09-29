@@ -139,6 +139,19 @@ describe('generatePlugin: output with post types', () => {
 		expect(uninstall).toContain("$option_prefix = 'output_check_plugin_';");
 	});
 
+	it('fills plugin_slug placeholders from slug', () => {
+		['phpunit.xml', 'USAGE.md', 'SUPPORT.md'].forEach((file) => {
+			const content = fs.readFileSync(path.join(outputDir, file), 'utf8');
+			expect(content).toContain(CONFIG.slug);
+		});
+
+		const usage = fs.readFileSync(path.join(outputDir, 'USAGE.md'), 'utf8');
+		expect(usage).toContain(`/${CONFIG.slug}/releases`);
+		expect(
+			fs.readFileSync(path.join(outputDir, 'phpunit.xml'), 'utf8')
+		).toContain(`<file>./${CONFIG.slug}.php</file>`);
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',
