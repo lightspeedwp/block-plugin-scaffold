@@ -725,6 +725,12 @@
                     },
                     "taxonomies": {
                         "maxItems": 0
+                    },
+                    "cpt_slug": {
+                        "maxLength": 0
+                    },
+                    "name_singular": {
+                        "maxLength": 0
                     }
                 }
             }
