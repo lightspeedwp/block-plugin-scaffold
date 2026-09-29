@@ -61,6 +61,9 @@ const EXCLUDE_DIRS = [
 	'dist',
 	'build',
 	'output-theme',
+	// Generator output: rendered plugins, not scaffold templates.
+	'generated-plugins',
+	'output-plugin',
 	'.git',
 	'coverage',
 	'test-results',
