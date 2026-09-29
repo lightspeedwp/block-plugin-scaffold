@@ -195,6 +195,23 @@ describe('generatePlugin: output with post types', () => {
 		expect(leftoverPlaceholders('CHANGELOG.md')).toEqual([]);
 	});
 
+	it('generates a package.json that can build the copied webpack config', () => {
+		const pkg = JSON.parse(
+			fs.readFileSync(path.join(outputDir, 'package.json'), 'utf8')
+		);
+		expect(Object.keys(pkg.devDependencies)).toEqual(
+			expect.arrayContaining([
+				'@wordpress/scripts',
+				'copy-webpack-plugin',
+				'glob',
+			])
+		);
+		// The scaffold's lock file does not match the generated package.json.
+		expect(fs.existsSync(path.join(outputDir, 'package-lock.json'))).toBe(
+			false
+		);
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',

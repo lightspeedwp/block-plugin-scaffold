@@ -960,6 +960,9 @@ function generatePlugin(config, inPlace = false) {
 		'plugin-config.json',
 		// Replaced by generateChangelog(); records the scaffold's history.
 		'CHANGELOG.md',
+		// Locks the scaffold's dependencies, not the generated package.json's,
+		// so npm ci would refuse to install. npm install creates a fresh one.
+		'package-lock.json',
 		// Scaffold development artefacts that do not belong in a generated plugin.
 		'dryrun-debug.log',
 		'test-results',
@@ -1607,8 +1610,13 @@ function generatePackageJson(outputDir, config) {
 			'env:start': 'wp-env start',
 			'env:stop': 'wp-env stop',
 		},
+		// Versions match the scaffold's own package.json.
 		devDependencies: {
-			'@wordpress/scripts': '^27.0.0',
+			'@wordpress/scripts': '31.1.0',
+			'@wordpress/env': '^10.35.0',
+			// Required directly by the copied webpack.config.js.
+			'copy-webpack-plugin': '^10.2.4',
+			glob: '13.0.0',
 		},
 	};
 
