@@ -989,8 +989,7 @@ function generatePlugin(config, inPlace = false) {
 			'src/hooks/useTaxonomies.js',
 			'src/hooks/useCollection.js',
 			'src/components/TaxonomyFilter',
-			'src/components/PostSelector',
-			'src/blocks/{{block_slug}}-collection'
+			'src/components/PostSelector'
 		);
 	}
 
