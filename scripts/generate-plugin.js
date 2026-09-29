@@ -27,6 +27,14 @@ const schemaPath = path.join(
 );
 const outputBaseDir = path.resolve(process.cwd(), 'generated-plugins');
 
+// License URIs for the schema's supported license identifiers.
+const LICENSE_URIS = {
+	'GPL-2.0-or-later': 'https://www.gnu.org/licenses/gpl-2.0.html',
+	'GPL-3.0-or-later': 'https://www.gnu.org/licenses/gpl-3.0.html',
+	MIT: 'https://opensource.org/licenses/MIT',
+	'Apache-2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
+};
+
 // Block template rendered once per post type (see generatePerCPTBlocks).
 const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
 
@@ -322,6 +330,8 @@ function applyDefaults(config) {
 
 	// Auto-derive namespace and textdomain from slug
 	if (result.slug) {
+		// Templates use the plugin_slug and slug placeholders interchangeably.
+		result.plugin_slug = result.slug;
 		result.textdomain = result.textdomain || result.slug;
 		result.namespace = result.namespace || result.slug.replace(/-/g, '_');
 	}
@@ -331,6 +341,16 @@ function applyDefaults(config) {
 	result.requires_wp = result.requires_wp || '6.5';
 	result.requires_php = result.requires_php || '8.0';
 	result.license = result.license || 'GPL-2.0-or-later';
+	// readme.txt and plugin header values. Undefined placeholders render as
+	// empty strings, so these must always resolve to something valid.
+	result.license_uri =
+		result.license_uri || LICENSE_URIS[result.license] || '';
+	result.tested_up_to = result.tested_up_to || result.requires_wp;
+	result.contributors =
+		result.contributors ||
+		String(result.author || '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]/g, '');
 	result.description =
 		result.description || 'A WordPress multi-block plugin.';
 
@@ -938,6 +958,14 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Scaffold development artefacts that do not belong in a generated plugin.
+		'dryrun-debug.log',
+		'test-results',
+		'multi-block-plugin-scaffold.code-workspace',
+		'IMPLEMENTATION-SUMMARY.md',
+		'SCF-JSON-REGISTRATION-CHANGES.md',
+		'.specify',
+		'.todo',
 		// Per-post-type template: never copied as-is. generatePerCPTBlocks()
 		// renders one {post-type}-collection block from it per post type, and
 		// is skipped entirely in functional-only mode.
@@ -1606,7 +1634,23 @@ function generateComposerJson(outputDir, config) {
 		'require-dev': {
 			'phpunit/phpunit': '^9.0',
 			'wp-coding-standards/wpcs': '^3.0',
+			// Registers WPCS with PHPCS so phpcs.xml's WordPress rules resolve.
+			'dealerdirect/phpcodesniffer-composer-installer': '^1.0',
 			'phpstan/phpstan': '^1.10',
+			// Loaded by phpstan.neon for WordPress core stubs.
+			'szepeviktor/phpstan-wordpress': '^1.3',
+		},
+		scripts: {
+			test: 'phpunit',
+			phpcs: 'phpcs',
+			phpcbf: 'phpcbf',
+			phpstan: 'phpstan analyse',
+			lint: 'composer phpcs',
+		},
+		config: {
+			'allow-plugins': {
+				'dealerdirect/phpcodesniffer-composer-installer': true,
+			},
 		},
 	};
 

@@ -133,6 +133,26 @@
                 "GPL-3.0-or-later"
             ]
         },
+        "license_uri": {
+            "type": "string",
+            "format": "uri",
+            "description": "License URL for the plugin header and readme.txt. Defaults to the URL for the selected license."
+        },
+        "tested_up_to": {
+            "type": "string",
+            "description": "WordPress version the plugin has been tested up to (readme.txt \"Tested up to\"). Defaults to requires_wp.",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+            "examples": [
+                "6.8"
+            ]
+        },
+        "contributors": {
+            "type": "string",
+            "description": "Comma-separated WordPress.org usernames for readme.txt. Defaults to the author name, lowercased with non-alphanumeric characters removed.",
+            "examples": [
+                "lightspeedwp"
+            ]
+        },
 
         "content_model": {
             "type": "string",

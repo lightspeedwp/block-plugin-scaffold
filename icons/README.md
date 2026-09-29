@@ -5,7 +5,7 @@ This directory contains SVG icons used throughout the plugin blocks.
 ## Structure
 
 ```
-source-icons/
+icons/
 ├── outline/    # 23 outline-style icons
 └── solid/      # 26 solid-style icons
 ```

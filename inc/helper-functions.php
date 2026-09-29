@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Get SVG icon content from the icons library.
  *
- * Retrieves an SVG icon from the plugin's icons block source directory.
+ * Retrieves an SVG icon from the plugin's icons/ directory.
  * The SVG is sanitized using wp_kses with allowed SVG elements and attributes.
  *
  * @since 1.0.0
@@ -31,7 +31,7 @@ function {{namespace|snakeCase}}_get_icon_svg( $icon_type = 'outline', $icon_nam
 	$file_name = strtolower( preg_replace( '/([a-z])([A-Z])/', '$1-$2', $icon_name ) );
 
 	// Build the path to the SVG file.
-	$svg_path = __DIR__ . '/../src/blocks/icons/source-icons/' . $icon_type . '/' . $file_name . '.svg';
+	$svg_path = __DIR__ . '/../icons/' . $icon_type . '/' . $file_name . '.svg';
 
 	// Check if the file exists.
 	if ( ! file_exists( $svg_path ) ) {

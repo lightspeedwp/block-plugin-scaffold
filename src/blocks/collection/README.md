@@ -1,9 +1,9 @@
 ---
-title: {{CPT1 Collection}} Block
+title: {{cpt_singular}} Collection Block
 category: Block
 ---
 
-# {{CPT1 Collection}} Block
+# {{cpt_singular}} Collection Block
 
 Displays a collection of {{cpt_slug}} items with extensible filtering, sorting, and event-driven extensibility. Supports custom collection registration and DOM event hooks for advanced integrations.
 

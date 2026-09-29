@@ -126,7 +126,7 @@ describe('generatePlugin: functional-only mode', () => {
 		// The collection block is post-type specific, so it is never
 		// generated without post types. Generic blocks keep plain names.
 		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
-		expect(blockDirs.sort()).toEqual(['field-display', 'icons', 'slider']);
+		expect(blockDirs.sort()).toEqual(['field-display', 'slider']);
 		expect(readBlockName(outputDir, 'slider')).toBe(`${config.slug}/slider`);
 		expect(readBlockName(outputDir, 'field-display')).toBe(
 			`${config.slug}/field-display`
@@ -176,7 +176,6 @@ describe('generatePlugin: functional-only mode', () => {
 		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
 		expect(blockDirs.sort()).toEqual([
 			'field-display',
-			'icons',
 			'item-collection',
 			'slider',
 		]);
@@ -213,7 +212,6 @@ describe('generatePlugin: functional-only mode', () => {
 		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
 		expect(blockDirs.sort()).toEqual([
 			'field-display',
-			'icons',
 			'slider',
 			'tour-collection',
 			'travel-style-collection',
