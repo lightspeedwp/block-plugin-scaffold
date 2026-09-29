@@ -87,4 +87,18 @@ describe('generatePlugin: output with post types', () => {
 			expect(readme).toContain(`# ${singular} Collection Block`);
 		});
 	});
+
+	it('does not copy scaffold development artefacts', () => {
+		[
+			'dryrun-debug.log',
+			'test-results',
+			'multi-block-plugin-scaffold.code-workspace',
+			'IMPLEMENTATION-SUMMARY.md',
+			'SCF-JSON-REGISTRATION-CHANGES.md',
+			'.specify',
+			'.todo',
+		].forEach((artefact) => {
+			expect(fs.existsSync(path.join(outputDir, artefact))).toBe(false);
+		});
+	});
 });

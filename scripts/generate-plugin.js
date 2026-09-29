@@ -956,6 +956,14 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Scaffold development artefacts that do not belong in a generated plugin.
+		'dryrun-debug.log',
+		'test-results',
+		'multi-block-plugin-scaffold.code-workspace',
+		'IMPLEMENTATION-SUMMARY.md',
+		'SCF-JSON-REGISTRATION-CHANGES.md',
+		'.specify',
+		'.todo',
 		// Per-post-type template: never copied as-is. generatePerCPTBlocks()
 		// renders one {post-type}-collection block from it per post type, and
 		// is skipped entirely in functional-only mode.
