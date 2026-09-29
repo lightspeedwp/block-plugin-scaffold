@@ -20,10 +20,77 @@ function isMaximumDryRun(args) {
 const fs = require('fs');
 const path = require('path');
 const { getCanonicalConfigSchema } = require('../validation/validate-config-schema.js');
-const { validateConfig } = require('../validation/validate-plugin-config.js');
-const { runWizard } = require('../lib/wizard.js');
+const {
+	validateConfig: validateAgainstSchema,
+	validateContentModel,
+} = require('../validation/validate-plugin-config.js');
+const { runPromptWizard } = require('../lib/wizard.js');
 const { FileLogger } = require('../lib/logger.js');
+const { generatePlugin } = require('../generate-plugin.js');
+const {
+	questions: wizardQuestions,
+	buildConfigFromAnswers,
+} = require('./generate-plugin.questions.js');
 const minimist = require('minimist');
+
+/**
+ * Validate a plugin configuration against the canonical schema, including
+ * the content_model conflict checks the generator also enforces.
+ *
+ * @param {Object} config Plugin configuration.
+ * @return {{valid: boolean, errors: Array}} Validation result.
+ */
+function validateConfig(config) {
+	const result = validateAgainstSchema(config, getCanonicalConfigSchema());
+	const contentModelErrors = validateContentModel(config).map((message) => ({
+		instancePath: '/content_model',
+		keyword: 'content_model',
+		message,
+	}));
+	const errors = [...(result.errors || []), ...contentModelErrors];
+	return { valid: errors.length === 0, errors };
+}
+
+/**
+ * Generate the plugin, reporting the output location.
+ *
+ * @param {Object}     config  Validated plugin configuration.
+ * @param {boolean}    inPlace Process the current directory (template mode).
+ * @param {FileLogger} logger  The logger instance.
+ */
+function runGenerator(config, inPlace, logger) {
+	const outputDir = generatePlugin(config, inPlace);
+	logger.info(`✓ Plugin generated at: ${outputDir}`);
+}
+
+/**
+ * Print a summary of the configuration, matching the agent spec's
+ * pre-generation summary.
+ *
+ * @param {Object} config Plugin configuration.
+ */
+function printSummary(config) {
+	const lines = [
+		'',
+		'Configuration summary',
+		`  Plugin:        ${config.name} (${config.slug})`,
+		`  Author:        ${config.author}`,
+		`  Version:       ${config.version}`,
+		`  Content model: ${config.content_model}`,
+	];
+	(config.post_types || []).forEach((postType) => {
+		lines.push(`  Post type:     ${postType.slug} (${postType.plural})`);
+	});
+	(config.taxonomies || []).forEach((taxonomy) => {
+		lines.push(`  Taxonomy:      ${taxonomy.slug} (${taxonomy.plural})`);
+	});
+	(config.fields || []).forEach((group) => {
+		lines.push(
+			`  Fields:        ${group.field_group.map((field) => field.name).join(', ')}`
+		);
+	});
+	console.log(`${lines.join('\n')}\n`);
+}
 
 /**
  * Display help information and usage instructions.
@@ -44,11 +111,13 @@ Options:
   --schema       Output JSON schema
   --json         Accept configuration via stdin
   --validate     Validate configuration (provide config as argument)
-  --config <path> Load configuration from a JSON file
+  --config <path> Load configuration from a JSON file and generate the plugin
+  --in-place     Generate into the current directory (template mode)
+  --force        Overwrite an existing generated-plugins/<slug> directory
   --dry-run      Run without writing any files
 
 Examples:
-  Interactive:
+  Interactive (asks the staged questions, then generates):
     node generate-plugin.agent.js
 
   With JSON:
@@ -150,7 +219,7 @@ async function handleJsonMode(logger, dryRun) {
  * @param {boolean} dryRun - If true, plugin generation will be skipped.
  * @returns {Promise<void>}
  */
-async function handleFileConfigMode(configPath, logger, dryRun) {
+async function handleFileConfigMode(configPath, logger, dryRun, inPlace = false) {
 		if (dryRun === 'maximum' || process.env.DRY_RUN === 'maximum') {
 			logger.info('[MAXIMUM DRY RUN] All actions are simulated. Returning mock config.');
 			return { slug: 'mock-plugin', name: 'Mock Plugin', author: 'Mock Author' };
@@ -171,9 +240,7 @@ async function handleFileConfigMode(configPath, logger, dryRun) {
 		if (dryRun) {
 			logger.info('[Dry Run] Would generate plugin with the provided configuration.');
 		} else {
-			// TODO: Replace with actual plugin generation call
-			// await generatePlugin(config);
-			logger.info('Plugin generated successfully from file configuration!');
+			runGenerator(config, inPlace, logger);
 		}
 	} catch (error) {
 		logger.error(`Failed to process config file: ${configPath}`, {
@@ -253,27 +320,41 @@ function reportValidationErrors(validationResult, logger) {
  * @async
  * @returns {Promise<void>} A promise that resolves when the plugin generation is complete.
  */
-async function runInteractiveMode(logger, dryRun) {
-		if (dryRun === 'maximum' || process.env.DRY_RUN === 'maximum') {
-			logger.info('[MAXIMUM DRY RUN] All actions are simulated. Returning mock config.');
-			return { slug: 'mock-plugin', name: 'Mock Plugin', author: 'Mock Author' };
-		}
-	try {
-		// TODO: The wizard requires more context from the config-schema that is not yet implemented.
-		// This is a placeholder for the full interactive wizard implementation.
-		logger.info('Starting interactive plugin generator...');
-		const config = await runWizard(/* wizard dependencies */);
-		logger.info('Configuration received from wizard.', { config });
-		if (dryRun) {
-			logger.info('[Dry Run] Would generate plugin with the received configuration.');
-		} else {
-			// await generatePlugin(config);
-			logger.info('Plugin generated successfully!');
-		}
-	} catch (error) {
-		if (error.message !== 'Wizard cancelled.') {
-			logger.error('An error occurred during the wizard.', { error: error.message });
-		}
+async function runInteractiveMode(logger, dryRun, inPlace = false) {
+	if (dryRun === 'maximum' || process.env.DRY_RUN === 'maximum') {
+		logger.info('[MAXIMUM DRY RUN] All actions are simulated. Returning mock config.');
+		return { slug: 'mock-plugin', name: 'Mock Plugin', author: 'Mock Author' };
+	}
+	logger.info('Starting interactive plugin generator...');
+	const answers = await runPromptWizard({ questions: wizardQuestions });
+	const config = buildConfigFromAnswers(answers);
+
+	const result = validateConfig(config);
+	if (!result.valid) {
+		reportValidationErrors(result, logger);
+		process.exit(1);
+	}
+
+	printSummary(config);
+	const { confirmed } = await runPromptWizard({
+		questions: [
+			{
+				name: 'confirmed',
+				type: 'confirm',
+				message: 'Ready to generate?',
+				default: true,
+			},
+		],
+	});
+	if (!confirmed) {
+		logger.info('Generation cancelled.');
+		return;
+	}
+
+	if (dryRun) {
+		logger.info('[Dry Run] Would generate plugin with the received configuration.', { config });
+	} else {
+		runGenerator(config, inPlace, logger);
 	}
 }
 
@@ -290,12 +371,13 @@ async function main() {
 	const logger = new FileLogger('generate-plugin-agent', 'agents');
 	try {
 		const args = minimist(process.argv.slice(2), {
-			boolean: ['help', 'schema', 'json', 'dry-run', 'max-dry-run'],
+			boolean: ['help', 'schema', 'json', 'dry-run', 'max-dry-run', 'in-place', 'template', 'force'],
 			string: ['validate', 'config'],
 			alias: { h: 'help' },
 		});
 
 		const dryRun = args['dry-run'];
+		const inPlace = args['in-place'] || args.template;
 		const maxDryRun = isMaximumDryRun(args);
 		if (maxDryRun) {
 			logger.info('=== MAXIMUM DRY RUN MODE ENABLED: All side effects are simulated. ===');
@@ -334,12 +416,12 @@ async function main() {
 
 		// Handle --config flag
 		if (args.config) {
-			await handleFileConfigMode(args.config, logger, maxDryRun || dryRun);
+			await handleFileConfigMode(args.config, logger, maxDryRun || dryRun, inPlace);
 			return;
 		}
 
 		// Default to interactive mode if no other flags are provided.
-		await runInteractiveMode(logger, maxDryRun || dryRun);
+		await runInteractiveMode(logger, maxDryRun || dryRun, inPlace);
 	} catch (error) {
 		logger.error('An unexpected error occurred in the agent.', { error: error.stack });
 		process.exit(1);
