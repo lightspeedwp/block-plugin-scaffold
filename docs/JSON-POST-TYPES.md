@@ -243,7 +243,8 @@ additionally excludes:
 - The content-model-dependent JS hooks: `src/hooks/usePostType.js`,
   `src/hooks/useTaxonomies.js`, `src/hooks/useCollection.js`
 - The content-model-dependent components: `src/components/TaxonomyFilter`,
-  `src/components/PostSelector`
+  `src/components/PostSelector`, and `src/components/QueryControls` (which
+  imports `TaxonomyFilter`)
 - The collection block: no `src/blocks/{post-type}-collection` block is
   generated (it is rendered per post type from `src/blocks/collection`)
 

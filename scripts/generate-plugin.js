@@ -718,7 +718,7 @@ function stripExcludedModuleExports(outputDir, isFunctionalOnly) {
 		},
 		{
 			file: path.join(outputDir, 'src', 'components', 'index.js'),
-			excludedNames: ['PostSelector', 'TaxonomyFilter'],
+			excludedNames: ['PostSelector', 'TaxonomyFilter', 'QueryControls'],
 		},
 	];
 
@@ -989,7 +989,9 @@ function generatePlugin(config, inPlace = false) {
 			'src/hooks/useTaxonomies.js',
 			'src/hooks/useCollection.js',
 			'src/components/TaxonomyFilter',
-			'src/components/PostSelector'
+			'src/components/PostSelector',
+			// Imports TaxonomyFilter, so it cannot be built without it.
+			'src/components/QueryControls'
 		);
 	}
 

@@ -44,6 +44,7 @@ const CONTENT_MODEL_STATIC_PATHS = [
 	'src/hooks/useCollection.js',
 	'src/components/TaxonomyFilter',
 	'src/components/PostSelector',
+	'src/components/QueryControls',
 ];
 
 const ALWAYS_PRESENT_PATHS = [
