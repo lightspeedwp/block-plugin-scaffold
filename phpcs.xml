@@ -18,7 +18,7 @@
 	<exclude-pattern>patterns/{{slug}}-*.php</exclude-pattern>
 	<exclude-pattern>{{plugin_slug}}.php</exclude-pattern>
 	<file>./{{plugin_slug}}.php</file>
-	<file>./uninstall-{{plugin_slug}}.php</file>
+	<file>./uninstall.php</file>
 
 	<!-- How to scan -->
 	<arg value="sp"/> <!-- Show sniff and progress -->

@@ -110,6 +110,13 @@ describe('generatePlugin: output with post types', () => {
 		expect(helpers).toContain("__DIR__ . '/../icons/'");
 	});
 
+	it('generates uninstall.php as the only uninstall script', () => {
+		const uninstallScripts = fs
+			.readdirSync(outputDir)
+			.filter((file) => file.startsWith('uninstall'));
+		expect(uninstallScripts).toEqual(['uninstall.php']);
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',

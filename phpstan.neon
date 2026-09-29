@@ -12,7 +12,6 @@ parameters:
 	bootstrapFiles:
 		- tests/phpstan-bootstrap.php
 			- "{{plugin_slug}}.php"
-			- "uninstall-{{plugin_slug}}.php"
 		- '#Function get_field not found#'
 		- '#Function have_rows not found#'
 		- '#Function the_row not found#'
