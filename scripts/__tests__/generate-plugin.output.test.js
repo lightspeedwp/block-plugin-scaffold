@@ -88,6 +88,28 @@ describe('generatePlugin: output with post types', () => {
 		});
 	});
 
+	it('ships icons outside src/blocks where the icon helper loads them', () => {
+		const blocksDir = path.join(outputDir, 'src', 'blocks');
+		fs.readdirSync(blocksDir).forEach((blockDir) => {
+			expect(fs.existsSync(path.join(blocksDir, blockDir, 'block.json'))).toBe(
+				true
+			);
+		});
+
+		['outline', 'solid'].forEach((iconType) => {
+			const svgs = fs
+				.readdirSync(path.join(outputDir, 'icons', iconType))
+				.filter((file) => file.endsWith('.svg'));
+			expect(svgs.length).toBeGreaterThan(0);
+		});
+
+		const helpers = fs.readFileSync(
+			path.join(outputDir, 'inc', 'helper-functions.php'),
+			'utf8'
+		);
+		expect(helpers).toContain("__DIR__ . '/../icons/'");
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',
