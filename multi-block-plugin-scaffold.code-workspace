@@ -11,6 +11,9 @@
 		{
 			"name": "block-theme-scaffold",
 			"path": "../block-theme-scaffold"
+		},
+		{
+			"path": "../../beta/app/public/wp-content/plugins"
 		}
 	],
 	"settings": {
