@@ -48,7 +48,7 @@ afterAll(() => {
  */
 function leftoverPlaceholders(relativePath) {
 	const content = fs.readFileSync(path.join(outputDir, relativePath), 'utf8');
-	return content.match(/\{\{[^{}]+\}\}/g) || [];
+	return content.match(/\{\{[A-Za-z][\w\s|-]*\}\}/g) || [];
 }
 
 describe('generatePlugin: output with post types', () => {
@@ -70,6 +70,21 @@ describe('generatePlugin: output with post types', () => {
 			'License URI',
 		].forEach((header) => {
 			expect(readme).toMatch(new RegExp(`^${header}: \\S`, 'm'));
+		});
+	});
+
+	it('renders every per-post-type collection block file without placeholders', () => {
+		CONFIG.post_types.forEach(({ slug, singular }) => {
+			const blockDir = path.join('src', 'blocks', `${slug}-collection`);
+			fs.readdirSync(path.join(outputDir, blockDir)).forEach((file) => {
+				expect(leftoverPlaceholders(path.join(blockDir, file))).toEqual([]);
+			});
+
+			const readme = fs.readFileSync(
+				path.join(outputDir, blockDir, 'README.md'),
+				'utf8'
+			);
+			expect(readme).toContain(`# ${singular} Collection Block`);
 		});
 	});
 });
