@@ -55,11 +55,11 @@ describe('loadIgnorePatterns', () => {
 });
 
 describe('scanDirectory', () => {
-	test('skips generator output directories', () => {
+	test('skips generator output and report directories', () => {
 		const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scan-exclude-'));
 		try {
 			fs.writeFileSync(path.join(root, 'readme.txt'), '{{name}}');
-			['generated-plugins/demo', 'output-plugin'].forEach((dir) => {
+			['generated-plugins/demo', 'output-plugin', 'scripts/reports'].forEach((dir) => {
 				fs.mkdirSync(path.join(root, dir), { recursive: true });
 				fs.writeFileSync(path.join(root, dir, 'readme.txt'), '{{name}}');
 			});
