@@ -8,8 +8,8 @@ Prerequisites: repo dependencies installed (`npm ci`), working from the repo roo
 
    ```json
    {
-     "slug": "my-functional-plugin",
-     "name": "My Functional Plugin",
+     "slug": "functional-only-plugin",
+     "name": "Functional Only Plugin",
      "author": "LightSpeed",
      "content_model": "none"
    }
@@ -21,13 +21,13 @@ Prerequisites: repo dependencies installed (`npm ci`), working from the repo roo
    node scripts/generate-plugin.js --config tests/fixtures/plugin-config.functional-only.json
    ```
 
-3. Expected outcome, inspecting `generated-plugins/my-functional-plugin/`:
+3. Expected outcome, inspecting `generated-plugins/functional-only-plugin/`:
    - No `scf-json/post-type-*.json` or `scf-json/taxonomy-*.json` files.
    - No `scf-json/group_{{slug}}_example.json` equivalent file.
-   - No `patterns/my-functional-plugin-grid.php` (nor `-archive`, `-card`, `-featured`, `-meta`, `-single`, `-slider`).
+   - No `patterns/functional-only-plugin-grid.php` (nor `-archive`, `-card`, `-featured`, `-meta`, `-single`, `-slider`).
    - No `src/hooks/usePostType.js`, `useTaxonomies.js`, `useCollection.js`.
    - No `src/components/TaxonomyFilter/`, `src/components/PostSelector/`.
-   - No `src/blocks/my-functional-plugin-collection/`.
+   - No `src/blocks/functional-only-plugin-collection/`.
    - Block registration index, build config (`webpack.config.js`, `package.json`, `composer.json`), and `inc/*.php` core classes ARE present and match a normal generation run.
 
    Validates: spec Success Criteria SC-002.
