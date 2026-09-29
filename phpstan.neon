@@ -5,16 +5,12 @@ parameters:
 	level: 6
 	paths:
 		- "{{slug}}.php"
-		- "inc/"
+		- uninstall.php
+		- inc/
 	excludePaths:
 		- vendor/
 		- tests/
-	bootstrapFiles:
-		- tests/phpstan-bootstrap.php
-			- "{{plugin_slug}}.php"
-		- '#Function get_field not found#'
-		- '#Function have_rows not found#'
-		- '#Function the_row not found#'
-		- '#Function get_sub_field not found#'
-		- '#Function get_row_layout not found#'
-		- '#Function get_row_index not found#'
+	reportUnmatchedIgnoredErrors: false
+	ignoreErrors:
+		# ACF/SCF functions are provided at runtime by Secure Custom Fields.
+		- '#Function (acf_\w+|get_field|have_rows|the_row|get_sub_field|get_row_layout|get_row_index) not found#'
