@@ -27,6 +27,14 @@ const schemaPath = path.join(
 );
 const outputBaseDir = path.resolve(process.cwd(), 'generated-plugins');
 
+// License URIs for the schema's supported license identifiers.
+const LICENSE_URIS = {
+	'GPL-2.0-or-later': 'https://www.gnu.org/licenses/gpl-2.0.html',
+	'GPL-3.0-or-later': 'https://www.gnu.org/licenses/gpl-3.0.html',
+	MIT: 'https://opensource.org/licenses/MIT',
+	'Apache-2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
+};
+
 // Block template rendered once per post type (see generatePerCPTBlocks).
 const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
 
@@ -331,6 +339,16 @@ function applyDefaults(config) {
 	result.requires_wp = result.requires_wp || '6.5';
 	result.requires_php = result.requires_php || '8.0';
 	result.license = result.license || 'GPL-2.0-or-later';
+	// readme.txt and plugin header values. Undefined placeholders render as
+	// empty strings, so these must always resolve to something valid.
+	result.license_uri =
+		result.license_uri || LICENSE_URIS[result.license] || '';
+	result.tested_up_to = result.tested_up_to || result.requires_wp;
+	result.contributors =
+		result.contributors ||
+		String(result.author || '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]/g, '');
 	result.description =
 		result.description || 'A WordPress multi-block plugin.';
 
