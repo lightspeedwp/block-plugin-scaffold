@@ -247,4 +247,28 @@ describe('generatePlugin: functional-only mode', () => {
 			'./blocks/travel-style-collection',
 		]);
 	});
+
+	it('rejects content_model "none" in in-place mode before touching files', () => {
+		// Run in-place from an empty directory so a regression cannot
+		// rewrite the repo checkout.
+		const inPlaceDir = fs.mkdtempSync(path.join(TEMP_CWD, 'in-place-'));
+		const cwd = process.cwd();
+		process.chdir(inPlaceDir);
+		try {
+			expect(() =>
+				generatePlugin(
+					{
+						slug: 'in-place-functional-plugin',
+						name: 'In Place Functional Plugin',
+						author: 'LightSpeed',
+						content_model: 'none',
+					},
+					true
+				)
+			).toThrow(/not supported in in-place/);
+		} finally {
+			process.chdir(cwd);
+		}
+		expect(fs.readdirSync(inPlaceDir)).toEqual([]);
+	});
 });

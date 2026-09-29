@@ -870,6 +870,21 @@ function generatePlugin(config, inPlace = false) {
 		version: fullConfig.version,
 	});
 
+	// Functional-only mode relies on the exclusion-aware copy path and export
+	// stripping, which only run in generator mode. processFilesInPlace() would
+	// leave every content-model file in place, so reject the combination before
+	// any files are touched.
+	if (inPlace && fullConfig.isFunctionalOnly) {
+		const inPlaceMessage =
+			'Configuration error: "content_model" is set to "none" (functional-only), ' +
+			'which is not supported in in-place (--in-place/--template) mode. ' +
+			'Run the generator without --in-place to create a functional-only plugin.';
+		if (process.env.NODE_ENV !== 'test') {
+			log('ERROR', inPlaceMessage);
+		}
+		throw new Error(inPlaceMessage);
+	}
+
 	// Determine output directory based on mode
 	let outputDir;
 	if (inPlace) {
