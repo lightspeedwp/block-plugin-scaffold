@@ -53,7 +53,7 @@ Prerequisites: repo dependencies installed (`npm ci`), working from the repo roo
 1. Start the generate-plugin agent conversation (per `.github/agents/generate-plugin.agent.md`) in an interactive session.
 2. After providing Stage 1 (Plugin Identity) answers, confirm the very next question is the content-model question (not a CPT-detail question).
 3. Answer "functional only".
-4. Confirm the agent proceeds directly to Blocks/Templates/Additional Features stages, never asking about post type name, taxonomies, fields, or repeaters.
+4. Confirm the agent proceeds directly to the Blocks and Additional Features stages, never asking about post type name, taxonomies, fields, repeaters, or templates.
 5. Confirm the pre-generation summary explicitly states "Content model: none" (or equivalent) before asking for final confirmation.
 
    Validates: spec User Story 1 acceptance scenarios 1–2, FR-001, FR-002, FR-012.

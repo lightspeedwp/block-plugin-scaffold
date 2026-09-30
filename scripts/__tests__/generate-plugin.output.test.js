@@ -182,6 +182,36 @@ describe('generatePlugin: output with post types', () => {
 		).toContain('vendor/szepeviktor/phpstan-wordpress/extension.neon');
 	});
 
+	it('generates a fresh CHANGELOG.md instead of copying the scaffold history', () => {
+		const changelog = fs.readFileSync(
+			path.join(outputDir, 'CHANGELOG.md'),
+			'utf8'
+		);
+		expect(changelog).toContain(
+			`All notable changes to ${CONFIG.name} will be documented`
+		);
+		expect(changelog).toContain('## [1.0.0]');
+		expect(changelog).not.toContain('Multi-Block Plugin Scaffold');
+		expect(leftoverPlaceholders('CHANGELOG.md')).toEqual([]);
+	});
+
+	it('generates a package.json that can build the copied webpack config', () => {
+		const pkg = JSON.parse(
+			fs.readFileSync(path.join(outputDir, 'package.json'), 'utf8')
+		);
+		expect(Object.keys(pkg.devDependencies)).toEqual(
+			expect.arrayContaining([
+				'@wordpress/scripts',
+				'copy-webpack-plugin',
+				'glob',
+			])
+		);
+		// The scaffold's lock file does not match the generated package.json.
+		expect(fs.existsSync(path.join(outputDir, 'package-lock.json'))).toBe(
+			false
+		);
+	});
+
 	it('does not copy scaffold development artefacts', () => {
 		[
 			'dryrun-debug.log',

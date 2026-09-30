@@ -99,7 +99,8 @@ function validateTaxonomies(config) {
 
 /**
  * Ensure content_model: "none" (functional-only) is not combined with a
- * populated post_types or taxonomies array.
+ * populated post_types or taxonomies array, or with the legacy cpt_slug /
+ * name_singular fields that applyDefaults() converts into a post type.
  *
  * @param {Object} config Plugin configuration payload.
  * @return {string[]} List of validation errors for the content model flag.
@@ -107,6 +108,17 @@ function validateTaxonomies(config) {
 function validateContentModel(config) {
 	const errors = [];
 	if (config.content_model !== 'none') return errors;
+
+	const legacyFields = ['cpt_slug', 'name_singular'].filter(
+		(key) => config[key]
+	);
+	if (legacyFields.length > 0) {
+		errors.push(
+			`content_model is "none" (functional-only) but legacy post type field(s) ${legacyFields.join(
+				', '
+			)} would create a post type; remove them or set content_model to "custom"`
+		);
+	}
 
 	const postTypeCount = config.post_types ? config.post_types.length : 0;
 	const taxonomyCount = config.taxonomies ? config.taxonomies.length : 0;

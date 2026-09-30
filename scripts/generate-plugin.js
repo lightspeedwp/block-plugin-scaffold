@@ -718,7 +718,7 @@ function stripExcludedModuleExports(outputDir, isFunctionalOnly) {
 		},
 		{
 			file: path.join(outputDir, 'src', 'components', 'index.js'),
-			excludedNames: ['PostSelector', 'TaxonomyFilter'],
+			excludedNames: ['PostSelector', 'TaxonomyFilter', 'QueryControls'],
 		},
 	];
 
@@ -958,6 +958,11 @@ function generatePlugin(config, inPlace = false) {
 		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
+		// Replaced by generateChangelog(); records the scaffold's history.
+		'CHANGELOG.md',
+		// Locks the scaffold's dependencies, not the generated package.json's,
+		// so npm ci would refuse to install. npm install creates a fresh one.
+		'package-lock.json',
 		// Scaffold development artefacts that do not belong in a generated plugin.
 		'dryrun-debug.log',
 		'test-results',
@@ -990,7 +995,8 @@ function generatePlugin(config, inPlace = false) {
 			'src/hooks/useCollection.js',
 			'src/components/TaxonomyFilter',
 			'src/components/PostSelector',
-			'src/blocks/{{block_slug}}-collection'
+			// Imports TaxonomyFilter, so it cannot be built without it.
+			'src/components/QueryControls'
 		);
 	}
 
@@ -1038,6 +1044,9 @@ function generatePlugin(config, inPlace = false) {
 	// Generate README.md
 	log('INFO', 'Generating README.md');
 	generateReadme(outputDir, fullConfig);
+
+	// Generate CHANGELOG.md
+	generateChangelog(outputDir, fullConfig);
 
 	// Generate post-type JSON files
 	if (
@@ -1601,8 +1610,13 @@ function generatePackageJson(outputDir, config) {
 			'env:start': 'wp-env start',
 			'env:stop': 'wp-env stop',
 		},
+		// Versions match the scaffold's own package.json.
 		devDependencies: {
-			'@wordpress/scripts': '^27.0.0',
+			'@wordpress/scripts': '31.1.0',
+			'@wordpress/env': '^10.35.0',
+			// Required directly by the copied webpack.config.js.
+			'copy-webpack-plugin': '^10.2.4',
+			glob: '13.0.0',
 		},
 	};
 
@@ -1721,6 +1735,36 @@ ${config.license}
 	const readmePath = path.join(outputDir, 'README.md');
 	fs.writeFileSync(readmePath, readme, 'utf8');
 	log('INFO', 'Generated README.md');
+}
+
+/**
+ * Generate a fresh CHANGELOG.md for the new plugin.
+ *
+ * The scaffold's own CHANGELOG.md records the scaffold's history, so it is
+ * excluded from the copy and replaced with an initial Keep a Changelog file.
+ *
+ * @param {string} outputDir Output directory path.
+ * @param {Object} config    Plugin configuration.
+ */
+function generateChangelog(outputDir, config) {
+	const changelog = `# Changelog
+
+All notable changes to ${config.name} will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [${config.version}]
+
+### Added
+
+- Initial release of ${config.name}.
+`;
+
+	fs.writeFileSync(path.join(outputDir, 'CHANGELOG.md'), changelog, 'utf8');
+	log('INFO', 'Generated CHANGELOG.md');
 }
 
 /**

@@ -103,7 +103,7 @@ The build system supports these mustache transforms:
 Template files use placeholder syntax:
 
 - `{{slug}}.php` - Main plugin file
-- `src/{{block-slug}}/` - Block directory
+- `src/blocks/<block>/` - Block directory (e.g. `src/blocks/slider/`)
 
 ### Internationalization (i18n)
 
@@ -168,22 +168,17 @@ We follow WordPress coding standards strictly:
 
 ```
 src/
-├── {{block-slug-1}}/   # Block 1
-│   ├── components/     # Reusable React components
-│   ├── hooks/          # Custom React hooks
-│   ├── utils/          # Utility functions
-│   └── styles/         # SCSS partials
-├── {{block-slug-2}}/   # Block 2
-│   └── ...
-├── scss/               # Global styles
-│   ├── abstracts/      # Variables, mixins, functions
-│   ├── base/           # Reset, typography, etc.
-│   ├── components/     # UI components
-│   └── utilities/      # Utility classes
-└── shared/             # Shared between blocks
-    ├── components/     # Shared React components
-    ├── hooks/          # Shared hooks
-    └── utils/          # Shared utilities
+├── blocks/
+│   ├── slider/             # Generic block: {{slug}}/slider
+│   ├── field-display/      # Generic block: {{slug}}/field-display
+│   └── collection/         # Template: rendered once per post type as
+│                           # <post-type>-collection (content model only)
+├── components/             # Shared React components
+├── hooks/                  # Shared React hooks
+├── utils/                  # Shared utilities
+├── js/                     # Standalone front-end scripts
+├── scss/                   # Global styles
+└── index.js                # Imports every generated block
 ```
 
 ## Testing
@@ -241,13 +236,13 @@ class Test_{{namespace|pascalCase}}_Block extends WP_UnitTestCase {
 
  public function test_block_registration() {
   $this->assertTrue(
-   WP_Block_Type_Registry::get_instance()->is_registered( '{{namespace}}/{{block-slug}}' )
+   WP_Block_Type_Registry::get_instance()->is_registered( '{{slug}}/slider' )
   );
  }
 
  public function test_render_callback() {
   $attributes = array( 'content' => 'Test content' );
-  $result = {{namespace}}_{{block-slug|snakeCase}}_render_callback( $attributes, '', null );
+  $result = {{namespace}}_render_slider( $attributes, '', null );
 
   $this->assertStringContainsString( 'Test content', $result );
  }
@@ -308,7 +303,7 @@ The `webpack.config.js` extends `@wordpress/scripts` with custom settings:
 **Entry Points:**
 
 - `index` - Main plugin entry (`src/index.js`)
-- Multiple block entries (`src/{{block-slug}}/index.js`)
+- One entry per block (`src/blocks/<block>/index.js`)
 
 **Path Aliases:**
 

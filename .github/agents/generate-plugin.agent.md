@@ -175,7 +175,7 @@ Before asking anything about post types or taxonomies, I will ask:
 **If the answer is functional-only** (`content_model: "none"`):
 
 - Skip directly to **Stage 6: Blocks Configuration**, then **Stage 8: Additional Features** — Stage 2 (Custom Post Type), Stage 3 (Taxonomies), Stage 4 (Custom Fields), Stage 5 (Repeater Field Configuration), and Stage 7 (Templates & Patterns) are not asked at all, since every item in those stages is tied to a content model.
-- The generated plugin will contain no post-type/taxonomy JSON, no content-display patterns, and no content-model-dependent hooks/components/blocks (`usePostType`, `useTaxonomies`, `useCollection`, `TaxonomyFilter`, `PostSelector`, the collection block).
+- The generated plugin will contain no post-type/taxonomy JSON, no content-display patterns, and no content-model-dependent hooks/components/blocks (`usePostType`, `useTaxonomies`, `useCollection`, `TaxonomyFilter`, `PostSelector`, `QueryControls`, the collection block).
 - Do not set `post_types` or `taxonomies` in the resulting config — combining `content_model: "none"` with either is a configuration error the generator will reject.
 
 **If the answer is a custom content model** (`content_model: "custom"`, or omitted): continue to Stage 2 as normal — no change to existing behaviour.

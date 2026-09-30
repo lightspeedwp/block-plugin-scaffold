@@ -44,6 +44,7 @@ const CONTENT_MODEL_STATIC_PATHS = [
 	'src/hooks/useCollection.js',
 	'src/components/TaxonomyFilter',
 	'src/components/PostSelector',
+	'src/components/QueryControls',
 ];
 
 const ALWAYS_PRESENT_PATHS = [
@@ -58,24 +59,43 @@ const ALWAYS_PRESENT_PATHS = [
 ];
 
 /**
- * Run generatePlugin(), removing any pre-existing output directory first
- * (generatePlugin() refuses to overwrite without --force), and track the
- * output dir for cleanup in afterEach.
+ * Read the registered block name from a generated block's block.json.
+ *
+ * @param {string} outputDir Generated plugin directory.
+ * @param {string} blockDir  Block directory name under src/blocks.
+ * @return {string} The block name.
+ */
+function readBlockName(outputDir, blockDir) {
+	const blockJson = path.join(outputDir, 'src', 'blocks', blockDir, 'block.json');
+	return JSON.parse(fs.readFileSync(blockJson, 'utf8')).name;
+}
+
+/**
+ * List the block import paths in a generated plugin's src/index.js.
+ *
+ * @param {string} outputDir Generated plugin directory.
+ * @return {string[]} Import paths under ./blocks/.
+ */
+function readIndexImports(outputDir) {
+	const index = fs.readFileSync(path.join(outputDir, 'src', 'index.js'), 'utf8');
+	return [...index.matchAll(/import '(\.\/blocks\/[^']+)';/g)].map((m) => m[1]);
+}
+
+/**
+ * Run generatePlugin() into the isolated temporary output location. Each test
+ * uses a unique slug, so generatePlugin() still rejects an existing output
+ * directory rather than the test deleting one first.
  *
  * @param {Object} config Plugin configuration to generate from.
  * @return {string} The generated plugin's output directory.
  */
 function generateAndTrack(config) {
-	const outputDir = path.join(REPO_ROOT, 'generated-plugins', config.slug);
-	fs.rmSync(outputDir, { recursive: true, force: true });
-	generatedOutputDirs.push(outputDir);
 	return generatePlugin(config, false);
 }
 
-afterEach(() => {
-	while (generatedOutputDirs.length > 0) {
-		fs.rmSync(generatedOutputDirs.pop(), { recursive: true, force: true });
-	}
+// Only the temporary directory this test file created is removed.
+afterAll(() => {
+	fs.rmSync(TEMP_CWD, { recursive: true, force: true });
 });
 
 describe('generatePlugin: functional-only mode', () => {
@@ -104,12 +124,18 @@ describe('generatePlugin: functional-only mode', () => {
 			);
 		});
 
-		// No post types configured, so there is no post-type-derived
-		// block_slug — assert the blocks dir has nothing collection-related.
+		// The collection block is post-type specific, so it is never
+		// generated without post types. Generic blocks keep plain names.
 		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
-		expect(blockDirs.some((dir) => dir.endsWith('-collection'))).toBe(
-			false
+		expect(blockDirs.sort()).toEqual(['field-display', 'slider']);
+		expect(readBlockName(outputDir, 'slider')).toBe(`${config.slug}/slider`);
+		expect(readBlockName(outputDir, 'field-display')).toBe(
+			`${config.slug}/field-display`
 		);
+		expect(readIndexImports(outputDir)).toEqual([
+			'./blocks/field-display',
+			'./blocks/slider',
+		]);
 
 		ALWAYS_PRESENT_PATHS.forEach((genericPath) => {
 			expect(fs.existsSync(path.join(outputDir, genericPath))).toBe(
@@ -147,10 +173,16 @@ describe('generatePlugin: functional-only mode', () => {
 		});
 
 		// The collection block is generated under the post type's own
-		// block_slug (here "item"), not the plugin slug.
-		expect(
-			fs.existsSync(path.join(outputDir, 'src', 'blocks', 'item-collection'))
-		).toBe(true);
+		// slug (here "item"); generic blocks are not prefixed with it.
+		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
+		expect(blockDirs.sort()).toEqual([
+			'field-display',
+			'item-collection',
+			'slider',
+		]);
+		expect(readBlockName(outputDir, 'item-collection')).toBe(
+			`${config.slug}/item-collection`
+		);
 
 		ALWAYS_PRESENT_PATHS.forEach((genericPath) => {
 			expect(fs.existsSync(path.join(outputDir, genericPath))).toBe(
@@ -164,5 +196,101 @@ describe('generatePlugin: functional-only mode', () => {
 				path.join(outputDir, 'scf-json', 'post-type-item.json')
 			)
 		).toBe(true);
+	});
+
+	it('generates one collection block per post type and generic blocks once', () => {
+		const config = {
+			slug: 'multi-cpt-plugin',
+			name: 'Multi CPT Plugin',
+			author: 'LightSpeed',
+			post_types: [
+				{ slug: 'tour', singular: 'Tour', plural: 'Tours' },
+				{ slug: 'travel_style', singular: 'Travel Style', plural: 'Travel Styles' },
+			],
+		};
+		const outputDir = generateAndTrack(config);
+
+		const blockDirs = fs.readdirSync(path.join(outputDir, 'src', 'blocks'));
+		expect(blockDirs.sort()).toEqual([
+			'field-display',
+			'slider',
+			'tour-collection',
+			'travel-style-collection',
+		]);
+
+		// Each collection block carries its own post type's variables.
+		const travelStyle = path.join(
+			outputDir,
+			'src',
+			'blocks',
+			'travel-style-collection'
+		);
+		expect(readBlockName(outputDir, 'travel-style-collection')).toBe(
+			'multi-cpt-plugin/travel-style-collection'
+		);
+		const blockJson = JSON.parse(
+			fs.readFileSync(path.join(travelStyle, 'block.json'), 'utf8')
+		);
+		expect(blockJson.title).toBe('Travel Style Collection');
+		expect(blockJson.render).toBe(
+			'multi_cpt_plugin_render_travel_style_collection'
+		);
+		expect(
+			fs.readFileSync(path.join(travelStyle, 'edit.js'), 'utf8')
+		).toContain("context.postType || 'travel_style'");
+
+		expect(readIndexImports(outputDir)).toEqual([
+			'./blocks/field-display',
+			'./blocks/slider',
+			'./blocks/tour-collection',
+			'./blocks/travel-style-collection',
+		]);
+	});
+
+	it('does not generate field-group JSON from top-level fields when content_model is "none"', () => {
+		const outputDir = generateAndTrack({
+			slug: 'functional-fields-plugin',
+			name: 'Functional Fields Plugin',
+			author: 'LightSpeed',
+			content_model: 'none',
+			fields: [
+				{
+					post_type: 'item',
+					field_group: [
+						{ name: 'subtitle', label: 'Subtitle', type: 'text' },
+					],
+				},
+			],
+		});
+
+		const scfJsonDir = path.join(outputDir, 'scf-json');
+		const groupFiles = fs.existsSync(scfJsonDir)
+			? fs.readdirSync(scfJsonDir).filter((file) => file.startsWith('group_'))
+			: [];
+		expect(groupFiles).toEqual([]);
+	});
+
+	it('rejects content_model "none" in in-place mode before touching files', () => {
+		// Run in-place from an empty directory so a regression cannot
+		// rewrite the repo checkout.
+		const inPlaceDir = fs.mkdtempSync(path.join(TEMP_CWD, 'in-place-'));
+		const cwd = process.cwd();
+		process.chdir(inPlaceDir);
+		try {
+			expect(() =>
+				generatePlugin(
+					{
+						slug: 'in-place-functional-plugin',
+						name: 'In Place Functional Plugin',
+						author: 'LightSpeed',
+						content_model: 'none',
+					},
+					true
+				)
+			).toThrow(/not supported in in-place/);
+		} finally {
+			process.chdir(cwd);
+		}
+		expect(fs.readdirSync(inPlaceDir)).toEqual([]);
 	});
 });
