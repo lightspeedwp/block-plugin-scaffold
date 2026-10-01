@@ -7,14 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Simplified the generated plugin's settings navigation (LS-4287). `inc/class-options.php` now registers one settings page under **Settings** (`options-general.php`) instead of a top-level menu with General, Display and API subpages. The page shows a single field group with Branding, Contact and API tabs.
-
-### Removed
-
-- Removed the Display settings subpage and its fields (items per page, archive layout, show sidebar, featured image size), plus the Social Media tab and its social links repeater, from the generated options page (LS-4287).
-
 ### Documentation
 
 - Audited the scaffold for unreplaced default-prefix (`example-plugin`) references (LS-3726). Found 10 genuine unreplaced occurrences, including a build-breaking Composer PSR-4 autoload mismatch and a build-breaking `src/index.js` import-path mismatch. See [audit-report.md](.github/spec/001-plugin-prefix-audit/audit-report.md) for full findings and remediation actions; no code was changed as part of the audit itself.
