@@ -6,6 +6,25 @@
  */
 
 /**
+ * Record SCF registration calls so the options page and field group can be asserted.
+ */
+if ( ! function_exists( 'acf_add_options_page' ) ) {
+	function acf_add_options_page( $args ) {
+		$GLOBALS['scf_options_pages'][] = $args;
+	}
+}
+if ( ! function_exists( 'acf_add_options_sub_page' ) ) {
+	function acf_add_options_sub_page( $args ) {
+		$GLOBALS['scf_options_pages'][] = $args;
+	}
+}
+if ( ! function_exists( 'acf_add_local_field_group' ) ) {
+	function acf_add_local_field_group( $args ) {
+		$GLOBALS['scf_field_groups'][] = $args;
+	}
+}
+
+/**
  * Options Test Class.
  */
 class Test_Options extends WP_UnitTestCase {
@@ -78,5 +97,40 @@ class Test_Options extends WP_UnitTestCase {
 			$result = ExamplePlugin_Options::update_option( 'test_field', 'test_value' );
 			$this->assertFalse( $result );
 		}
+	}
+
+	/**
+	 * Test that a single settings page is registered under the Settings menu.
+	 */
+	public function test_single_settings_page_under_options_general() {
+		$GLOBALS['scf_options_pages'] = array();
+
+		$this->options->register_options_pages();
+
+		$this->assertCount( 1, $GLOBALS['scf_options_pages'] );
+		$this->assertEquals( 'options-general.php', $GLOBALS['scf_options_pages'][0]['parent_slug'] );
+		$this->assertEquals( ExamplePlugin_Options::OPTIONS_PAGE, $GLOBALS['scf_options_pages'][0]['menu_slug'] );
+	}
+
+	/**
+	 * Test that one field group is registered with Branding, Contact and API tabs.
+	 */
+	public function test_field_group_tabs() {
+		$GLOBALS['scf_field_groups'] = array();
+
+		$this->options->register_options_fields();
+
+		$this->assertCount( 1, $GLOBALS['scf_field_groups'] );
+
+		$group = $GLOBALS['scf_field_groups'][0];
+		$tabs  = array();
+		foreach ( $group['fields'] as $field ) {
+			if ( 'tab' === $field['type'] ) {
+				$tabs[] = $field['label'];
+			}
+		}
+
+		$this->assertEquals( array( 'Branding', 'Contact', 'API' ), $tabs );
+		$this->assertEquals( ExamplePlugin_Options::OPTIONS_PAGE, $group['location'][0][0]['value'] );
 	}
 }
