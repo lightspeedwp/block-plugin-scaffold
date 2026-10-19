@@ -16,7 +16,7 @@ const fs = require('fs');
 // Run wp-scripts build
 try {
 	console.log('🔨 Building assets...');
-	execSync('wp-scripts build', { stdio: 'inherit' });
+	execSync('wp-scripts build --experimental-modules', { stdio: 'inherit' });
 	console.log('✅ Build completed');
 } catch (error) {
 	console.error('❌ Build failed');

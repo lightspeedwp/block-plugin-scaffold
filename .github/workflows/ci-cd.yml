@@ -20,7 +20,6 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
         php-version: [8.0, 8.1, 8.2]
 
     steps:
@@ -34,10 +33,10 @@ jobs:
           echo "[$(date -Iseconds)] [INFO] CI/CD workflow starting" >> logs/workflow-ci-cd-${TIMESTAMP}.log
           echo "LOG_FILE=logs/workflow-ci-cd-${TIMESTAMP}.log" >> $GITHUB_ENV
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Setup PHP ${{ matrix.php-version }}
@@ -87,12 +86,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: workflow-logs-node-${{ matrix.node-version }}-php-${{ matrix.php-version }}
+          name: workflow-logs-php-${{ matrix.php-version }}
           path: logs/
           retention-days: 7
 
       - name: Archive build artifacts
-        if: matrix.node-version == '20.x' && matrix.php-version == '8.1'
+        if: matrix.php-version == '8.1'
         uses: actions/upload-artifact@v4
         with:
           name: build-files
@@ -111,7 +110,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Install dependencies
@@ -145,7 +144,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Install dependencies
@@ -193,7 +192,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Setup PHP

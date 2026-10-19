@@ -25,3 +25,6 @@ bin/
 
 # Scripts directory (contains CLI tools with console output)
 scripts/
+
+# SCSS templates contain {{tags}}; they are linted in the generated plugin.
+src/
