@@ -126,9 +126,17 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 **Independent Test**: [quickstart.md Scenario F](./quickstart.md#scenario-f--round-trip-proof-fr-027)
 
-- [ ] T035 [US1] Write `scripts/toolchain/compare-toolchain.js <dir-a> <dir-b>`, which compares only toolchain files ([spec Key Entities](./spec.md#key-entities)) and prints a unified diff. Add `scripts/toolchain/__tests__/compare-toolchain.test.js`
-- [ ] T036 [US1] Regenerate from the updated scaffold with the same `$TEST_CONFIG` into a fresh folder (`--output-dir /tmp/rt`), then run `node scripts/toolchain/compare-toolchain.js $TEST_PLUGIN /tmp/rt/<slug>`. **It must show 0 differences** (SC-009). For each difference, decide whether the test plugin or the scaffold is right, fix it, and run the comparison again
-- [ ] T037 [US1] In the regenerated folder, run `npm install` and all of Scenario A. It must pass with no edits
+- [x] T035 [US1] Write `scripts/toolchain/compare-toolchain.js <dir-a> <dir-b>`, which compares only toolchain files ([spec Key Entities](./spec.md#key-entities)) and prints a unified diff. Add `scripts/toolchain/__tests__/compare-toolchain.test.js`
+- [x] T036 [US1] Regenerate from the updated scaffold with the same `$TEST_CONFIG` into a fresh folder (`--output-dir /tmp/rt`), then run `node scripts/toolchain/compare-toolchain.js $TEST_PLUGIN /tmp/rt/<slug>`. **It must show 0 differences** (SC-009). For each difference, decide whether the test plugin or the scaffold is right, fix it, and run the comparison again
+- [x] T037 [US1] In the regenerated folder, run `npm install` and all of Scenario A. It must pass with no edits
+
+> **Phase 5 notes (S2)**:
+>
+> - **T036**: `node scripts/generate-plugin.js --config ls-test-config.json --output-dir <tmp>`, then `compare-toolchain.js` against ls-test gave **0 differences**. The generated `package.json` is byte-identical to ls-test's.
+> - **T037**: in the regenerated copy, `npm install`, `build`, `lint`, `test:unit`, `composer run lint` and `composer run phpstan` pass with no edits; `test:e2e` passes 4/4 (wp-env Playground).
+> - **Found and fixed**: `lint:pkg` failed because the WordPress package lint requires `homepage`, `repository` and `bugs`, and ls-test only passed through hand-added URLs. The config schema gains an optional `repository_url`, which defaults to `https://github.com/lightspeedwp/<slug>`.
+> - **Added**: the `--output-dir` flag from T021, which had been ticked without being implemented.
+> - **Known quirk**: the first e2e run straight after a fresh Playground start can fail with "Not logged in"; it passes on a re-run. CI uses the Docker runtime, which is not affected.
 
 **Checkpoint**: The move-back is complete and proven. This completes S2.
 

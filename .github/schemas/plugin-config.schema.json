@@ -68,6 +68,15 @@
                 "https://yourcompany.com"
             ]
         },
+        "repository_url": {
+            "type": "string",
+            "description": "Repository URL for the plugin, used for package.json homepage, repository and bugs (must include protocol). Defaults to https://github.com/lightspeedwp/<slug>.",
+            "format": "uri",
+            "pattern": "^https?://",
+            "examples": [
+                "https://github.com/lightspeedwp/ls-test"
+            ]
+        },
         "version": {
             "type": "string",
             "description": "Starting version number (semantic versioning)",

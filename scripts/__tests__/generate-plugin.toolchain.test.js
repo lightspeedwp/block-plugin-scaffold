@@ -117,11 +117,14 @@ describe('generatePlugin: package.json', () => {
 		expect(keys[0]).toBe('name');
 	});
 
-	it('leaves out optional URLs the config does not set', () => {
-		const pkg = readJson('package.json');
-
-		['homepage', 'repository', 'bugs'].forEach((field) => {
-			expect(pkg).not.toHaveProperty(field);
+	it('derives the URLs the WordPress package lint requires', () => {
+		expect(readJson('package.json')).toMatchObject({
+			homepage: 'https://github.com/lightspeedwp/toolchain-check',
+			repository: {
+				type: 'git',
+				url: 'https://github.com/lightspeedwp/toolchain-check.git',
+			},
+			bugs: { url: 'https://github.com/lightspeedwp/toolchain-check/issues' },
 		});
 	});
 
