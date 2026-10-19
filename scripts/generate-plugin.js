@@ -14,6 +14,7 @@
  *   Help:           node scripts/generate-plugin.js --help
  */
 
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -34,6 +35,13 @@ const LICENSE_URIS = {
 	MIT: 'https://opensource.org/licenses/MIT',
 	'Apache-2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
 };
+
+// Files that differ between the scaffold and a generated plugin. Copied over
+// the plugin root after the main copy (spec 003).
+const TEMPLATES_DIR = path.join(scaffoldDir, 'templates');
+
+// Standard toolchain proven in a generated plugin (spec 003).
+const STANDARD_TOOLCHAIN = require('./toolchain/standard-toolchain.json');
 
 // Block template rendered once per post type (see generatePerCPTBlocks).
 const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
@@ -645,8 +653,11 @@ function copyDirWithReplacement(srcDir, destDir, config, excludePaths = []) {
 		const srcPath = path.join(srcDir, entry.name);
 		const relativePath = path.relative(scaffoldDir, srcPath);
 
-		// Skip excluded paths
-		if (excludePaths.some((exclude) => relativePath.startsWith(exclude))) {
+		// Skip excluded paths, and OS junk files in any folder.
+		if (
+			entry.name === '.DS_Store' ||
+			excludePaths.some((exclude) => relativePath.startsWith(exclude))
+		) {
 			log('DEBUG', `Skipping excluded path: ${relativePath}`);
 			continue;
 		}
@@ -971,6 +982,22 @@ function generatePlugin(config, inPlace = false) {
 		'SCF-JSON-REGISTRATION-CHANGES.md',
 		'.specify',
 		'.todo',
+		// Plugin-only overlay, copied separately after the main copy.
+		'templates',
+		// Scaffold-only tooling and AI assistant settings (spec 003, FR-025).
+		'.devcontainer',
+		'.gemini',
+		'.gpt',
+		'.qodo',
+		'.mustacheignore',
+		'.lighthouserc.js',
+		'.size-limit.json',
+		'.stylelintignore',
+		'.prettierignore',
+		'codecov.yml',
+		'jest.config.js',
+		'VERSION',
+		'AGENTS.md',
 		// Per-post-type template: never copied as-is. generatePerCPTBlocks()
 		// renders one {post-type}-collection block from it per post type, and
 		// is skipped entirely in functional-only mode.
@@ -1016,6 +1043,10 @@ function generatePlugin(config, inPlace = false) {
 		);
 		removeScaffoldOnlyTests(outputDir);
 		stripExcludedModuleExports(outputDir, fullConfig.isFunctionalOnly);
+
+		// Plugin-only files (configs, starter tests, CI) replace scaffold versions.
+		log('INFO', 'Copying plugin templates over the output...');
+		copyDirWithReplacement(TEMPLATES_DIR, outputDir, fullConfig);
 
 		// Generate per-CPT blocks after copying
 		if (
@@ -1072,6 +1103,12 @@ function generatePlugin(config, inPlace = false) {
 	) {
 		log('INFO', 'Generating SCF field group JSON');
 		generateSCFFieldGroup(outputDir, fullConfig);
+	}
+
+	// Format the rendered JavaScript, so a plugin passes its own lint:js
+	// whatever the length of its slug (spec 003, FR-007).
+	if (!inPlace) {
+		formatGeneratedOutput(outputDir);
 	}
 
 	log('INFO', 'Plugin generated successfully', {
@@ -1590,38 +1627,59 @@ function generateSCFFieldGroup(outputDir, config) {
 }
 
 /**
+ * Format a generated plugin's JavaScript with the WordPress Prettier config.
+ *
+ * Templates hold {{tags}}, which render to values of any length, so line
+ * wrapping can only be settled after rendering. Uses the scaffold's own
+ * Prettier, as the plugin has no node_modules yet.
+ *
+ * @param {string} outputDir Generated plugin directory.
+ */
+function formatGeneratedOutput(outputDir) {
+	log('INFO', 'Formatting generated source with the WordPress Prettier config');
+	execFileSync(
+		process.execPath,
+		[
+			require.resolve('prettier/bin/prettier.cjs'),
+			'--config',
+			require.resolve('@wordpress/prettier-config'),
+			'--no-editorconfig',
+			'--log-level',
+			'warn',
+			'--write',
+			'src/**/*.{js,jsx}',
+			'tests/**/*.js',
+			'*.{js,cjs,mjs}',
+		],
+		{ cwd: outputDir, stdio: 'pipe' }
+	);
+}
+
+/**
  * Generate package.json
  * @param outputDir
  * @param config
  */
 function generatePackageJson(outputDir, config) {
+	// Field order follows @wordpress/npm-package-json-lint-config, so the
+	// generated plugin passes its own lint:pkg.
 	const packageJson = {
-		name: `@${config.namespace}/${config.slug}`,
+		name: config.slug,
 		version: config.version,
 		description: config.description,
 		author: config.author,
 		license: config.license,
-		scripts: {
-			build: 'wp-scripts build',
-			start: 'wp-scripts start',
-			'lint:js': 'wp-scripts lint-js',
-			'lint:css': 'wp-scripts lint-style',
-			'test:unit': 'wp-scripts test-unit-js',
-			'env:start': 'wp-env start',
-			'env:stop': 'wp-env stop',
-		},
-		// Versions match the scaffold's own package.json.
-		devDependencies: {
-			'@wordpress/scripts': '31.1.0',
-			'@wordpress/env': '^10.35.0',
-			// Required directly by the copied webpack.config.js.
-			'copy-webpack-plugin': '^10.2.4',
-			glob: '13.0.0',
-		},
+		keywords: ['wordpress', 'block-plugin', 'gutenberg'],
+		engines: STANDARD_TOOLCHAIN.engines,
+		main: 'build/index.js',
+		dependencies: STANDARD_TOOLCHAIN.dependencies,
+		devDependencies: STANDARD_TOOLCHAIN.devDependencies,
+		scripts: STANDARD_TOOLCHAIN.scripts.all,
+		'lint-staged': STANDARD_TOOLCHAIN.lintStaged,
 	};
 
 	const packagePath = path.join(outputDir, 'package.json');
-	fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2), 'utf8');
+	fs.writeFileSync(packagePath, `${JSON.stringify(packageJson, null, '\t')}\n`, 'utf8');
 	log('INFO', 'Generated package.json');
 }
 
@@ -1646,22 +1704,8 @@ function generateComposerJson(outputDir, config) {
 		require: {
 			php: `>=${config.requires_php}`,
 		},
-		'require-dev': {
-			'phpunit/phpunit': '^9.0',
-			'wp-coding-standards/wpcs': '^3.0',
-			// Registers WPCS with PHPCS so phpcs.xml's WordPress rules resolve.
-			'dealerdirect/phpcodesniffer-composer-installer': '^1.0',
-			'phpstan/phpstan': '^1.10',
-			// Loaded by phpstan.neon for WordPress core stubs.
-			'szepeviktor/phpstan-wordpress': '^1.3',
-		},
-		scripts: {
-			test: 'phpunit',
-			phpcs: 'phpcs',
-			phpcbf: 'phpcbf',
-			phpstan: 'phpstan analyse',
-			lint: 'composer phpcs',
-		},
+		'require-dev': STANDARD_TOOLCHAIN.composer['require-dev'],
+		scripts: STANDARD_TOOLCHAIN.composer.scripts,
 		config: {
 			'allow-plugins': {
 				'dealerdirect/phpcodesniffer-composer-installer': true,
@@ -1672,7 +1716,7 @@ function generateComposerJson(outputDir, config) {
 	const composerPath = path.join(outputDir, 'composer.json');
 	fs.writeFileSync(
 		composerPath,
-		JSON.stringify(composerJson, null, 2),
+		`${JSON.stringify(composerJson, null, '\t')}\n`,
 		'utf8'
 	);
 	log('INFO', 'Generated composer.json');

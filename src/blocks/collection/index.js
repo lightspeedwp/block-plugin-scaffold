@@ -1,7 +1,7 @@
 /**
  * {{cpt_singular|title}} Collection Block
- * 
- * @package {{textdomain}}
+ *
+ * @package
  */
 
 import { registerBlockType } from '@wordpress/blocks';
