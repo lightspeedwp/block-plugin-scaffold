@@ -74,8 +74,8 @@ All tasks in this phase are done in `$TEST_PLUGIN`, one commit each.
 
 All tasks in this phase are done in `$TEST_PLUGIN`.
 
-- [ ] T016 [US4] Add a throwaway `view.js` that imports `@wordpress/interactivity`, and set `viewScriptModule` in one block's `block.json`. Run `npm run build` and confirm `view.asset.php` lists the module dependency. If a build flag is needed, commit it. **→ Target**: `standard-toolchain.json → scripts` and the scaffold's `scripts/build.js` or `webpack.config.js`. Revert the throwaway files
-- [ ] T017 [P] [US4] Add a throwaway admin script that imports `@wordpress/dataviews`. Confirm it builds with no extra install and that `@wordpress/dataviews` is either bundled on purpose or external, as WordPress core expects for the chosen version. Record the outcome in `$AUDIT` and revert
+- [x] T016 [US4] Add a throwaway `view.js` that imports `@wordpress/interactivity`, and set `viewScriptModule` in one block's `block.json`. Run `npm run build` and confirm `view.asset.php` lists the module dependency. If a build flag is needed, commit it. **→ Target**: `standard-toolchain.json → scripts` and the scaffold's `scripts/build.js` or `webpack.config.js`. Revert the throwaway files
+- [x] T017 [P] [US4] Add a throwaway admin script that imports `@wordpress/dataviews`. Confirm it builds with no extra install and that `@wordpress/dataviews` is either bundled on purpose or external, as WordPress core expects for the chosen version. Record the outcome in `$AUDIT` and revert
 
 **Checkpoint**: Modern API readiness is proven. Everything left to move back is committed in the test plugin.
 
