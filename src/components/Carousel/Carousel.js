@@ -1,27 +1,28 @@
-import { useRef } from 'react';
+import { __ } from '@wordpress/i18n';
+import { useRef } from '@wordpress/element';
 
 /**
  * {{name}} Carousel
  * Accessible, swipeable carousel for frontend use.
  * Consider replacing with Slider if more advanced features are needed.
- * @param root0
- * @param root0.children
- * @param root0.ariaLabel
+ * @param {Object}  root0           Component props.
+ * @param {Element} root0.children
+ * @param {string}  root0.ariaLabel
  */
-export default function Carousel({
+export default function Carousel( {
 	children,
-	ariaLabel = __('Carousel', '{{textdomain}}'),
-}) {
-	const carouselRef = useRef(null);
+	ariaLabel = __( 'Carousel', '{{textdomain}}' ),
+} ) {
+	const carouselRef = useRef( null );
 	// Add swipe/keyboard logic as needed
 	return (
 		<div
 			className="{{namespace}}-carousel"
 			role="region"
-			aria-label={ariaLabel}
-			ref={carouselRef}
+			aria-label={ ariaLabel }
+			ref={ carouselRef }
 		>
-			<div className="{{namespace}}-carousel__track">{children}</div>
+			<div className="{{namespace}}-carousel__track">{ children }</div>
 		</div>
 	);
 }

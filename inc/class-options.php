@@ -1,4 +1,10 @@
 <?php
+/**
+ * Options class.
+ *
+ * @package {{namespace}}
+ */
+
 namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -234,18 +240,18 @@ class Options {
 	 * Helper method to retrieve option values using get_field().
 	 *
 	 * @since 1.0.0
-	 * @param string $field_name The field name without prefix.
-	 * @param mixed  $default    Default value if field is empty.
+	 * @param string $field_name    The field name without prefix.
+	 * @param mixed  $default_value Default value if field is empty.
 	 * @return mixed The field value or default.
 	 */
-	public static function get_option( $field_name, $default = '' ) {
+	public static function get_option( $field_name, $default_value = '' ) {
 		if ( ! function_exists( 'get_field' ) ) {
-			return $default;
+			return $default_value;
 		}
 
 		$value = get_field( '{{namespace}}_' . $field_name, 'option' );
 
-		return $value ? $value : $default;
+		return $value ? $value : $default_value;
 	}
 
 	/**

@@ -35,7 +35,7 @@ import { useState } from '@wordpress/element';
  *
  * @return {Element} Block editor component.
  */
-export default function Edit({ attributes, setAttributes }) {
+export default function Edit( { attributes, setAttributes } ) {
 	const {
 		source,
 		slides,
@@ -48,7 +48,7 @@ export default function Edit({ attributes, setAttributes }) {
 		slidesToScroll,
 	} = attributes;
 
-	const [currentSlide, setCurrentSlide] = useState(0);
+	const [ currentSlide, setCurrentSlide ] = useState( 0 );
 
 	const addSlide = () => {
 		const newSlides = [
@@ -61,124 +61,127 @@ export default function Edit({ attributes, setAttributes }) {
 				link: '',
 			},
 		];
-		setAttributes({ slides: newSlides });
-		setCurrentSlide(newSlides.length - 1);
+		setAttributes( { slides: newSlides } );
+		setCurrentSlide( newSlides.length - 1 );
 	};
 
-	const updateSlide = (index, updates) => {
-		const newSlides = [...slides];
-		newSlides[index] = { ...newSlides[index], ...updates };
-		setAttributes({ slides: newSlides });
+	const updateSlide = ( index, updates ) => {
+		const newSlides = [ ...slides ];
+		newSlides[ index ] = { ...newSlides[ index ], ...updates };
+		setAttributes( { slides: newSlides } );
 	};
 
-	const removeSlide = (index) => {
-		const newSlides = slides.filter((_, i) => i !== index);
-		setAttributes({ slides: newSlides });
-		setCurrentSlide(Math.max(0, currentSlide - 1));
+	const removeSlide = ( index ) => {
+		const newSlides = slides.filter( ( _, i ) => i !== index );
+		setAttributes( { slides: newSlides } );
+		setCurrentSlide( Math.max( 0, currentSlide - 1 ) );
 	};
 
-	const blockProps = useBlockProps({
+	const blockProps = useBlockProps( {
 		className: 'wp-block-{{slug}}-slider',
-	});
+	} );
 
 	return (
 		<>
 			<InspectorControls>
-				<PanelBody title={__('Slider Source', '{{textdomain}}')}>
+				<PanelBody title={ __( 'Slider Source', '{{textdomain}}' ) }>
 					<SelectControl
-						label={__('Slide Source', '{{textdomain}}')}
-						value={source}
-						options={[
+						label={ __( 'Slide Source', '{{textdomain}}' ) }
+						value={ source }
+						options={ [
 							{
-								label: __('Custom Slides', '{{textdomain}}'),
+								label: __( 'Custom Slides', '{{textdomain}}' ),
 								value: 'custom',
 							},
 							{
-								label: __('Posts', '{{textdomain}}'),
+								label: __( 'Posts', '{{textdomain}}' ),
 								value: 'posts',
 							},
 							{
-								label: __('Repeater Field', '{{textdomain}}'),
+								label: __( 'Repeater Field', '{{textdomain}}' ),
 								value: 'repeater',
 							},
-						]}
-						onChange={(value) => setAttributes({ source: value })}
+						] }
+						onChange={ ( value ) =>
+							setAttributes( { source: value } )
+						}
 					/>
 				</PanelBody>
-				<PanelBody title={__('Slider Settings', '{{textdomain}}')}>
+				<PanelBody title={ __( 'Slider Settings', '{{textdomain}}' ) }>
 					<ToggleControl
-						label={__('Autoplay', '{{textdomain}}')}
-						checked={autoplay}
-						onChange={(value) => setAttributes({ autoplay: value })}
+						label={ __( 'Autoplay', '{{textdomain}}' ) }
+						checked={ autoplay }
+						onChange={ ( value ) =>
+							setAttributes( { autoplay: value } )
+						}
 					/>
-					{autoplay && (
+					{ autoplay && (
 						<RangeControl
-							label={__('Autoplay Speed (ms)', '{{textdomain}}')}
-							value={autoplaySpeed}
-							onChange={(value) =>
-								setAttributes({ autoplaySpeed: value })
+							label={ __( 'Autoplay Speed (ms)', '{{textdomain}}' ) }
+							value={ autoplaySpeed }
+							onChange={ ( value ) =>
+								setAttributes( { autoplaySpeed: value } )
 							}
-							min={100}
-							max={10000}
+							min={ 100 }
+							max={ 10000 }
 						/>
-					)}
+					) }
 					<ToggleControl
-						label={__('Show Dots', '{{textdomain}}')}
-						checked={showDots}
-						onChange={(value) => setAttributes({ showDots: value })}
-					/>
-					<ToggleControl
-						label={__('Show Arrows', '{{textdomain}}')}
-						checked={showArrows}
-						onChange={(value) =>
-							setAttributes({ showArrows: value })
+						label={ __( 'Show Dots', '{{textdomain}}' ) }
+						checked={ showDots }
+						onChange={ ( value ) =>
+							setAttributes( { showDots: value } )
 						}
 					/>
 					<ToggleControl
-						label={__('Infinite Loop', '{{textdomain}}')}
-						checked={infinite}
-						onChange={(value) => setAttributes({ infinite: value })}
+						label={ __( 'Show Arrows', '{{textdomain}}' ) }
+						checked={ showArrows }
+						onChange={ ( value ) =>
+							setAttributes( { showArrows: value } )
+						}
+					/>
+					<ToggleControl
+						label={ __( 'Infinite Loop', '{{textdomain}}' ) }
+						checked={ infinite }
+						onChange={ ( value ) =>
+							setAttributes( { infinite: value } )
+						}
 					/>
 					<RangeControl
-						label={__('Slides to Show', '{{textdomain}}')}
-						value={slidesToShow}
-						onChange={(value) =>
-							setAttributes({ slidesToShow: value })
+						label={ __( 'Slides to Show', '{{textdomain}}' ) }
+						value={ slidesToShow }
+						onChange={ ( value ) =>
+							setAttributes( { slidesToShow: value } )
 						}
-						min={1}
-						max={6}
+						min={ 1 }
+						max={ 6 }
 					/>
 					<RangeControl
-						label={__('Slides to Scroll', '{{textdomain}}')}
-						value={slidesToScroll}
-						onChange={(value) =>
-							setAttributes({ slidesToScroll: value })
+						label={ __( 'Slides to Scroll', '{{textdomain}}' ) }
+						value={ slidesToScroll }
+						onChange={ ( value ) =>
+							setAttributes( { slidesToScroll: value } )
 						}
-						min={1}
-						max={6}
+						min={ 1 }
+						max={ 6 }
 					/>
 				</PanelBody>
 			</InspectorControls>
 
-			<div {...blockProps}>
-				{source === 'custom' && (
+			<div { ...blockProps }>
+				{ source === 'custom' && (
 					<>
 						<div className="wp-block-{{slug}}-slider__viewport">
 							<div className="wp-block-{{slug}}-slider__track">
-								{slides.length > 0 ? (
-									slides.map((slide, index) => (
+								{ slides.length > 0 ? (
+									slides.map( ( slide, index ) => (
 										<div
-											key={slide.id}
-											className={`wp-block-{{slug}}-slider__slide ${index === currentSlide ? 'is-active' : ''}`}
+											key={ slide.id }
+											className={ `wp-block-{{slug}}-slider__slide ${ index === currentSlide ? 'is-active' : '' }` }
 										>
 											<MediaUploadCheck>
-												<div
-													className="wp-block-{{slug}}-slider__image-wrapper"
-													onClick={() => {}}
-													role="button"
-													tabIndex={0}
-												>
-													{slide.image ? (
+												<div className="wp-block-{{slug}}-slider__image-wrapper">
+													{ slide.image ? (
 														<img
 															src={
 																slide.image.url
@@ -190,118 +193,118 @@ export default function Edit({ attributes, setAttributes }) {
 														/>
 													) : (
 														<div className="wp-block-{{slug}}-slider__placeholder">
-															{__(
+															{ __(
 																'Click to select image',
 																'{{textdomain}}'
-															)}
+															) }
 														</div>
-													)}
+													) }
 												</div>
 											</MediaUploadCheck>
 											<div className="wp-block-{{slug}}-slider__slide-content">
 												<TextControl
-													label={__(
+													label={ __(
 														'Title',
 														'{{textdomain}}'
-													)}
-													value={slide.title}
-													onChange={(value) =>
-														updateSlide(index, {
+													) }
+													value={ slide.title }
+													onChange={ ( value ) =>
+														updateSlide( index, {
 															title: value,
-														})
+														} )
 													}
 												/>
 												<TextareaControl
-													label={__(
+													label={ __(
 														'Caption',
 														'{{textdomain}}'
-													)}
-													value={slide.caption}
-													onChange={(value) =>
-														updateSlide(index, {
+													) }
+													value={ slide.caption }
+													onChange={ ( value ) =>
+														updateSlide( index, {
 															caption: value,
-														})
+														} )
 													}
 												/>
 												<TextControl
-													label={__(
+													label={ __(
 														'Link URL',
 														'{{textdomain}}'
-													)}
-													value={slide.link}
-													onChange={(value) =>
-														updateSlide(index, {
+													) }
+													value={ slide.link }
+													onChange={ ( value ) =>
+														updateSlide( index, {
 															link: value,
-														})
+														} )
 													}
 													type="url"
 												/>
 											</div>
 											<Button
 												isDestructive
-												onClick={() =>
-													removeSlide(index)
+												onClick={ () =>
+													removeSlide( index )
 												}
 												className="wp-block-{{slug}}-slider__remove-slide"
 											>
-												{__(
+												{ __(
 													'Remove Slide',
 													'{{textdomain}}'
-												)}
+												) }
 											</Button>
 										</div>
-									))
+									) )
 								) : (
 									<div className="wp-block-{{slug}}-slider__empty">
-										{__(
+										{ __(
 											'No slides added yet. Click the button below to add slides.',
 											'{{textdomain}}'
-										)}
+										) }
 									</div>
-								)}
+								) }
 							</div>
-							{slides.length > 1 && (
+							{ slides.length > 1 && (
 								<div className="wp-block-{{slug}}-slider__nav">
-									{slides.map((_, index) => (
+									{ slides.map( ( _, index ) => (
 										<button
-											key={index}
-											className={`wp-block-{{slug}}-slider__dot ${index === currentSlide ? 'is-active' : ''}`}
-											onClick={() =>
-												setCurrentSlide(index)
+											key={ index }
+											className={ `wp-block-{{slug}}-slider__dot ${ index === currentSlide ? 'is-active' : '' }` }
+											onClick={ () =>
+												setCurrentSlide( index )
 											}
-											aria-label={`Go to slide ${index + 1}`}
+											aria-label={ `Go to slide ${ index + 1 }` }
 										/>
-									))}
+									) ) }
 								</div>
-							)}
+							) }
 							<Button
 								variant="primary"
-								onClick={addSlide}
+								onClick={ addSlide }
 								className="wp-block-{{slug}}-slider__add-slide"
 							>
-								{__('Add Slide', '{{textdomain}}')}
+								{ __( 'Add Slide', '{{textdomain}}' ) }
 							</Button>
 						</div>
 					</>
-				)}
+				) }
 
-				{source === 'posts' && (
+				{ source === 'posts' && (
 					<div className="wp-block-{{slug}}-slider__posts-notice">
-						{__(
+						{ __(
 							'Slider will display posts from the current post type.',
 							'{{textdomain}}'
-						)}
+						) }
 					</div>
-				)}
+				) }
 
-				{source === 'repeater' && (
+				{ source === 'repeater' && (
 					<div className="wp-block-{{slug}}-slider__repeater-notice">
-						{__(
+						{ __(
 							'Slider will display slides from the repeater field.',
 							'{{textdomain}}'
-						)}
+						) }
 					</div>
-				)}
+				) }
 			</div>
 		</>
 	);

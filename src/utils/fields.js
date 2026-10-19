@@ -14,19 +14,19 @@
  *
  * @return {*} Field value or null.
  */
-export function getFieldValue(post, fieldName) {
-	if (!post || !fieldName) {
+export function getFieldValue( post, fieldName ) {
+	if ( ! post || ! fieldName ) {
 		return null;
 	}
 
 	// Check ACF object first.
-	if (post.acf && post.acf[fieldName] !== undefined) {
-		return post.acf[fieldName];
+	if ( post.acf && post.acf[ fieldName ] !== undefined ) {
+		return post.acf[ fieldName ];
 	}
 
 	// Check meta object.
-	if (post.meta && post.meta[fieldName] !== undefined) {
-		return post.meta[fieldName];
+	if ( post.meta && post.meta[ fieldName ] !== undefined ) {
+		return post.meta[ fieldName ];
 	}
 
 	return null;
@@ -40,30 +40,32 @@ export function getFieldValue(post, fieldName) {
  *
  * @return {string} Formatted value.
  */
-export function formatFieldValue(value, fieldType = 'text') {
-	if (value === null || value === undefined) {
+export function formatFieldValue( value, fieldType = 'text' ) {
+	if ( value === null || value === undefined ) {
 		return '';
 	}
 
-	switch (fieldType) {
+	switch ( fieldType ) {
 		case 'boolean':
 		case 'true_false':
 			return value ? 'Yes' : 'No';
 
 		case 'date':
-			return new Date(value).toLocaleDateString();
+			return new Date( value ).toLocaleDateString();
 
 		case 'datetime':
-			return new Date(value).toLocaleString();
+			return new Date( value ).toLocaleString();
 
 		case 'number':
-			return Number(value).toLocaleString();
+			return Number( value ).toLocaleString();
 
 		case 'array':
-			return Array.isArray(value) ? value.join(', ') : String(value);
+			return Array.isArray( value )
+				? value.join( ', ' )
+				: String( value );
 
 		default:
-			return String(value);
+			return String( value );
 	}
 }
 
@@ -74,16 +76,16 @@ export function formatFieldValue(value, fieldType = 'text') {
  *
  * @return {boolean} True if empty.
  */
-export function isFieldEmpty(value) {
-	if (value === null || value === undefined || value === '') {
+export function isFieldEmpty( value ) {
+	if ( value === null || value === undefined || value === '' ) {
 		return true;
 	}
 
-	if (Array.isArray(value) && value.length === 0) {
+	if ( Array.isArray( value ) && value.length === 0 ) {
 		return true;
 	}
 
-	if (typeof value === 'object' && Object.keys(value).length === 0) {
+	if ( typeof value === 'object' && Object.keys( value ).length === 0 ) {
 		return true;
 	}
 
@@ -98,23 +100,23 @@ export function isFieldEmpty(value) {
  *
  * @return {Object|null} Image data or null.
  */
-export function extractImageData(value, size = 'medium') {
-	if (!value) {
+export function extractImageData( value, size = 'medium' ) {
+	if ( ! value ) {
 		return null;
 	}
 
 	// If value is just a URL string.
-	if (typeof value === 'string') {
+	if ( typeof value === 'string' ) {
 		return { url: value, alt: '' };
 	}
 
 	// If value is an image object.
-	if (typeof value === 'object') {
-		const url = value.sizes?.[size]?.url || value.url || null;
+	if ( typeof value === 'object' ) {
+		const url = value.sizes?.[ size ]?.url || value.url || null;
 		const alt = value.alt || '';
 
-		if (url) {
-			return { url, alt, ...value };
+		if ( url ) {
+			return { ...value, url, alt };
 		}
 	}
 
@@ -129,14 +131,14 @@ export function extractImageData(value, size = 'medium') {
  *
  * @return {Array} Processed rows.
  */
-export function processRepeaterRows(rows, transform) {
-	if (!Array.isArray(rows)) {
+export function processRepeaterRows( rows, transform ) {
+	if ( ! Array.isArray( rows ) ) {
 		return [];
 	}
 
-	if (typeof transform !== 'function') {
+	if ( typeof transform !== 'function' ) {
 		return rows;
 	}
 
-	return rows.map((row, index) => transform(row, index));
+	return rows.map( ( row, index ) => transform( row, index ) );
 }

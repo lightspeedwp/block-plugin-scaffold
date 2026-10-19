@@ -1,7 +1,7 @@
 /**
  * {{name|title}} Slider Block
- * 
- * @package {{textdomain}}
+ *
+ * @package
  */
 
 import { registerBlockType } from '@wordpress/blocks';
@@ -13,7 +13,7 @@ import './editor.scss';
 import './style.scss';
 
 // Register the block
-registerBlockType(metadata.name, {
+registerBlockType( metadata.name, {
 	...metadata,
 	edit: Edit,
-});
+} );

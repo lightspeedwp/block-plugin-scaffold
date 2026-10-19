@@ -1,11 +1,11 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * Block Patterns Registration.
  *
  * @package {{namespace}}
  */
+
+namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

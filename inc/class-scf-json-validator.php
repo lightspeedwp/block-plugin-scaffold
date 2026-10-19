@@ -1,6 +1,4 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * SCF JSON Schema Validator.
  *
@@ -11,6 +9,8 @@ namespace {{namespace}}\classes;
  * @see https://github.com/WordPress/secure-custom-fields/blob/trunk/docs/tutorials/local-json.md
  * @since 1.0.0
  */
+
+namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -35,41 +35,69 @@ class SCF_JSON_Validator {
 	/**
 	 * Decoded schema cache.
 	 *
-	 * @var array
+	 * @var array<mixed>
 	 */
 	private $schema;
 
 	/**
 	 * SCF JSON handler instance.
 	 *
-	 * @var SCF_JSON
+	 * @var SCF_JSON|null
 	 */
-	private $scf_json;
+	private $scf_json = null;
 
 	/**
 	 * Valid field types in SCF.
 	 *
-	 * @var array
+	 * @var array<mixed>
 	 */
 	private $valid_field_types = array(
-		'tab', 'accordion', 'message',
-		'text', 'textarea', 'email', 'url', 'password', 'number',
-		'wysiwyg', 'oembed',
-		'image', 'file', 'gallery',
-		'select', 'checkbox', 'radio', 'button_group', 'true_false',
-		'link', 'post_object', 'page_link', 'relationship', 'taxonomy', 'user',
-		'date_picker', 'date_time_picker', 'time_picker', 'color_picker',
-		'group', 'repeater', 'flexible_content',
+		'tab',
+		'accordion',
+		'message',
+		'text',
+		'textarea',
+		'email',
+		'url',
+		'password',
+		'number',
+		'wysiwyg',
+		'oembed',
+		'image',
+		'file',
+		'gallery',
+		'select',
+		'checkbox',
+		'radio',
+		'button_group',
+		'true_false',
+		'link',
+		'post_object',
+		'page_link',
+		'relationship',
+		'taxonomy',
+		'user',
+		'date_picker',
+		'date_time_picker',
+		'time_picker',
+		'color_picker',
+		'group',
+		'repeater',
+		'flexible_content',
 	);
 
 	/**
 	 * Valid location parameters.
 	 *
-	 * @var array
+	 * @var array<mixed>
 	 */
 	private $valid_location_params = array(
-		'post_type', 'post_format', 'post_status', 'post_taxonomy',
-		'user_role', 'user_form',
+		'post_type',
+		'post_format',
+		'post_status',
+		'post_taxonomy',
+		'user_role',
+		'user_form',
 		'taxonomy',
 		'attachment_type',
 		'page_type',
@@ -104,10 +132,10 @@ class SCF_JSON_Validator {
 			return false;
 		}
 
-		$schema_json = file_get_contents( $this->schema_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$schema_json  = file_get_contents( $this->schema_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$this->schema = json_decode( $schema_json, true );
 
-		return $this->schema !== null;
+		return null !== $this->schema;
 	}
 
 	/**
@@ -116,7 +144,7 @@ class SCF_JSON_Validator {
 	 * Comprehensive validation including schema, field types, and structure.
 	 *
 	 * @param string $file_path Path to JSON file to validate.
-	 * @return array{valid: bool, errors: array, warnings: array} Validation result.
+	 * @return array{valid: bool, errors: list<string>, warnings: list<string>} Validation result.
 	 * @since 1.0.0
 	 */
 	public function validate( $file_path ) {
@@ -171,8 +199,9 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate root structure of field group.
 	 *
-	 * @param array $field_group Field group data.
-	 * @param array $result      Validation result array (passed by reference).
+	 * @param array<mixed> $field_group Field group data.
+	 * @param array<mixed> $result      Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_root_structure( $field_group, &$result ) {
 		$required = array( 'key', 'title', 'fields', 'location' );
@@ -211,8 +240,9 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate field group display properties.
 	 *
-	 * @param array $field_group Field group data.
-	 * @param array $result      Validation result array (passed by reference).
+	 * @param array<mixed> $field_group Field group data.
+	 * @param array<mixed> $result      Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_field_group_properties( $field_group, &$result ) {
 		$valid_positions = array( 'acf_after_title', 'normal', 'side' );
@@ -247,8 +277,9 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate fields array.
 	 *
-	 * @param array $field_group Field group data.
-	 * @param array $result      Validation result array (passed by reference).
+	 * @param array<mixed> $field_group Field group data.
+	 * @param array<mixed> $result      Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_fields( $field_group, &$result ) {
 		if ( ! isset( $field_group['fields'] ) || ! is_array( $field_group['fields'] ) ) {
@@ -268,9 +299,10 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate individual field.
 	 *
-	 * @param array $field   Field data.
-	 * @param int   $index   Field index.
-	 * @param array $result  Validation result array (passed by reference).
+	 * @param array<mixed> $field   Field data.
+	 * @param int          $index   Field index.
+	 * @param array<mixed> $result  Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_field( $field, $index, &$result ) {
 		// Check required properties.
@@ -338,8 +370,9 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate location rules.
 	 *
-	 * @param array $field_group Field group data.
-	 * @param array $result      Validation result array (passed by reference).
+	 * @param array<mixed> $field_group Field group data.
+	 * @param array<mixed> $result      Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_location_rules( $field_group, &$result ) {
 		if ( ! isset( $field_group['location'] ) || ! is_array( $field_group['location'] ) ) {
@@ -369,10 +402,11 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate individual location rule.
 	 *
-	 * @param array $rule         Location rule.
-	 * @param int   $group_index  Location group index.
-	 * @param int   $rule_index   Rule index within group.
-	 * @param array $result       Validation result array (passed by reference).
+	 * @param array<mixed> $rule         Location rule.
+	 * @param int          $group_index  Location group index.
+	 * @param int          $rule_index   Rule index within group.
+	 * @param array<mixed> $result       Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_location_rule( $rule, $group_index, $rule_index, &$result ) {
 		if ( ! isset( $rule['param'] ) ) {
@@ -413,16 +447,28 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate display properties (placeholder for future expansion).
 	 *
-	 * @param array $field_group Field group data.
-	 * @param array $result      Validation result array (passed by reference).
+	 * @param array<mixed> $field_group Field group data.
+	 * @param array<mixed> $result      Validation result array (passed by reference).
+	 * @return void
 	 */
 	private function validate_display_properties( $field_group, &$result ) {
 		// Validate hide_on_screen array contains valid values.
 		if ( isset( $field_group['hide_on_screen'] ) && is_array( $field_group['hide_on_screen'] ) ) {
 			$valid_hide_values = array(
-				'permalink', 'the_content', 'excerpt', 'discussion', 'comments',
-				'revisions', 'slug', 'author', 'format', 'page_attributes',
-				'featured_image', 'categories', 'tags', 'send-trackbacks',
+				'permalink',
+				'the_content',
+				'excerpt',
+				'discussion',
+				'comments',
+				'revisions',
+				'slug',
+				'author',
+				'format',
+				'page_attributes',
+				'featured_image',
+				'categories',
+				'tags',
+				'send-trackbacks',
 			);
 
 			foreach ( $field_group['hide_on_screen'] as $hide_value ) {
@@ -439,7 +485,7 @@ class SCF_JSON_Validator {
 	/**
 	 * Validate all JSON files in SCF JSON directory.
 	 *
-	 * @return array Array of validation results keyed by filename.
+	 * @return array<mixed> Array of validation results keyed by filename.
 	 * @since 1.0.0
 	 */
 	public function validate_all_files() {
@@ -452,7 +498,7 @@ class SCF_JSON_Validator {
 		$files = $this->scf_json->get_json_files();
 
 		foreach ( $files as $file_path ) {
-			$filename = basename( $file_path );
+			$filename             = basename( $file_path );
 			$results[ $filename ] = $this->validate( $file_path );
 		}
 
@@ -462,7 +508,7 @@ class SCF_JSON_Validator {
 	/**
 	 * Get schema information.
 	 *
-	 * @return array|null Schema array or null if not loaded.
+	 * @return array<mixed>|null Schema array or null if not loaded.
 	 * @since 1.0.0
 	 */
 	public function get_schema() {

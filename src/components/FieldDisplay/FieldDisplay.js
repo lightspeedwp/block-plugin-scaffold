@@ -27,20 +27,20 @@ import { Spinner } from '@wordpress/components';
  *
  * @return {Element} FieldDisplay component.
  */
-export default function FieldDisplay({
+export default function FieldDisplay( {
 	postId,
 	postType = 'post',
 	fieldName,
 	fieldType = 'text',
 	className = '',
-}) {
+} ) {
 	const { fieldValue, isLoading } = useSelect(
-		(select) => {
-			if (!postId || !fieldName) {
+		( select ) => {
+			if ( ! postId || ! fieldName ) {
 				return { fieldValue: null, isLoading: false };
 			}
 
-			const post = select('core').getEntityRecord(
+			const post = select( 'core' ).getEntityRecord(
 				'postType',
 				postType,
 				postId
@@ -48,61 +48,63 @@ export default function FieldDisplay({
 
 			return {
 				fieldValue:
-					post?.acf?.[fieldName] ?? post?.meta?.[fieldName] ?? null,
-				isLoading: !post,
+					post?.acf?.[ fieldName ] ??
+					post?.meta?.[ fieldName ] ??
+					null,
+				isLoading: ! post,
 			};
 		},
-		[postId, postType, fieldName]
+		[ postId, postType, fieldName ]
 	);
 
-	if (isLoading) {
+	if ( isLoading ) {
 		return <Spinner />;
 	}
 
-	if (fieldValue === null || fieldValue === undefined) {
+	if ( fieldValue === null || fieldValue === undefined ) {
 		return null;
 	}
 
 	const renderValue = () => {
-		switch (fieldType) {
+		switch ( fieldType ) {
 			case 'image':
-				if (typeof fieldValue === 'object' && fieldValue.url) {
+				if ( typeof fieldValue === 'object' && fieldValue.url ) {
 					return (
 						<img
-							src={fieldValue.url}
-							alt={fieldValue.alt || ''}
-							className={`{{namespace}}-field-display__image ${className}`}
+							src={ fieldValue.url }
+							alt={ fieldValue.alt || '' }
+							className={ `{{namespace}}-field-display__image ${ className }` }
 						/>
 					);
 				}
 				return null;
 
 			case 'gallery':
-				if (Array.isArray(fieldValue)) {
+				if ( Array.isArray( fieldValue ) ) {
 					return (
 						<div
-							className={`{{namespace}}-field-display__gallery ${className}`}
+							className={ `{{namespace}}-field-display__gallery ${ className }` }
 						>
-							{fieldValue.map((image, index) => (
+							{ fieldValue.map( ( image, index ) => (
 								<img
-									key={image.id || index}
-									src={image.url}
-									alt={image.alt || ''}
+									key={ image.id || index }
+									src={ image.url }
+									alt={ image.alt || '' }
 								/>
-							))}
+							) ) }
 						</div>
 					);
 				}
 				return null;
 
 			case 'link':
-				if (typeof fieldValue === 'object' && fieldValue.url) {
+				if ( typeof fieldValue === 'object' && fieldValue.url ) {
 					return (
 						<a
-							href={fieldValue.url}
-							target={fieldValue.target || '_self'}
+							href={ fieldValue.url }
+							target={ fieldValue.target || '_self' }
 						>
-							{fieldValue.title || fieldValue.url}
+							{ fieldValue.title || fieldValue.url }
 						</a>
 					);
 				}
@@ -110,17 +112,17 @@ export default function FieldDisplay({
 
 			case 'boolean':
 				return fieldValue
-					? __('Yes', '{{textdomain}}')
-					: __('No', '{{textdomain}}');
+					? __( 'Yes', '{{textdomain}}' )
+					: __( 'No', '{{textdomain}}' );
 
 			default:
-				return String(fieldValue);
+				return String( fieldValue );
 		}
 	};
 
 	return (
-		<div className={`{{namespace}}-field-display ${className}`}>
-			{renderValue()}
+		<div className={ `{{namespace}}-field-display ${ className }` }>
+			{ renderValue() }
 		</div>
 	);
 }

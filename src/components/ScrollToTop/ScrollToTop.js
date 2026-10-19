@@ -18,7 +18,7 @@
  * - Mobile responsive with proper touch targets
  * - Smooth scroll behavior with fallback for older browsers
  *
- * @package {{namespace}}
+ * @package
  */
 
 import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
@@ -38,28 +38,28 @@ import './style.scss';
  *
  * @return {Element|null} ScrollToTop button component or null if not visible.
  */
-export default function ScrollToTop({
+export default function ScrollToTop( {
 	showAfter = 20,
 	className = '',
-	ariaLabel = __('Scroll to top of page', '{{textdomain}}'),
-}) {
-	const [isVisible, setIsVisible] = useState(false);
-	const throttleTimeoutRef = useRef(null);
+	ariaLabel = __( 'Scroll to top of page', '{{textdomain}}' ),
+} ) {
+	const [ isVisible, setIsVisible ] = useState( false );
+	const throttleTimeoutRef = useRef( null );
 
 	/**
 	 * Handle smooth scroll to top with fallback for older browsers.
 	 */
-	const scrollToTop = useCallback(() => {
+	const scrollToTop = useCallback( () => {
 		try {
-			window.scrollTo({
+			window.scrollTo( {
 				top: 0,
 				behavior: 'smooth',
-			});
-		} catch (error) {
+			} );
+		} catch {
 			// Fallback for older browsers
-			window.scrollTo(0, 0);
+			window.scrollTo( 0, 0 );
 		}
-	}, []);
+	}, [] );
 
 	/**
 	 * Handle keyboard interactions for accessibility.
@@ -67,69 +67,69 @@ export default function ScrollToTop({
 	 * @param {Object} event Keyboard event.
 	 */
 	const handleKeyDown = useCallback(
-		(event) => {
-			if (event.key === 'Enter' || event.key === ' ') {
+		( event ) => {
+			if ( event.key === 'Enter' || event.key === ' ' ) {
 				event.preventDefault();
 				scrollToTop();
 			}
 		},
-		[scrollToTop]
+		[ scrollToTop ]
 	);
 
 	/**
 	 * Throttled scroll handler for performance optimization.
 	 */
-	const handleScroll = useCallback(() => {
-		if (throttleTimeoutRef.current !== null) {
+	const handleScroll = useCallback( () => {
+		if ( throttleTimeoutRef.current !== null ) {
 			return;
 		}
 
-		throttleTimeoutRef.current = setTimeout(() => {
+		throttleTimeoutRef.current = setTimeout( () => {
 			const scrollTop =
 				window.pageYOffset || document.documentElement.scrollTop;
 			const shouldBeVisible = scrollTop > showAfter;
 
-			if (shouldBeVisible !== isVisible) {
-				setIsVisible(shouldBeVisible);
+			if ( shouldBeVisible !== isVisible ) {
+				setIsVisible( shouldBeVisible );
 			}
 
 			throttleTimeoutRef.current = null;
-		}, 100);
-	}, [showAfter, isVisible]);
+		}, 100 );
+	}, [ showAfter, isVisible ] );
 
 	/**
 	 * Set up scroll listener with throttling for performance.
 	 */
-	useEffect(() => {
+	useEffect( () => {
 		// Check initial scroll position
 		handleScroll();
 
 		// Add scroll listener
-		window.addEventListener('scroll', handleScroll, { passive: true });
+		window.addEventListener( 'scroll', handleScroll, { passive: true } );
 
 		// Cleanup
 		return () => {
-			window.removeEventListener('scroll', handleScroll);
-			if (throttleTimeoutRef.current !== null) {
-				clearTimeout(throttleTimeoutRef.current);
+			window.removeEventListener( 'scroll', handleScroll );
+			if ( throttleTimeoutRef.current !== null ) {
+				clearTimeout( throttleTimeoutRef.current );
 			}
 		};
-	}, [handleScroll]);
+	}, [ handleScroll ] );
 
 	// Don't render if not visible
-	if (!isVisible) {
+	if ( ! isVisible ) {
 		return null;
 	}
 
 	return (
-		   <Button
-			   className={`{{namespace}}-scroll-to-top ${className}`}
-			   onClick={scrollToTop}
-			   onKeyDown={handleKeyDown}
-			   icon={arrowUp}
-			   label={ariaLabel}
-			   aria-label={ariaLabel}
-			   showTooltip={false}
-		   />
+		<Button
+			className={ `{{namespace}}-scroll-to-top ${ className }` }
+			onClick={ scrollToTop }
+			onKeyDown={ handleKeyDown }
+			icon={ arrowUp }
+			label={ ariaLabel }
+			aria-label={ ariaLabel }
+			showTooltip={ false }
+		/>
 	);
 }

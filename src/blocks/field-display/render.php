@@ -21,7 +21,7 @@ if ( ! function_exists( '{{namespace}}_render_field_display' ) ) {
 	function {{namespace}}_render_field_display( $attributes, $content, $block ) {
 		// Get post ID from context or current post.
 		$post_id = isset( $block->context['postId'] ) ? (int) $block->context['postId'] : get_the_ID();
-		
+
 		if ( ! $post_id ) {
 			return '';
 		}
@@ -60,12 +60,12 @@ if ( ! function_exists( '{{namespace}}_render_field_display' ) ) {
 		$prefix_html = '';
 		if ( ! empty( $prefix ) ) {
 			$prefix_text = esc_html( trim( $prefix ) );
-			
+
 			// Add space if needed.
 			if ( ! preg_match( '/[\s\p{P}]$/u', $prefix_text ) ) {
 				$prefix_text .= ' ';
 			}
-			
+
 			if ( $prefix_bold ) {
 				$prefix_html = '<strong>' . $prefix_text . '</strong>';
 			} else {
@@ -93,7 +93,7 @@ if ( ! function_exists( '{{namespace}}_render_field_display' ) ) {
 			$svg_content = {{namespace|snakeCase}}_get_icon_svg( $icon_type, $icon_name );
 			if ( ! empty( $svg_content ) ) {
 				$output .= sprintf(
-				'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap;">%s</div>',
+					'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap;">%s</div>',
 					$svg_content // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content is sanitized in {{namespace|snakeCase}}_get_icon_svg().
 				);
 			}
@@ -114,3 +114,6 @@ if ( ! function_exists( '{{namespace}}_render_field_display' ) ) {
 		return $output;
 	}
 }
+
+// $attributes, $content and $block are provided by WordPress when it includes this file.
+echo {{namespace}}_render_field_display( $attributes, $content, $block ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped inside the render function.
