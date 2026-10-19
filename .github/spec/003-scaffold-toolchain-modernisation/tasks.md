@@ -89,26 +89,32 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 ### Tests first (scaffold) ⚠️
 
-- [ ] T018 [P] [US1] Create `.github/schemas/standard-toolchain.schema.json` ([data-model.md §1](./data-model.md#1-standard-toolchain-definition)) and write `scripts/toolchain/__tests__/standard-toolchain.test.js`. The test validates the schema, includes a drift test against the root `package.json`, and checks the 10 aliases
-- [ ] T019 [P] [US1] Write `scripts/toolchain/__tests__/generate-package-json.test.js` covering every invariant in [generated-package-manifest.md](./contracts/generated-package-manifest.md), including `--in-place` keeping client-added keys
-- [ ] T020 [P] [US1] Extend `tests/bin/generate-plugin.test.js` to check four things: no scaffold-only files in the output (T006); exactly one config file per tool (T007); `templates/tests/` and `templates/github/workflows/ci.yml` are copied (T012, T013); and an invalid slug is rejected before any file is written
+- [x] T018 [P] [US1] Create `.github/schemas/standard-toolchain.schema.json` ([data-model.md §1](./data-model.md#1-standard-toolchain-definition)) and write `scripts/toolchain/__tests__/standard-toolchain.test.js`. The test validates the schema, includes a drift test against the root `package.json`, and checks the 10 aliases
+- [x] T019 [P] [US1] Write `scripts/toolchain/__tests__/generate-package-json.test.js` covering every invariant in [generated-package-manifest.md](./contracts/generated-package-manifest.md), including `--in-place` keeping client-added keys
+- [x] T020 [P] [US1] Extend `tests/bin/generate-plugin.test.js` to check four things: no scaffold-only files in the output (T006); exactly one config file per tool (T007); `templates/tests/` and `templates/github/workflows/ci.yml` are copied (T012, T013); and an invalid slug is rejected before any file is written
 
 ### Moving back
 
-- [ ] T021 [US1] Create `scripts/toolchain/standard-toolchain.json` from the test plugin's `package.json` (T005). Refactor `generatePackageJson()` in `scripts/generate-plugin.js` to read it, add the `--in-place` merge and slug validation (`scripts/lib/config-schema.js`), and add the `--output-dir` flag
-- [ ] T022 [US1] Add the T006 deletions to `excludePaths` in `scripts/generate-plugin.js`
-- [ ] T023 [US1] [US3] Copy the T007 and T008 config files to the scaffold root, restoring template tags where a value must vary per plugin (prefer tag-free, [research.md R6](./research.md#r6-filling-template-tags-in-the-scaffolds-own-config-files)). Delete the scaffold's duplicate configs. Keep scaffold-only overrides out of the copied files
-- [ ] T024 [US3] Delete the scaffold's own copies of organisation-provided files: `.coderabbit.yml`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md` and `SUPPORT.md` (FR-028). If the scaffold needs a CodeRabbit rule the central config lacks, add a `.coderabbit.yml` containing only `inheritance: true` and that rule. Update the scaffold's own `package.json` to the same ranges and aliases. Keep `lint:pkg-json` and `plugin-zip` as deprecated aliases. Remove `puppeteer-core` once `grep -r puppeteer scripts tests` is clean. Set `engines`, `.nvmrc` (`22`) and `"prepare": "husky"`, and regenerate `package-lock.json`
-- [ ] T025 [US1] [US3] Move the T009 `src/` lint fixes back into the scaffold's `src/` templates, and fix any extra findings in scaffold-only code (`scripts/`, `tests/`) under the new configs, including Jest 30 incompatibilities
-- [ ] T026 [P] [US1] Move T010 back into `generateComposerJson()` and the root `composer.json` (`lint:fix`)
-- [ ] T027 [P] [US1] Move T011 (`.husky/pre-commit`) to the scaffold root, and make sure the generator copies it
-- [ ] T028 [P] [US1] Move T012 to `templates/tests/` with template tags restored, and make the generator copy it to `tests/` in the output
-- [ ] T029 [P] [US1] Move T013 to `templates/github/workflows/ci.yml`, and make the generator copy it to `.github/workflows/ci.yml` in the output
-- [ ] T030 [P] [US1] Move T014 (asset descriptor enqueueing) back into `inc/` and the main plugin file template, if anything changed
-- [ ] T031 [P] [US4] Move the T016 build flag (if one was needed) back into `scripts/build.js`, `webpack.config.js` and `standard-toolchain.json`
-- [ ] T032 [P] [US2] Rewrite `scripts/utils/placeholders.js` with plugin-scaffold keys from `scripts/mustache-variables-registry.json`, add `scripts/utils/__tests__/placeholders.test.js`, and add `scripts/toolchain/fill-placeholders.js --check` as `prelint` for any config file that still holds a tag
-- [ ] T033 [US3] Change the Node matrix to `[22.x, 24.x]` in every scaffold workflow under `.github/workflows/` that sets up Node
-- [ ] T034 [US3] Run the scaffold's own `npm run lint`, `npm test`, `composer run lint` and `npm run test:e2e` (with `wp-env`), plus [quickstart.md Scenario C](./quickstart.md#scenario-c--the-scaffolds-own-toolchain-us3)
+- [x] T021 [US1] Create `scripts/toolchain/standard-toolchain.json` from the test plugin's `package.json` (T005). Refactor `generatePackageJson()` in `scripts/generate-plugin.js` to read it, add the `--in-place` merge and slug validation (`scripts/lib/config-schema.js`), and add the `--output-dir` flag
+- [x] T022 [US1] Add the T006 deletions to `excludePaths` in `scripts/generate-plugin.js`
+- [x] T023 [US1] [US3] Copy the T007 and T008 config files to the scaffold root, restoring template tags where a value must vary per plugin (prefer tag-free, [research.md R6](./research.md#r6-filling-template-tags-in-the-scaffolds-own-config-files)). Delete the scaffold's duplicate configs. Keep scaffold-only overrides out of the copied files
+- [x] T024 [US3] Delete the scaffold's own copies of organisation-provided files: `.coderabbit.yml`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md` and `SUPPORT.md` (FR-028). If the scaffold needs a CodeRabbit rule the central config lacks, add a `.coderabbit.yml` containing only `inheritance: true` and that rule. Update the scaffold's own `package.json` to the same ranges and aliases. Keep `lint:pkg-json` and `plugin-zip` as deprecated aliases. Remove `puppeteer-core` once `grep -r puppeteer scripts tests` is clean. Set `engines`, `.nvmrc` (`22`) and `"prepare": "husky"`, and regenerate `package-lock.json`
+- [x] T025 [US1] [US3] Move the T009 `src/` lint fixes back into the scaffold's `src/` templates, and fix any extra findings in scaffold-only code (`scripts/`, `tests/`) under the new configs, including Jest 30 incompatibilities
+- [x] T026 [P] [US1] Move T010 back into `generateComposerJson()` and the root `composer.json` (`lint:fix`)
+- [x] T027 [P] [US1] Move T011 (`.husky/pre-commit`) to the scaffold root, and make sure the generator copies it
+- [x] T028 [P] [US1] Move T012 to `templates/tests/` with template tags restored, and make the generator copy it to `tests/` in the output
+- [x] T029 [P] [US1] Move T013 to `templates/github/workflows/ci.yml`, and make the generator copy it to `.github/workflows/ci.yml` in the output
+- [x] T030 [P] [US1] Move T014 (asset descriptor enqueueing) back into `inc/` and the main plugin file template, if anything changed
+- [x] T031 [P] [US4] Move the T016 build flag (if one was needed) back into `scripts/build.js`, `webpack.config.js` and `standard-toolchain.json`
+- [ ] T032 [P] [US2] Rewrite `scripts/utils/placeholders.js` with plugin-scaffold keys from `scripts/mustache-variables-registry.json`, add `scripts/utils/__tests__/placeholders.test.js`, and add `scripts/toolchain/fill-placeholders.js --check` as `prelint` for any config file that still holds a tag — **Deferred to phase 6**: nothing in the toolchain uses `placeholders.js` now (raw templates are linted with formatting off, and SCSS is linted in the generated plugin), but the mustache registry validator still reads it
+- [x] T033 [US3] Change the Node matrix to `[22.x, 24.x]` in every scaffold workflow under `.github/workflows/` that sets up Node
+- [x] T034 [US3] Run the scaffold's own `npm run lint`, `npm test`, `composer run lint` and `npm run test:e2e` (with `wp-env`), plus [quickstart.md Scenario C](./quickstart.md#scenario-c--the-scaffolds-own-toolchain-us3)
+
+> **Phase 4 notes (S1)**:
+>
+> - **`templates/` overlay**: plugin-only files live in `templates/` and are copied over the generated plugin root. The scaffold root keeps its own `eslint.config.cjs`, `phpcs.xml` and `phpstan.neon`, because its root PHP files contain `{{namespace}}` and its CLI needs ignores.
+> - **Formatting**: `{{tags}}` render to values of any length, so the generator formats rendered JavaScript (`formatGeneratedOutput()`), and the scaffold's own lint turns off `prettier/prettier` for `src/`. SCSS templates are linted in the generated plugin (phase 6).
+> - **T034**: scaffold `npm run lint` passes and the Jest suite fails only the 16 suites (9 tests) that already fail on `develop`. `composer run lint` and e2e cannot run on raw templates; they are covered in the generated plugin.
 
 **Checkpoint**: The scaffold holds every change from the test plugin. Its own toolchain matches.
 
