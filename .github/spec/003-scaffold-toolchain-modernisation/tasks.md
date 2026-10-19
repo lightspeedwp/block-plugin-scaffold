@@ -35,10 +35,10 @@ description: 'Task list for feature implementation'
 
 **Purpose**: Generate the test plugin from the user's config and record the starting state
 
-- [ ] T001 Receive `$TEST_CONFIG` from the user (do not start before then). Validate it with `node scripts/generate-plugin.js --validate $TEST_CONFIG`. Create branch L1 in `$TEST_PLUGIN` from `develop`, and open its draft pull request ([Branches & Pull Requests](#branches--pull-requests))
-- [ ] T002 Confirm the existing baseline (`feba74c`) was generated from `$TEST_CONFIG` by the current scaffold `develop`. If it was not, or the scaffold has changed since, regenerate with the **current, unchanged** generator: `node scripts/generate-plugin.js --config $TEST_CONFIG --output-dir <tmp>`. Then copy the output over `$TEST_PLUGIN`, keeping `.git`
-- [ ] T003 Record the scaffold commit SHA the baseline came from at the top of `$AUDIT`, and tag the baseline commit `baseline-003` in `$TEST_PLUGIN`
-- [ ] T004 Baseline audit in `$TEST_PLUGIN`: run `npm install`, then every standard alias in [command-aliases.md](./contracts/command-aliases.md), `composer install` and `composer run lint`. Record each result, the config file each tool actually loads (`--print-config` or debug output) and every leaked scaffold-only file in `$AUDIT`. Also list every file that duplicates config the organisation already provides (see [research.md R15](./research.md#r15-inherit-organisation-config-instead-of-copying-it)). This is the starting defect list
+- [x] T001 Receive `$TEST_CONFIG` from the user (do not start before then). Validate it with `node scripts/generate-plugin.js --validate $TEST_CONFIG`. Create branch L1 in `$TEST_PLUGIN` from `develop`, and open its draft pull request ([Branches & Pull Requests](#branches--pull-requests))
+- [x] T002 Confirm the existing baseline (`feba74c`) was generated from `$TEST_CONFIG` by the current scaffold `develop`. If it was not, or the scaffold has changed since, regenerate with the **current, unchanged** generator: `node scripts/generate-plugin.js --config $TEST_CONFIG --output-dir <tmp>`. Then copy the output over `$TEST_PLUGIN`, keeping `.git`
+- [x] T003 Record the scaffold commit SHA the baseline came from at the top of `$AUDIT`, and tag the baseline commit `baseline-003` in `$TEST_PLUGIN`
+- [x] T004 Baseline audit in `$TEST_PLUGIN`: run `npm install`, then every standard alias in [command-aliases.md](./contracts/command-aliases.md), `composer install` and `composer run lint`. Record each result, the config file each tool actually loads (`--print-config` or debug output) and every leaked scaffold-only file in `$AUDIT`. Also list every file that duplicates config the organisation already provides (see [research.md R15](./research.md#r15-inherit-organisation-config-instead-of-copying-it)). This is the starting defect list
 
 **Checkpoint**: The test plugin exists, has a baseline commit, and its defects are recorded.
 
