@@ -1,6 +1,6 @@
 # Implementation Plan: Scaffold Toolchain Modernisation
 
-**Branch**: `docs/003-scaffold-toolchain-modernisation` (planning only; each implementation phase gets its own `feat/`, `chore/` or `ci/` branch) | **Date**: 2026-10-19 | **Spec**: [spec.md](./spec.md)
+**Branch**: `documentation/003-scaffold-toolchain-modernisation` (planning only; each implementation phase gets its own `feat/`, `chore/` or `ci/` branch) | **Date**: 2026-10-19 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/.github/spec/003-scaffold-toolchain-modernisation/spec.md`
 

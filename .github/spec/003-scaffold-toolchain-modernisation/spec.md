@@ -1,6 +1,6 @@
 # Feature Specification: Scaffold Toolchain Modernisation
 
-**Feature Branch**: `docs/003-scaffold-toolchain-modernisation`
+**Feature Branch**: `documentation/003-scaffold-toolchain-modernisation`
 
 **Created**: 2026-10-19
 

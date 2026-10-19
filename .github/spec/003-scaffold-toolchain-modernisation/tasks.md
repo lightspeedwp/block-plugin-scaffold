@@ -204,7 +204,7 @@ After T025 + T026 merge into the Phase 2 branch:
 | 1. Lock & single source of truth    | `feat/003-toolchain-definition` | T001–T024 (without T022)     | Phase 1 _Repository Audit & Lock_  |
 | 2. Config uniformity & version jump | `chore/003-toolchain-upgrade`   | T025–T032, T035, T045        | Phase 2 _Configuration Uniformity_ |
 | 3. CI & hooks                       | `ci/003-generation-check`       | T022, T023, T033, T034, T036 | Phase 3 _CI/CD Pipeline Update_    |
-| 4. Modern APIs & docs               | `docs/003-toolchain-docs`       | T037–T043, T046, T047        | Phase 4 _Documentation & Rollout_  |
+| 4. Modern APIs & docs               | `documentation/003-toolchain-docs`       | T037–T043, T046, T047        | Phase 4 _Documentation & Rollout_  |
 
 T044 (changelog) applies to every pull request.
 
