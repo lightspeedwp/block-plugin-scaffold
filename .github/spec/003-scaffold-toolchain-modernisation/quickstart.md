@@ -20,14 +20,20 @@ composer install
 
 ---
 
-## Scenario A — A generated plugin works out of the box (US1)
+## Scenario A — The test plugin works out of the box (US1)
+
+Run this in the hand-fixed test plugin (`$TEST_PLUGIN`, tasks T005–T015), and again in the regenerated copy (T037).
 
 ```bash
-node scripts/generate-plugin.js --config tests/fixtures/generation/default.json --output-dir /tmp
+cd "$TEST_PLUGIN" && npm install && npm run build && npm run lint:js && npm run lint:css && npm run lint:pkg && npm run test:unit
 ```
 
 ```bash
-cd /tmp/lsx-gen-check && npm install && npm run build && npm run lint:js && npm run lint:css && npm run lint:pkg && npm run test:unit
+cd "$TEST_PLUGIN" && npm run env:start && npm run test:e2e
+```
+
+```bash
+cd "$TEST_PLUGIN" && composer install && composer run lint
 ```
 
 **Expected**:
@@ -35,6 +41,8 @@ cd /tmp/lsx-gen-check && npm install && npm run build && npm run lint:js && npm 
 - Every command exits with code 0, and the install reports no `ERESOLVE` warnings.
 - `package.json` matches [generated-package-manifest.md](./contracts/generated-package-manifest.md).
 - `build/blocks/*/` each contain `index.js` and `index.asset.php`, and each `dependencies` array lists `wp-*` handles. The bundles contain no React or WordPress package source.
+- No scaffold-only files are present (`.github/skills`, `.github/spec`, the scaffold's workflows and similar). `.github/workflows/ci.yml` is the plugin's own workflow.
+- `tests/js` and `tests/e2e` contain the starter tests, and both test commands run them.
 - The root contains exactly one each of `eslint.config.cjs`, `.stylelintrc.json`, `.prettierrc.js`, `.npmpackagejsonlintrc.json` and `playwright.config.js`.
 
 ## Scenario B — The generation check catches a broken template (US2)
@@ -85,7 +93,7 @@ npm run lint:pkg && npm run lint:pkg-json && npm run zip && npm run plugin-zip
 
 ## Scenario D — Modern APIs are available (US4)
 
-In `/tmp/lsx-gen-check` from Scenario A, add `src/blocks/<block>/view.js` containing `import { store } from '@wordpress/interactivity';`, then set `"viewScriptModule": "file:./view.js"` in that block's `block.json`.
+In `$TEST_PLUGIN` (tasks T016–T017), add `src/blocks/<block>/view.js` containing `import { store } from '@wordpress/interactivity';`, then set `"viewScriptModule": "file:./view.js"` in that block's `block.json`.
 
 ```bash
 npm run build
@@ -100,3 +108,17 @@ grep -rnE "lint:pkg-json|plugin-zip|puppeteer|\.eslintrc|\.prettier\.config\.cjs
 ```
 
 **Expected**: Matches only in deprecation notes.
+
+## Scenario F — Round-trip proof (FR-027)
+
+After the move-back (tasks T018–T034), regenerate from the updated scaffold with the same config:
+
+```bash
+node scripts/generate-plugin.js --config "$TEST_CONFIG" --output-dir /tmp/rt
+```
+
+```bash
+node scripts/toolchain/compare-toolchain.js "$TEST_PLUGIN" /tmp/rt/<slug>
+```
+
+**Expected**: 0 differences in toolchain files (SC-009). Then run Scenario A in `/tmp/rt/<slug>` with no edits.

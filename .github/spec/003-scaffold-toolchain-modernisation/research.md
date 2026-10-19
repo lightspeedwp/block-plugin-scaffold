@@ -183,3 +183,18 @@ A new `generation-check` job in `.github/workflows/ci-cd.yml` runs it on Node 22
 **Decision**: Remove `puppeteer-core` from devDependencies after checking that no script, test or config file imports it (`grep -r "puppeteer" scripts tests`). If something does, move it to Playwright in the same task.
 
 **Rationale**: The source document marks the Puppeteer-based `@wordpress/e2e-tests` route as deprecated. The repository already runs end-to-end tests with Playwright, so `puppeteer-core` looks like a leftover.
+
+---
+
+## R14. Working in a generated test plugin first
+
+**Decision**: Make and prove every toolchain change in a plugin generated from a user-supplied config, then move the changes back into the scaffold. A round-trip comparison of toolchain files (`scripts/toolchain/compare-toolchain.js`) proves the move-back is complete.
+
+**Rationale**: The scaffold is a template, not the thing that runs in production. Many of the defects found while reviewing this plan only show up in generated output: leaked scaffold workflows that call missing scripts, duplicate configs copied across, no starter tests, and a `lint-staged` rule calling a Composer script that does not exist. Fixing them in the real output first means each fix has been seen working before it is turned back into a template. The test plugin's Git history doubles as an exact checklist for moving the changes back.
+
+**Alternatives considered**:
+
+- _Edit the scaffold and regenerate after every change_: rejected, because each loop runs the whole generator and install, and a mistake in template-tag substitution hides the toolchain problem being fixed.
+- _Use only committed fixtures, with no user-supplied plugin_: rejected for the fixing stage, because a real config exercises more of the generator (post types, SCF fields, functional-only choices). The fixtures are derived from it afterwards (T038), with client details removed.
+
+**Guardrails**: The test plugin stays outside the scaffold's Git history (`generated-plugins/` is ignored), and the user's config is not committed without their agreement. The comparison covers only toolchain files, so differences caused by the plugin's own content do not count.

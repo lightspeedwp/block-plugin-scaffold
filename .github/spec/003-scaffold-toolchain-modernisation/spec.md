@@ -14,12 +14,24 @@
 
 The source document proposes a standard toolchain for LightSpeed scaffolds: one canonical package manifest, official WordPress lint, format and test configurations, a standard set of command aliases, Playwright-based end-to-end testing, pre-commit hooks, and a CI step that proves a generated project installs and builds.
 
-Comparing the document with this repository shows four differences that shape the plan:
+Comparing the document with this repository shows five differences that shape the plan:
 
 1. **The scaffold's own manifest does not use template tags.** The root `package.json` already uses resolvable example values (`example-plugin`, `Example Author`) so `npm install` works on the raw repository. The generator replaces those values. The document's "Mustache tags break `npm install`" problem therefore does not apply to the root manifest. It does apply to some config files, for example the `{{namespace}}` pattern in `.stylelint.config.cjs`.
 2. **Generated plugins receive a minimal, hand-written manifest.** `generatePackageJson()` in `scripts/generate-plugin.js` writes seven scripts and four devDependencies, with versions hard-coded in the generator. A generated plugin therefore lacks the lint, format, test and package-lint tooling that the scaffold itself uses.
 3. **The document's version numbers are out of date.** For example, it proposes `@wordpress/scripts ^30` and `@wordpress/components ^28`; the repository already uses `31.1.0` and `30.9.0`, and the current stable releases are newer still. Copying the document's numbers would be a downgrade.
 4. **The repository has toolchain drift.** It has duplicate lint and format config files (`.eslintrc.cjs` and `.eslint.config.cjs`, `.prettierrc.js` and `.prettier.config.cjs`, `jest.config.js` and `.jest.config.cjs`), a deprecated Puppeteer dependency, no `playwright.config.*`, no Husky install hook, a custom package-lint config that does not extend the WordPress one, and a `scripts/utils/placeholders.js` file copied from the theme scaffold (`{{theme_slug}}`).
+5. **Generated plugins inherit scaffold-only files that do not work for them.** The generator copies every root file and folder that is not on its exclusion list. A generated plugin therefore receives both duplicate config files, the scaffold's seven GitHub Actions workflows (which call `plugin-zip`, `test:e2e`, `size-limit`, `update-version` and other scripts the generated manifest does not define), the scaffold's `.github/skills`, `spec`, `projects` and `schemas` folders, and a `lint-staged` rule that runs `composer run lint:fix`, a Composer script that neither the scaffold nor generated plugins define. `tests/` is excluded entirely, so a generated plugin has no starter unit or end-to-end tests to run.
+
+## Delivery Approach
+
+The work is done **in a generated test plugin first, then moved back into the scaffold**:
+
+1. **Generate** a test plugin with the current generator, from a plugin config the user supplies. Put it under version control straight away, so the untouched output is the baseline.
+2. **Fix in the test plugin**. Make every toolchain change (manifest, config files, hooks, starter tests, CI workflow, module build) directly in the generated plugin and commit each one there, until the plugin passes every check in User Story 1.
+3. **Move back** each change into the scaffold source it came from: root config files, generator functions or template files. Put template tags back in place of the test plugin's own values.
+4. **Prove the round trip**. Regenerate the test plugin from the updated scaffold, using the same config, into a fresh folder. Its toolchain files must match the hand-fixed test plugin, with no differences.
+
+The test plugin's commit history is the list of changes to move back. The round-trip comparison proves nothing was missed.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -35,7 +47,7 @@ A LightSpeed developer generates a new client plugin from the scaffold. Without 
 
 1. **Given** a valid plugin config, **When** the developer generates a plugin, **Then** the generated package manifest holds the plugin's own name, version, description, author, licence, homepage, issue-tracker URL and repository URL, with no unresolved template tags and no scaffold example values.
 2. **Given** a freshly generated plugin, **When** the developer installs dependencies, **Then** installation completes without peer-dependency conflicts.
-3. **Given** a freshly generated plugin with dependencies installed, **When** the developer runs each standard command (build, start, format, JavaScript lint, style lint, package lint, unit tests, end-to-end tests, package update, distribution ZIP), **Then** each command exists under the same name as in every other LightSpeed scaffold, and build, lint and unit tests exit successfully.
+3. **Given** a freshly generated plugin with dependencies installed, **When** the developer runs each standard command (build, start, format, JavaScript lint, style lint, package lint, unit tests, end-to-end tests, package update, distribution ZIP), **Then** each command exists under the name in the [command alias contract](./contracts/command-aliases.md), and build, lint, unit tests and (with the local WordPress environment running) end-to-end tests exit successfully.
 4. **Given** a freshly generated plugin, **When** the developer opens the project root, **Then** it contains exactly one config file each for JavaScript linting, style linting, formatting, package linting and end-to-end tests, and each one extends the official WordPress preset.
 5. **Given** a freshly generated plugin, **When** the developer builds it, **Then** every block's compiled script has a generated dependency descriptor, and the plugin loads its scripts from that descriptor instead of a hand-maintained dependency list.
 
@@ -114,6 +126,8 @@ A developer, or an AI coding assistant working in a generated plugin, reads the 
 - **An upstream WordPress package publishes a new major version** that breaks the standard: generated plugins keep resolving to the locked major range, and the scaffold CI catches the break when the range is deliberately raised.
 - **CI runs with no network access to the package registry**: the generation job fails with a clear install error rather than reporting a false pass.
 - **The functional-only generation mode** (no post types, from spec 002): the generated manifest and toolchain are identical, and the generation check covers this mode as well.
+- **The generated plugin is not yet a Git repository**: installing dependencies still succeeds. The pre-commit hook setup skips quietly and installs once the folder is put under version control.
+- **The test plugin's config uses features the fixtures do not** (for example, extra post types or SCF field groups): the round-trip comparison still covers only toolchain files, so content differences caused by the config do not count as failures.
 - **End-to-end tests need a running WordPress**: the generation check in CI runs build, lint and unit tests only; end-to-end tests run in the existing job that starts the local WordPress environment.
 
 ## Requirements _(mandatory)_
@@ -157,9 +171,16 @@ A developer, or an AI coding assistant working in a generated plugin, reads the 
 - **FR-021**: The setup and development documentation (`README.md`, `DEVELOPMENT.md`, `docs/GENERATE_PLUGIN.md`) MUST describe the standard command aliases and single config files.
 - **FR-022**: The instruction files under `.github/instructions/` that cover JavaScript, testing and block development MUST reference the standard commands, the WordPress Playwright utilities and current block-editor hooks, and MUST NOT reference removed config files or deprecated test packages.
 
-**Change control**
+**Generated plugin contents**
+
+- **FR-024**: A generated plugin MUST include starter tests: at least one unit test and one end-to-end smoke test (the editor loads and each generated block can be inserted). The `test:unit` and `test:e2e` commands must therefore exercise real code.
+- **FR-025**: A generated plugin MUST NOT contain scaffold-only files: the scaffold's own workflows, agent skills, specs, project trackers, schemas or AI-tool folders. It MUST instead receive one plugin CI workflow, made from a template, that calls only commands its own manifest defines.
+- **FR-026**: Every command named in the pre-commit staged-file rules MUST exist in the plugin's own package or Composer scripts, both in the scaffold and in generated plugins.
+
+**Delivery and change control**
 
 - **FR-023**: The work MUST be delivered as separate pull requests per phase against `develop`, each with a changelog entry and a short rationale.
+- **FR-027**: Every toolchain change MUST first be proven in a generated test plugin and then moved back into the scaffold's source files (see _Delivery Approach_). Before a phase's pull request is opened, regenerating the test plugin from the updated scaffold MUST reproduce the hand-fixed test plugin's toolchain files exactly.
 
 ### Key Entities
 
@@ -167,6 +188,8 @@ A developer, or an AI coding assistant working in a generated plugin, reads the 
 - **Generated Plugin Manifest**: The package manifest written into each generated plugin. It combines the plugin's metadata from its config with the Standard Toolchain Definition.
 - **Command Alias Map**: The standard command names and what each one runs. Shared with the theme scaffold.
 - **Generation Fixture**: A committed plugin config used only by the CI generation check, with one variant per generation mode.
+- **Test Plugin**: A plugin generated from a user-supplied config. It is used as the workbench where toolchain changes are made and proven before they are moved back into the scaffold. It is kept under its own version control, outside the scaffold's history.
+- **Toolchain Files**: The files whose contents must match exactly in the round-trip comparison: the package manifest (except metadata), the Composer manifest's scripts, config files for lint, format and tests, hook files, the plugin CI workflow and starter tests.
 - **Placeholder Map**: The table of template tags and the test values that replace them when the scaffold lints its own templated files.
 
 ## Success Criteria _(mandatory)_
@@ -178,12 +201,15 @@ A developer, or an AI coding assistant working in a generated plugin, reads the 
 - **SC-003**: 0 unresolved template tags or scaffold example values appear in the metadata of any generated plugin, as verified by the CI generation check.
 - **SC-004**: Every pull request to `develop` that breaks plugin generation is blocked by CI before merge. Measured by a seeded break on a test branch failing the required check.
 - **SC-005**: The scaffold repository root has exactly one config file per tool, down from three duplicated pairs today.
-- **SC-006**: All 10 standard command aliases exist with identical names in the plugin scaffold, in every generated plugin and in the theme scaffold.
+- **SC-006**: All 10 standard command aliases exist with identical names in the plugin scaffold and in every generated plugin. Agreement with the theme scaffold is tracked in that repository.
 - **SC-007**: Generated plugin script bundles contain no copies of WordPress-provided packages, as verified by the dependency descriptor listing them as external.
 - **SC-008**: Documentation and instruction files contain 0 references to removed command names, removed config files or deprecated test packages, outside the changelog and deprecation notes.
+- **SC-009**: Regenerating the test plugin from the updated scaffold produces 0 differences in toolchain files compared with the hand-fixed test plugin, at the end of every delivery phase.
+- **SC-010**: A generated plugin's own CI workflow passes on its first push, with no edits.
 
 ## Assumptions
 
+- **Test plugin**: The user supplies the test plugin's config. It is generated with this repository's generator and kept outside the scaffold's Git history (for example under the ignored `generated-plugins/` folder, with its own `git init`).
 - **Scope**: This spec covers the plugin scaffold only. The theme scaffold is updated in a separate spec and pull request, and the shared command alias names are agreed between the two.
 - **Version numbers**: The source document's version numbers are examples. The fixed ranges are set at implementation time to the current stable major of each package, and must never be lower than what the scaffold already uses (see [research.md](./research.md)).
 - **Build engine**: The plugin stays on `@wordpress/scripts`. The newer esbuild-based `@wordpress/build` is still pre-1.0 and is out of scope; it is noted for a future review.

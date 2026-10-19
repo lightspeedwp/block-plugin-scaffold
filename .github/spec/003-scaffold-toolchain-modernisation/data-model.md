@@ -85,3 +85,24 @@ Shared by name with the theme scaffold. Only the commands behind an alias may di
 | value | string              | A test value matching the root manifest's example values (for example `{{slug}}` → `example-plugin`) |
 
 **Validation rules**: Every key in `mustache-variables-registry.json` that appears in a lintable config file has an entry in the map. A unit test fails on a tag found in a config file that has no entry.
+
+---
+
+## 6. Test Plugin (workbench)
+
+**Location**: `$TEST_PLUGIN`, by default `generated-plugins/<slug>/` (ignored by the scaffold's Git), with its own Git repository
+
+| Attribute       | Description                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Config          | `$TEST_CONFIG`, supplied by the user; not committed without their agreement                                              |
+| Baseline commit | The untouched generator output, tagged with the scaffold commit SHA                                                      |
+| Fix commits     | One for each change; each message names its move-back target                                                             |
+| Audit           | `.github/spec/003-scaffold-toolchain-modernisation/config-audit.md`: baseline defects and the commit that fixed each one |
+
+**Lifecycle**:
+
+```text
+generated ──baseline commit──▶ being fixed ──all of Scenario A green──▶ ready to move back ──round trip = 0 diff──▶ archived
+```
+
+**Toolchain files compared in the round trip**: `package.json` (except metadata fields), `composer.json → scripts`, `eslint.config.cjs`, `.stylelintrc.json`, `.prettierrc.js`, `.npmpackagejsonlintrc.json`, `jest.config.js`, `playwright.config.js`, `.husky/*`, `.github/workflows/ci.yml`, `tests/js/**`, `tests/e2e/**`, `webpack.config.js`.

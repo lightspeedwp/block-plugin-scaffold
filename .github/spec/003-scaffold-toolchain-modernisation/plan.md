@@ -16,14 +16,15 @@ Bring the block plugin scaffold, and every plugin it generates, onto one standar
 - pre-commit hooks that are actually installed;
 - the current stable major of every `@wordpress/*` package.
 
-The main technical move is a **Standard Toolchain Definition** (`scripts/toolchain/standard-toolchain.json`). It replaces the hard-coded manifest in `generatePackageJson()`. A **generation check** (`npm run check:generation`) generates a throwaway plugin in CI and installs, builds, lints and unit-tests it on every pull request.
+The main technical move is a **Standard Toolchain Definition** (`scripts/toolchain/standard-toolchain.json`). It replaces the hard-coded manifest in `generatePackageJson()`. Changes are first proven in a **test plugin** generated from a user-supplied config, then moved back into the scaffold. Regenerating the test plugin must reproduce them exactly. A **generation check** (`npm run check:generation`) then repeats that proof in CI on committed fixtures for every pull request.
 
-The plan departs from the source document in four places, each justified in [research.md](./research.md):
+The plan departs from the source document in five places, each justified in [research.md](./research.md):
 
 1. The root manifest keeps its example values instead of switching to `{{slug}}` tags (R1).
 2. Version ranges follow current stable releases, not the document's out-of-date numbers (R3).
 3. ESLint uses the flat config format, not `.eslintrc.json` (R4).
 4. Tools that `@wordpress/scripts` already provides are not listed twice (R5).
+5. The doc's inline `sed` stub replacement in CI is replaced by real generation from fixture configs, after the changes are proven in a generated test plugin (R7, R14).
 
 ## Technical Context
 
@@ -103,12 +104,17 @@ scripts/
 ├── toolchain/                    # NEW
 │   ├── standard-toolchain.json
 │   ├── check-generation.js
+│   ├── compare-toolchain.js      # round-trip comparison of toolchain files
 │   ├── fill-placeholders.js
 │   └── __tests__/
 │       ├── standard-toolchain.test.js
 │       ├── generate-package-json.test.js
 │       └── check-generation.test.js
 └── utils/placeholders.js         # rewritten with plugin-scaffold keys
+
+templates/                        # NEW: copied into generated plugins only
+├── tests/                        # starter unit + e2e tests (FR-024)
+└── github/workflows/ci.yml       # plugin CI workflow (FR-025)
 
 tests/
 ├── fixtures/generation/          # NEW: default.json, functional-only.json
@@ -123,20 +129,38 @@ README.md, DEVELOPMENT.md, CHANGELOG.md
 
 **Structure Decision**: Single project. The new toolchain code goes in `scripts/toolchain/`, so it is excluded from generated plugins by the existing `scripts` entry in the generator's exclusion list. The config files that generated plugins need are copied explicitly by the generator from the root.
 
+## Way of Working: Generate, Fix, Move Back
+
+All toolchain work starts in a **test plugin** generated from a config the user supplies ([research.md R14](./research.md#r14-working-in-a-generated-test-plugin-first)):
+
+```text
+$TEST_CONFIG ──generate (current scaffold)──▶ $TEST_PLUGIN  (git init, baseline commit)
+                                                   │  fix until green: one commit per change,
+                                                   │  each naming its move-back target
+                                                   ▼
+                     scaffold sources ◀──move back── test plugin commits
+                           │
+                           └──regenerate (same config)──▶ /tmp/rt/<slug>
+                                                             │
+                     compare-toolchain $TEST_PLUGIN /tmp/rt/<slug>  ⇒ 0 differences
+```
+
+- **Fixing in the test plugin** (tasks T001–T017) changes nothing in the scaffold, and each step can be undone with Git in the test plugin.
+- **Moving back** (T018–T034) is mostly mechanical. The risky parts, the version jump and the config rewrite, have already been proven to work.
+- **The round trip** (T035–T037) is the acceptance gate for pull request 1. The CI generation check (T038–T043) then repeats it on committed fixtures for every future pull request.
+
 ## Delivery Phases (pull requests)
 
-Each phase is one pull request against `develop`, matching the source document's roadmap. Phases 1 and 2 can be reviewed in parallel. Phase 3 depends on both.
-
-| Phase                                   | Source document phase              | Pull request scope                                                                                                                                                                  | User stories                     | Risk                                     |
-| --------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------- |
-| **1. Lock & single source of truth**    | Phase 1 _Repository Audit & Lock_  | `standard-toolchain.json` and schema, `generatePackageJson()` refactor, `--output-dir`, generation fixtures, `placeholders.js` fix, `check:generation` command                      | US1 (manifest), US2 (command)    | Medium                                   |
-| **2. Config uniformity & version jump** | Phase 2 _Configuration Uniformity_ | Remove duplicate configs, flat ESLint, `.stylelintrc.json`, package-lint preset, `playwright.config.js`, remove Puppeteer, all ranges raised to current majors, Node 22, lint fixes | US3, US1 (config files)          | **High**: isolated so it can be reverted |
-| **3. CI & hooks**                       | Phase 3 _CI/CD Pipeline Update_    | `generation-check` required job, CI Node matrix, Husky `prepare` and hook, standard aliases with deprecated aliases                                                                 | US2 (gate), US3 (hooks, aliases) | Low                                      |
-| **4. Modern APIs & docs**               | Phase 4 _Documentation & Rollout_  | Module build check, Interactivity/DataViews guide, docs and instruction updates, constitution PATCH                                                                                 | US4, US5                         | Low                                      |
+| Pull request                  | Source document phase | Scope                                                                                                                                                                                                                    | User stories | Risk                                                                      |
+| ----------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------- |
+| _(no PR)_ Test plugin         | —                     | Generate, audit and fix until green; prove the modern APIs work. Recorded in `config-audit.md` and the test plugin's Git history                                                                                         | US1, US4     | Low: scaffold untouched                                                   |
+| **1. Toolchain moved back**   | Phases 1 and 2        | `standard-toolchain.json` and schema, `generatePackageJson()`, exclusions, one config per tool, starter test and CI templates, Composer `lint:fix`, Husky, version jump, Node 22, placeholder map, round-trip comparison | US1, US3     | Medium: already proven in the test plugin, and the round trip is the gate |
+| **2. Generation check in CI** | Phase 3               | Fixtures, `check:generation`, the required `generation-check` job, first-push CI proof                                                                                                                                   | US2          | Low                                                                       |
+| **3. Docs and governance**    | Phase 4               | Interactivity and DataViews guide, docs, instruction files, constitution PATCH                                                                                                                                           | US4, US5     | Low                                                                       |
 
 ## Complexity Tracking
 
-| Violation                                                                                                                | Why Needed                                                                                                                                   | Simpler Alternative Rejected Because                                                                                                                                                                                                                                             |
-| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The constitution's _Technology & Tooling Constraints_ says Node 18+ / npm 8+; this plan requires Node ≥ 22.22 / npm ≥ 10 | `@wordpress/scripts` 36 (the current stable release) declares `node: ^22.22.2 \|\| ^24.15.0 \|\| >=26`. Node 18 and 20 are past end of life. | Staying on `@wordpress/scripts` 31 would keep Node 18 support, but it contradicts FR-018 (current stable majors) and the source document's aim of removing dependency drift. Handled as a PATCH amendment to the constitution in Phase 4 (task T041), with a Sync Impact Report. |
-| Deviations from the source document (R1, R3, R4, R5)                                                                     | Following the document literally would downgrade packages, break `npm ci` on the scaffold, and use a config format ESLint 10 removes.        | Each deviation keeps the document's _intent_. They are listed in the spec's _Context_ section so reviewers can check them against the document.                                                                                                                                  |
+| Violation                                                                                                                | Why Needed                                                                                                                                   | Simpler Alternative Rejected Because                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The constitution's _Technology & Tooling Constraints_ says Node 18+ / npm 8+; this plan requires Node ≥ 22.22 / npm ≥ 10 | `@wordpress/scripts` 36 (the current stable release) declares `node: ^22.22.2 \|\| ^24.15.0 \|\| >=26`. Node 18 and 20 are past end of life. | Staying on `@wordpress/scripts` 31 would keep Node 18 support, but it contradicts FR-018 (current stable majors) and the source document's aim of removing dependency drift. Handled as a PATCH amendment to the constitution in pull request 3 (task T047), with a Sync Impact Report. |
+| Deviations from the source document (R1, R3, R4, R5)                                                                     | Following the document literally would downgrade packages, break `npm ci` on the scaffold, and use a config format ESLint 10 removes.        | Each deviation keeps the document's _intent_. They are listed in the spec's _Context_ section so reviewers can check them against the document.                                                                                                                                         |
