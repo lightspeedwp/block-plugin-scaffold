@@ -6,6 +6,21 @@ This file records the decisions that turn the source document (_WordPress Scaffo
 
 ---
 
+## Amendments from the test plugin (phase 2)
+
+Phase 2 ([lightspeedwp/ls-test#2](https://github.com/lightspeedwp/ls-test/pull/2)) proved the toolchain in `ls-test` and changed four decisions below. **Where an amendment conflicts with a decision, the amendment wins.** The move-back (phase 4) follows the amendments.
+
+| #   | Changes               | What the test plugin showed                                                                                                                                                                                 | New decision                                                                                                                                                                                                                                                                                            |
+| --- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | R4, R5 (unit tests)   | `@wordpress/scripts` 36 makes Vitest the default `test-unit-js` runner and retires `@wordpress/jest-preset-default` and `@wordpress/jest-console`                                                           | Unit tests use **Vitest 5** with jsdom, `@vitejs/plugin-react-swc` (JSX in `.js`) and Testing Library, configured in `vitest.config.mjs`. No Jest packages                                                                                                                                              |
+| A2  | R4, R5 (config files) | `@wordpress/scripts` ships complete defaults for ESLint, Stylelint, Prettier, npm-package-json-lint and PostCSS                                                                                             | Each config file is a **one-line re-export** of the `@wordpress/scripts` default (`eslint.config.cjs`, `.stylelintrc.json`, `.prettierrc.js`), so no preset packages are listed directly. npm-package-json-lint and PostCSS have **no file**. FR-005's "one config file per tool" becomes "at most one" |
+| A3  | R8                    | `@wordpress/env` 11 depends on `@php-wasm/cli-util`, which requires Node >=24.18 and npm >=11.16; `npm ci` fails on Node 22                                                                                 | `engines`: Node **>=24.18.0**, npm **>=11.16.0**; `.nvmrc` `24`; CI reads `.nvmrc` with no matrix. The constitution PATCH (T047) uses these numbers                                                                                                                                                     |
+| A4  | R4 (Playwright), D17  | `wp-env` can run without Docker (`--runtime=playground`), but serves only one site; its separate tests site is deprecated. The plugin header requires Secure Custom Fields, which a clean environment lacks | `.wp-env.json` installs SCF and sets `testsEnvironment: false`; `playwright.config.js` defaults `WP_BASE_URL` to `http://localhost:8888`                                                                                                                                                                |
+
+The phase 2 audit (`TOOLCHAIN-AUDIT.md` in `ls-test`) also found defects in the scaffold's own templates that the move-back must carry over: the slider `block.json` attributes, `extractImageData()`, missing `__` imports, the paragraph-prefix globals, and `phpcs.xml` exclusions that hid `inc/` from lint (D16–D24).
+
+---
+
 ## R1. Where the template tags live
 
 **Decision**: Keep the scaffold's root `package.json` on resolvable example values (`example-plugin`, `Example Author`). Do not adopt the source document's `{{slug}}` manifest. The generator keeps replacing the example values and writes a fresh manifest for each generated plugin.
