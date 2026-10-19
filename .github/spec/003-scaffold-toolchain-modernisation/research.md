@@ -198,3 +198,31 @@ A new `generation-check` job in `.github/workflows/ci-cd.yml` runs it on Node 22
 - _Use only committed fixtures, with no user-supplied plugin_: rejected for the fixing stage, because a real config exercises more of the generator (post types, SCF fields, functional-only choices). The fixtures are derived from it afterwards (T038), with client details removed.
 
 **Guardrails**: The test plugin stays outside the scaffold's Git history (`generated-plugins/` is ignored), and the user's config is not committed without their agreement. The comparison covers only toolchain files, so differences caused by the plugin's own content do not count.
+
+---
+
+## R15. Inherit organisation config instead of copying it
+
+**Decision**: Delete local copies of anything the organisation provides centrally, from both the scaffold and generated plugins. Keep only true overrides.
+
+| File(s)                                                                      | Provided by                                    | Inherited how                                                                                                                                                                                 | Action                                                                                             |
+| ---------------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `.coderabbit.yml`                                                            | `lightspeedwp/coderabbit` → `.coderabbit.yaml` | CodeRabbit central configuration: applies to repos without their own file                                                                                                                     | Delete. If an override is needed, keep a file with `inheritance: true` plus only that override     |
+| `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`         | `lightspeedwp/.github` (root)                  | GitHub default community health files                                                                                                                                                         | Delete                                                                                             |
+| Issue templates, PR templates, discussion templates                          | `lightspeedwp/.github/.github/`                | GitHub default templates                                                                                                                                                                      | None exist locally; do not add any                                                                 |
+| `LICENSE`, `CODEOWNERS`, `README.md`, `CHANGELOG.md`                         | —                                              | Not inherited by GitHub                                                                                                                                                                       | Keep                                                                                               |
+| ESLint, Stylelint, Prettier, npm-package-json-lint, Jest, Playwright configs | `@wordpress/*` presets (npm)                   | `extends` / `require` of the preset                                                                                                                                                           | Keep one thin file per tool (R4)                                                                   |
+| `.github/workflows/*`                                                        | —                                              | The organisation's reusable workflows (`ai-feedback-validation`, `linear-review-platform`, `orchestrate-phase-progression`, `qodo-pr-agent-reusable`) do not cover plugin build, lint or test | Keep a minimal local `ci.yml`. Review again if the organisation adds a reusable plugin CI workflow |
+| `dependabot.yml`, `.editorconfig`, `.nvmrc`                                  | —                                              | Not inherited by GitHub                                                                                                                                                                       | Keep only if used                                                                                  |
+
+**Rationale**: The user asked for the minimum amount of config. The scaffold's `.coderabbit.yml` is close to a copy of `lightspeedwp/coderabbit/configs/wordpress/coderabbit-wordpress-review.yaml`, so it drifts from the central version for no benefit. Each local health file hides the organisation's version.
+
+**Check**: The central CodeRabbit default uses `language: en-US` and `profile: assertive`, while the scaffold's file sets `language: en`. The org standard is UK English, so if `en-GB` reviews are wanted, set that in the central repository, not as a local override in every repository.
+
+---
+
+## R16. Stacked branches and pull requests
+
+**Decision**: There are two stacks of phase branches, one in `lightspeedwp/ls-test` and one in this repository. Each pull request is opened as a draft and marked ready for review when its phase's last task is done. The full table is in [plan.md](./plan.md#delivery-phases-stacked-pull-requests).
+
+**Rationale**: The user asked to work from the spec branch and continue in later branches as stacked pull requests. A stack keeps each review small while every phase still builds on the one before. The test plugin has its own repository, so its fixes are reviewed there, and the scaffold pull requests link to them.

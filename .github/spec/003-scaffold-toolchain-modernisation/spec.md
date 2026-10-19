@@ -26,12 +26,12 @@ Comparing the document with this repository shows five differences that shape th
 
 The work is done **in a generated test plugin first, then moved back into the scaffold**:
 
-1. **Generate** a test plugin with the current generator, from a plugin config the user supplies. Put it under version control straight away, so the untouched output is the baseline.
+1. **Generate** a test plugin with the current generator, from a plugin config the user supplies, and put it under version control straight away so the untouched output is the baseline. The test plugin is `ls-test` (see _Assumptions_).
 2. **Fix in the test plugin**. Make every toolchain change (manifest, config files, hooks, starter tests, CI workflow, module build) directly in the generated plugin and commit each one there, until the plugin passes every check in User Story 1.
 3. **Move back** each change into the scaffold source it came from: root config files, generator functions or template files. Put template tags back in place of the test plugin's own values.
 4. **Prove the round trip**. Regenerate the test plugin from the updated scaffold, using the same config, into a fresh folder. Its toolchain files must match the hand-fixed test plugin, with no differences.
 
-The test plugin's commit history is the list of changes to move back. The round-trip comparison proves nothing was missed.
+The test plugin's commit history is the list of changes to move back. The round-trip comparison proves nothing was missed. Each phase is delivered as a stacked pull request, opened as a draft and marked ready for review when the phase's last task is done (see [plan.md](./plan.md#delivery-phases-stacked-pull-requests)).
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -181,6 +181,7 @@ A developer, or an AI coding assistant working in a generated plugin, reads the 
 
 - **FR-023**: The work MUST be delivered as separate pull requests per phase against `develop`, each with a changelog entry and a short rationale.
 - **FR-027**: Every toolchain change MUST first be proven in a generated test plugin and then moved back into the scaffold's source files (see _Delivery Approach_). Before a phase's pull request is opened, regenerating the test plugin from the updated scaffold MUST reproduce the hand-fixed test plugin's toolchain files exactly.
+- **FR-028**: The scaffold and generated plugins MUST NOT keep local copies of configuration the organisation already provides centrally. That means the CodeRabbit config (from `lightspeedwp/coderabbit`) and the community health files GitHub inherits from `lightspeedwp/.github`: code of conduct, contributing guide, security policy, support guide, issue templates and pull request templates. A local file is allowed only when it adds a repository-specific override, and it MUST then contain only that override, inheriting the rest (for example, `inheritance: true` for CodeRabbit).
 
 ### Key Entities
 
@@ -206,10 +207,12 @@ A developer, or an AI coding assistant working in a generated plugin, reads the 
 - **SC-008**: Documentation and instruction files contain 0 references to removed command names, removed config files or deprecated test packages, outside the changelog and deprecation notes.
 - **SC-009**: Regenerating the test plugin from the updated scaffold produces 0 differences in toolchain files compared with the hand-fixed test plugin, at the end of every delivery phase.
 - **SC-010**: A generated plugin's own CI workflow passes on its first push, with no edits.
+- **SC-011**: Neither the scaffold nor a generated plugin contains a local copy of a file that the organisation's central CodeRabbit or `.github` repository already provides.
 
 ## Assumptions
 
-- **Test plugin**: The user supplies the test plugin's config. It is generated with this repository's generator and kept outside the scaffold's Git history (for example under the ignored `generated-plugins/` folder, with its own `git init`).
+- **Test plugin**: The test plugin is `ls-test` (`/Users/warwick/Studio/beta/wp-content/plugins/ls-test`, repository `lightspeedwp/ls-test`), a functional-only plugin already generated from the scaffold. The user supplies the config used to check or regenerate it when work starts. Its changes go through their own stacked pull requests in that repository.
+- **Organisation config**: CodeRabbit supports a central configuration repository (`lightspeedwp/coderabbit`) that applies to every repository without its own file. GitHub serves community health files and templates from `lightspeedwp/.github` to repositories that lack them. Neither covers npm tool configs or workflows, so those stay local; the organisation has no reusable workflow for plugin CI.
 - **Scope**: This spec covers the plugin scaffold only. The theme scaffold is updated in a separate spec and pull request, and the shared command alias names are agreed between the two.
 - **Version numbers**: The source document's version numbers are examples. The fixed ranges are set at implementation time to the current stable major of each package, and must never be lower than what the scaffold already uses (see [research.md](./research.md)).
 - **Build engine**: The plugin stays on `@wordpress/scripts`. The newer esbuild-based `@wordpress/build` is still pre-1.0 and is out of scope; it is noted for a future review.

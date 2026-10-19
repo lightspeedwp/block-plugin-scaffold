@@ -134,7 +134,7 @@ README.md, DEVELOPMENT.md, CHANGELOG.md
 All toolchain work starts in a **test plugin** generated from a config the user supplies ([research.md R14](./research.md#r14-working-in-a-generated-test-plugin-first)):
 
 ```text
-$TEST_CONFIG ──generate (current scaffold)──▶ $TEST_PLUGIN  (git init, baseline commit)
+$TEST_CONFIG ──generate (current scaffold)──▶ $TEST_PLUGIN  (ls-test, baseline commit feba74c)
                                                    │  fix until green: one commit per change,
                                                    │  each naming its move-back target
                                                    ▼
@@ -149,14 +149,28 @@ $TEST_CONFIG ──generate (current scaffold)──▶ $TEST_PLUGIN  (git init,
 - **Moving back** (T018–T034) is mostly mechanical. The risky parts, the version jump and the config rewrite, have already been proven to work.
 - **The round trip** (T035–T037) is the acceptance gate for pull request 1. The CI generation check (T038–T043) then repeats it on committed fixtures for every future pull request.
 
-## Delivery Phases (pull requests)
+## Delivery Phases: Stacked Pull Requests
 
-| Pull request                  | Source document phase | Scope                                                                                                                                                                                                                    | User stories | Risk                                                                      |
-| ----------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------- |
-| _(no PR)_ Test plugin         | —                     | Generate, audit and fix until green; prove the modern APIs work. Recorded in `config-audit.md` and the test plugin's Git history                                                                                         | US1, US4     | Low: scaffold untouched                                                   |
-| **1. Toolchain moved back**   | Phases 1 and 2        | `standard-toolchain.json` and schema, `generatePackageJson()`, exclusions, one config per tool, starter test and CI templates, Composer `lint:fix`, Husky, version jump, Node 22, placeholder map, round-trip comparison | US1, US3     | Medium: already proven in the test plugin, and the round trip is the gate |
-| **2. Generation check in CI** | Phase 3               | Fixtures, `check:generation`, the required `generation-check` job, first-push CI proof                                                                                                                                   | US2          | Low                                                                       |
-| **3. Docs and governance**    | Phase 4               | Interactivity and DataViews guide, docs, instruction files, constitution PATCH                                                                                                                                           | US4, US5     | Low                                                                       |
+There are two stacks: one in the test plugin repository (`lightspeedwp/ls-test`) for the fixing work, and one in this repository for moving the changes back. Each phase is one branch and one pull request.
+
+| #   | Repository              | Phase                     | Branch                                                        | PR base   | Ready for review when |
+| --- | ----------------------- | ------------------------- | ------------------------------------------------------------- | --------- | --------------------- |
+| S0  | `block-plugin-scaffold` | Spec                      | `documentation/003-scaffold-toolchain-modernisation` (PR #47) | `develop` | Already open          |
+| L1  | `ls-test`               | 1. Workbench setup        | `chore/003-baseline-audit`                                    | `develop` | T004 done             |
+| L2  | `ls-test`               | 2. US1 in the test plugin | `feat/003-standard-toolchain`                                 | L1        | T015 done             |
+| L3  | `ls-test`               | 3. US4 in the test plugin | `feat/003-modern-api-check`                                   | L2        | T017 done             |
+| S1  | `block-plugin-scaffold` | 4. Move back              | `feat/003-toolchain-move-back`                                | S0        | T034 done             |
+| S2  | `block-plugin-scaffold` | 5. Round trip             | `test/003-round-trip`                                         | S1        | T037 done             |
+| S3  | `block-plugin-scaffold` | 6. CI gate                | `ci/003-generation-check`                                     | S2        | T043 done             |
+| S4  | `block-plugin-scaffold` | 7. Docs and governance    | `doc/003-toolchain-docs`                                      | S3        | T048 done             |
+
+**Rules**:
+
+- Each phase gets its own branch, cut from the previous phase's branch in the same repository. The first test plugin branch (L1) starts from `ls-test`'s `develop`, and the first scaffold implementation branch (S1) starts from the spec branch (S0).
+- Open each pull request as a **draft** against the branch below it, with the phase's first commit. Mark it **ready for review** only when the phase's last task (the _Ready for review when_ column) is ticked.
+- Merge from the bottom of each stack up. When a lower branch is merged and deleted, GitHub moves the next pull request's base to `develop` automatically.
+- Phase 8 tasks go into the pull request named in each task.
+- New branch names use the org's allowed prefixes (`.github/branch-types.yml` in `lightspeedwp/.github`). `documentation/` is not on that list, so S0 is an exception: it was renamed because a remote `docs` branch blocks `docs/…` names. Later documentation work uses `doc/`.
 
 ## Complexity Tracking
 
