@@ -66,10 +66,10 @@ Shared by name with the theme scaffold. Only the commands behind an alias may di
 
 **Folder**: `tests/fixtures/generation/` (new)
 
-| File                   | Mode                          | Content                                                                                                                              |
-| ---------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `default.json`         | Blocks and post types         | Based on `scripts/fixtures/plugin-config.example.json`, with test-only metadata (`slug: "lsx-gen-check"`, `author: "LightSpeed CI"`) |
-| `functional-only.json` | Spec 002 functional-only mode | The same metadata with `"content_model": "none"`                                                                                     |
+| File                   | Mode                          | Content                                                                                                                                                                                   |
+| ---------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default.json`         | Blocks and post types         | Based on `scripts/fixtures/plugin-config.example.json`, with test-only metadata (`slug: "gen-check"`, `author: "LightSpeed CI"`; the functional-only fixture uses `gen-check-functional`) |
+| `functional-only.json` | Spec 002 functional-only mode | The same metadata with `"content_model": "none"`                                                                                                                                          |
 
 **Validation rules**: Both files validate against `.github/schemas/plugin-config.schema.json`. Neither uses a scaffold example value, so the leftover scan in the generation check is meaningful.
 
