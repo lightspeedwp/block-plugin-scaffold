@@ -1,0 +1,10 @@
+{
+	"slug": "gen-check-functional",
+	"name": "Gen Check Functional",
+	"description": "Fixture for the generation check: functional-only plugin with no content model.",
+	"author": "LightSpeed CI",
+	"author_uri": "https://lightspeedwp.agency",
+	"version": "0.1.0",
+	"license": "GPL-2.0-or-later",
+	"content_model": "none"
+}
