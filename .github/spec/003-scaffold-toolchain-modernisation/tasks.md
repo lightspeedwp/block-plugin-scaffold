@@ -191,7 +191,7 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 - [x] T049 Add a `CHANGELOG.md` entry to each pull request (_Added_, _Changed_, _Deprecated_ or _Removed_)
 - [x] T050 [P] Run `npm audit --omit=dev` before T024 and after T037, and record the change in S1
-- [ ] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md)
+- [x] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md) — raised as lightspeedwp/block-theme-scaffold#12
 - [ ] T052 Archive the test plugin. Keep `$TEST_PLUGIN` and its Git history until S1 and S2 are merged, as the record of what was moved back
 
 ---
