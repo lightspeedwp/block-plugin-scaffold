@@ -13,50 +13,56 @@ This document provides comprehensive information for developers working on {{nam
 
 ## Prerequisites
 
-- **Node.js** 18.0+ and npm 8.0+
+- **Node.js** 24.18+ and npm 11.16+ (see `.nvmrc`)
 - **PHP** 8.0+ with Composer
-- **WordPress** 6.0+ (for testing)
-- **Git** for version control
+- **WordPress** 6.5+
+- **Docker**, or nothing extra if you use the wp-env Playground runtime (below)
 
 ## Environment Setup
 
 ### 1. Clone and Install
 
 ```bash
-npm install
-composer install
-git clone https://github.com/{{author}}/{{plugin_slug}}.git
-cd {{plugin_slug}}
+git clone {{repository_url}}.git
+cd {{slug}}
 npm install
 composer install
 ```
+
+`npm install` also installs the pre-commit hook (Husky), which lints and formats staged files.
 
 ### 2. WordPress Environment
 
-We use `@wordpress/env` for local development:
+We use `@wordpress/env`, which installs Secure Custom Fields alongside the plugin:
 
 ```bash
-# Start WordPress environment
+# Start WordPress (Docker)
 npm run env:start
 
-# Visit your site
-open http://localhost:8888
-
-# WordPress admin
-open http://localhost:8888/wp-admin
-# Username: admin
-# Password: password
+# Or without Docker, using WordPress Playground
+npm run env:start -- --runtime=playground
 ```
 
-### 3. Development Workflow
+The site runs at <http://localhost:8888> (admin: `admin` / `password`).
 
-```bash
-# Start development with hot reload
-npm run start
+### 3. Commands
 
-# In another terminal, watch for PHP changes
-composer run test -- --watch
-```
+| Command | What it does |
+| --- | --- |
+| `npm run start` | Rebuilds on change, with source maps |
+| `npm run build` | Production build, plus an `*.asset.php` file for each script |
+| `npm run format` | Formats JS with the WordPress Prettier config |
+| `npm run lint` | Runs `lint:js`, `lint:css` and `lint:pkg` |
+| `npm run test:unit` | Vitest unit tests in `tests/js` |
+| `npm run test:e2e` | Playwright tests in `tests/e2e` against wp-env |
+| `npm run packages-update` | Updates `@wordpress/*` packages |
+| `npm run zip` | Builds a distribution ZIP |
+| `composer run lint` / `lint:fix` | PHPCS / PHPCBF with WordPress standards |
+| `composer run phpstan` | PHPStan level 6 |
+
+### Configuration files
+
+There is one config per tool, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.cjs`, `.stylelintrc.json`, `.prettierrc.js`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml` and `phpstan.neon`. CodeRabbit settings and community health files (code of conduct, contributing, security, support) are inherited from the LightSpeed organisation, so they are not repeated here.
 
 ## Architecture
 
@@ -185,81 +191,49 @@ src/
 
 ### JavaScript Testing
 
-We use Jest and Testing Library:
+Unit tests use Vitest and Testing Library. They live in `tests/js` and run in jsdom:
 
 ```bash
-# Run all tests
 npm run test:unit
-
-# Watch mode
 npm run test:unit -- --watch
-
-# Coverage report
-npm run test:unit -- --coverage
 ```
 
-#### Test Structure
-
 ```javascript
+import { describe, expect, test } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Edit } from '../edit';
+import SkipLink from '../../../src/components/SkipLink/SkipLink';
 
-describe( '{{slug}} Edit Component', () => {
- it( 'renders correctly', () => {
-  const attributes = { content: 'Test content' };
-  const setAttributes = jest.fn();
+describe( 'SkipLink', () => {
+	test( 'links to the main content', () => {
+		render( <SkipLink /> );
 
-  render( <Edit attributes={ attributes } setAttributes={ setAttributes } /> );
-
-  expect( screen.getByText( 'Test content' ) ).toBeInTheDocument();
- } );
+		expect(
+			screen.getByRole( 'link', { name: 'Skip to main content' } )
+		).toHaveAttribute( 'href', '#maincontent' );
+	} );
 } );
 ```
 
-### PHP Testing
+Import `describe`, `test`, `expect` and `vi` from `vitest`; there are no globals.
 
-We use PHPUnit with WordPress test framework:
+### PHP Checks
 
 ```bash
-# Run PHP tests
-composer run test
-
-# Install test database (first time only)
-./bin/install-wp-tests.sh {{slug|snakeCase}}_test root '' localhost latest
-```
-
-#### Test Structure
-
-```php
-<?php
-class Test_{{namespace|pascalCase}}_Block extends WP_UnitTestCase {
-
- public function test_block_registration() {
-  $this->assertTrue(
-   WP_Block_Type_Registry::get_instance()->is_registered( '{{slug}}/slider' )
-  );
- }
-
- public function test_render_callback() {
-  $attributes = array( 'content' => 'Test content' );
-  $result = {{namespace}}_render_slider( $attributes, '', null );
-
-  $this->assertStringContainsString( 'Test content', $result );
- }
-}
+composer run lint
+composer run phpstan
 ```
 
 ### End-to-End Testing
 
-We use Playwright for E2E testing:
+Playwright tests live in `tests/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. Start wp-env first:
 
 ```bash
-# Run E2E tests
+npm run env:start
 npm run test:e2e
-
-# Debug mode
 npm run test:e2e -- --debug
 ```
+
+Tests run against `WP_BASE_URL`, which defaults to <http://localhost:8888>. Right after a fresh Playground start, the first run can fail with "Not logged in"; run it again.
 
 ## Build Process
 
@@ -290,48 +264,13 @@ This creates optimized assets in `build/`:
 
 ### Build Configuration
 
-The build process is configured via:
+`webpack.config.js` extends `@wordpress/scripts`:
 
-- `webpack.config.js` - Custom webpack configuration
-- `.babelrc` - Babel transpilation settings
-- `postcss.config.js` - PostCSS processing
+- Each block is found through its `block.json`, which builds its scripts, styles and `viewScriptModule`, and copies its `render.php`.
+- The config adds the shared `index` entry (`src/index.js`) and one entry per file in `src/js/`.
+- `--experimental-modules` (set in `build` and `start`) builds script modules for the Interactivity API.
 
-#### Webpack Configuration
-
-The `webpack.config.js` extends `@wordpress/scripts` with custom settings:
-
-**Entry Points:**
-
-- `index` - Main plugin entry (`src/index.js`)
-- One entry per block (`src/blocks/<block>/index.js`)
-
-**Path Aliases:**
-
-- `@` → `src/` directory
-- `@blocks` → `src/` directory
-- `@utils` → `src/shared/utils/` directory
-- `@components` → `src/shared/components/` directory
-
-**Custom Loaders:**
-
-- SVG files processed with `@svgr/webpack` and `url-loader`
-- Supports inline SVG imports in React components
-
-**Optimization:**
-
-- Separate CSS bundles for styles and editor
-- Code splitting for better performance
-- Asset size limits: 512KB per chunk
-
-Example usage of path aliases:
-
-```javascript
-// Instead of:
-import MyComponent from '../../../shared/components/MyComponent';
-
-// Use:
-import MyComponent from '@components/MyComponent';
-```
+WordPress packages are not bundled: each script's `*.asset.php` lists the handles it needs, and the PHP enqueues scripts with those dependencies. See [Interactivity API and DataViews](docs/INTERACTIVITY-AND-DATAVIEWS.md) for front-end state and admin data screens.
 
 ## Deployment
 
@@ -363,14 +302,10 @@ This updates version numbers in:
 ### Plugin ZIP Creation
 
 ```bash
-npm run plugin-zip
+npm run zip
 ```
 
-This creates a distribution-ready ZIP file excluding:
-
-- Development files (`src/`, `tests/`)
-- Configuration files (`.eslintrc`, etc.)
-- Dependencies (`node_modules/`, `vendor/`)
+This creates a distribution-ready ZIP file. `.distignore` leaves out development files (`src/`, `tests/`), config files and dependencies (`node_modules/`, `vendor/`).
 
 ## Debugging
 
@@ -432,29 +367,29 @@ define( 'SCRIPT_DEBUG', true );
 
 #### Build Failures
 
-1. **Clear caches**: `npm run clean && rm -rf node_modules && npm install`
-2. **Check Node version**: Must be 18.0+
-3. **Update dependencies**: `npm update`
+1. **Reinstall**: `rm -rf node_modules && npm ci`
+2. **Check Node version**: Must be 24.18+ (`nvm use`)
+3. **Update WordPress packages**: `npm run packages-update`
 
 #### WordPress Environment Issues
 
 1. **Reset environment**: `npm run env:destroy && npm run env:start`
 2. **Check ports**: Ensure 8888 is available
-3. **Docker issues**: Restart Docker Desktop
+3. **Docker issues**: Restart Docker Desktop, or use `npm run env:start -- --runtime=playground`
 
 #### Test Failures
 
-1. **Update snapshots**: `npm run test:unit -- --updateSnapshot`
-2. **Check database**: Ensure test database is configured
-3. **Clear test cache**: `npm run test:unit -- --clearCache`
+1. **Update snapshots**: `npm run test:unit -- --update`
+2. **E2E login errors**: re-run once after a fresh environment start
+3. **Check database**: Ensure the PHP test database is configured
 
 ### Getting Help
 
-1. Check existing [GitHub Issues](https://github.com/{{author}}/{{plugin_slug}}/issues)
+1. Check existing [GitHub Issues]({{repository_url}}/issues)
 2. Read [WordPress Block Editor Handbook](https://developer.wordpress.org/block-editor/)
 3. Join [WordPress Slack](https://wordpress.slack.com) #core-editor channel
 4. Review [LightSpeed Standards](https://github.com/lightspeedwp/.github)
 
 ## Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed contribution guidelines.
+See the LightSpeed [contributing guide](https://github.com/lightspeedwp/.github/blob/develop/CONTRIBUTING.md), which GitHub shows for every repository in the organisation.
