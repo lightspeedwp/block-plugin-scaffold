@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # contents: write to create the GitHub release and upload the zip.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The tag must match every place the plugin states its version.
+      - name: Check the tag matches the plugin version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          fail=0
+          check() {
+            if [ "$2" != "$version" ]; then
+              echo "::error::$1 is '$2', but the tag is $TAG."
+              fail=1
+            fi
+          }
+          check "{{slug}}.php Version" "$(sed -n 's/^ \* Version: *//p' {{slug}}.php | tr -d '\r')"
+          check "readme.txt Stable tag" "$(sed -n 's/^Stable tag: *//p' readme.txt | tr -d '\r')"
+          check "package.json version" "$(node -p "require('./package.json').version")"
+          if ! grep -qF "## [$version]" CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::CHANGELOG.md has no '## [$version]' section."
+            fail=1
+          fi
+          exit "$fail"
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      # Files .distignore excludes are left out; see bin/package-release.js.
+      - name: Package the plugin
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          node bin/package-release.js
+          cd dist
+          zip -qr "{{slug}}-${TAG#v}.zip" {{slug}}
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          # Release notes are the version's CHANGELOG.md section.
+          awk -v heading="## [$version]" '
+            index($0, heading) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          gh release create "$TAG" "dist/{{slug}}-$version.zip" \
+            --title "$TAG" \
+            --notes-file release-notes.md \
+            --verify-tag

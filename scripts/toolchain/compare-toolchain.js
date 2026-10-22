@@ -30,6 +30,9 @@ const FILES = [
 	'.npmrc',
 	'.husky/pre-commit',
 	'.github/workflows/ci.yml',
+	'.github/workflows/changelog.yml',
+	'.github/workflows/release.yml',
+	'.distignore',
 	'webpack.config.js',
 ];
 // Folders whose files are all compared.

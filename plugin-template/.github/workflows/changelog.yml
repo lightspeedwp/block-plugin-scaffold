@@ -1,0 +1,115 @@
+name: Changelog
+
+# A trimmed copy of the require-gate in lightspeedwp/.github's
+# changelog-unified.yml: the same exemptions and labels, without the
+# organisation's validator scripts, which a plugin does not have.
+
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    # The organisation's check name, so a ruleset that requires
+    # "Validate changelog on PR" matches this job.
+    name: Validate changelog on PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # pull-requests: read for the PR files API.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Require a CHANGELOG.md update or the meta:no-changelog label
+        id: gate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map( ( label ) => label.name );
+            const has = ( name ) => labels.includes( name );
+            // Webhooks name bots "slug[bot]"; compare on the bare slug.
+            const author = pr.user.login.replace( /\[bot\]$/, '' );
+
+            core.setOutput( 'changed', 'false' );
+
+            if ( author === 'dependabot' ) {
+              core.info( 'Dependabot pull request: no changelog entry needed.' );
+              return;
+            }
+
+            if ( has( 'meta:needs-changelog' ) && has( 'meta:no-changelog' ) ) {
+              core.setFailed( 'Use meta:needs-changelog or meta:no-changelog, not both.' );
+              return;
+            }
+
+            const highImpact = [
+              'type:feature',
+              'type:bug',
+              'type:performance',
+              'type:security',
+              'type:release',
+              'type:hotfix',
+            ];
+            if ( has( 'meta:no-changelog' ) && labels.some( ( label ) => highImpact.includes( label ) ) ) {
+              core.setFailed( 'meta:no-changelog is not allowed with a feature, bug, performance, security, release or hotfix label.' );
+              return;
+            }
+
+            const files = await github.paginate( github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            } );
+            const changed = files.map( ( file ) => file.filename );
+
+            if ( changed.includes( 'CHANGELOG.md' ) ) {
+              core.info( 'CHANGELOG.md is updated.' );
+              core.setOutput( 'changed', 'true' );
+              return;
+            }
+
+            // Docs-only changes are exempt, but only when the API listed every file.
+            const complete = changed.length >= pr.changed_files;
+            const docsOnly =
+              complete &&
+              changed.length > 0 &&
+              changed.every( ( file ) => file.startsWith( 'docs/' ) || file.endsWith( '.md' ) );
+            if ( docsOnly ) {
+              core.info( 'Docs-only changes: no changelog entry needed.' );
+              return;
+            }
+
+            if ( has( 'meta:no-changelog' ) ) {
+              core.info( 'meta:no-changelog label: no changelog entry needed.' );
+              return;
+            }
+
+            core.setFailed( 'Add a CHANGELOG.md entry under [Unreleased], or the meta:no-changelog label.' );
+
+      - name: Check out CHANGELOG.md
+        if: steps.gate.outputs.changed == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      # Keep a Changelog 1.1.0: entries go under an [Unreleased] heading.
+      - name: Check the Keep a Changelog structure
+        if: steps.gate.outputs.changed == 'true'
+        run: |
+          if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::CHANGELOG.md needs a '## [Unreleased]' section (Keep a Changelog)."
+            exit 1
+          fi
