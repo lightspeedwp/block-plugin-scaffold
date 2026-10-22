@@ -54,7 +54,14 @@ test.describe( 'Plugin blocks on the front end', () => {
 			await expect( block ).toBeVisible();
 
 			const box = await block.boundingBox();
+			expect( box.x ).toBeGreaterThanOrEqual( 0 );
 			expect( box.x + box.width ).toBeLessThanOrEqual( size.width );
+
+			// Content can overflow while the block itself fits.
+			const scrollWidth = await page.evaluate(
+				() => document.documentElement.scrollWidth
+			);
+			expect( scrollWidth ).toBeLessThanOrEqual( size.width );
 
 			const results = await new AxeBuilder( { page } )
 				.include( blockSelector )

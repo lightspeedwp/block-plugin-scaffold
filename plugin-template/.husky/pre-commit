@@ -33,10 +33,21 @@ fi
 
 staged=$(git diff --cached --name-only)
 
-# 2. A code change needs a CHANGELOG.md entry in the same commit.
-if echo "$staged" | grep -qE '\.(php|js|jsx|ts|tsx|scss)$' &&
-	! echo "$staged" | grep -qx 'CHANGELOG.md'; then
-	fail "code changed without a CHANGELOG.md entry. Add one under [Unreleased]."
+# 2. A code change needs a new CHANGELOG.md entry under [Unreleased] (or a
+# new version section, when a release moves the entries) in the same commit.
+changelog_items() {
+	awk '
+		/^## \[/ { unreleased = /^## \[Unreleased\]/; if (!unreleased) print; next }
+		unreleased && /^[[:space:]]*- [^[:space:]]/ { sub(/^[[:space:]]+/, ""); print }
+	'
+}
+if echo "$staged" | grep -qE '\.(php|js|jsx|ts|tsx|scss)$'; then
+	before=$(mktemp)
+	git show HEAD:CHANGELOG.md 2>/dev/null | changelog_items >"$before" || true
+	added=$(git show :CHANGELOG.md 2>/dev/null | changelog_items | grep -vxF -f "$before" || true)
+	rm -f "$before"
+	[ -n "$added" ] ||
+		fail "code changed without a new CHANGELOG.md entry. Add one under [Unreleased]."
 fi
 
 # 3. Source changes must still build.

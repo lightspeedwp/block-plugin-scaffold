@@ -28,8 +28,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - name: Require a CHANGELOG.md update or the meta:no-changelog label
-        id: gate
+      - name: Require a new CHANGELOG.md entry or the meta:no-changelog label
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -38,8 +37,6 @@ jobs:
             const has = ( name ) => labels.includes( name );
             // Webhooks name bots "slug[bot]"; compare on the bare slug.
             const author = pr.user.login.replace( /\[bot\]$/, '' );
-
-            core.setOutput( 'changed', 'false' );
 
             if ( author === 'dependabot' ) {
               core.info( 'Dependabot pull request: no changelog entry needed.' );
@@ -72,10 +69,62 @@ jobs:
             } );
             const changed = files.map( ( file ) => file.filename );
 
+            // CHANGELOG.md at a commit, or '' where it does not exist yet.
+            const read = async ( repo, ref ) => {
+              try {
+                const { data } = await github.rest.repos.getContent( {
+                  owner: repo.owner.login,
+                  repo: repo.name,
+                  path: 'CHANGELOG.md',
+                  ref,
+                } );
+                return Buffer.from( data.content, 'base64' ).toString( 'utf8' );
+              } catch ( error ) {
+                if ( error.status === 404 ) {
+                  return '';
+                }
+                throw error;
+              }
+            };
+
+            // The "- " entries under ## [Unreleased], and the version headings.
+            const parse = ( text ) => {
+              const entries = new Set();
+              const versions = new Set();
+              let unreleased = false;
+              let hasUnreleased = false;
+              for ( const line of text.split( /\r?\n/ ) ) {
+                if ( line.startsWith( '## [' ) ) {
+                  unreleased = line.startsWith( '## [Unreleased]' );
+                  hasUnreleased = hasUnreleased || unreleased;
+                  if ( ! unreleased ) {
+                    versions.add( line.trim() );
+                  }
+                } else if ( unreleased && /^\s*- \S/.test( line ) ) {
+                  entries.add( line.trim() );
+                }
+              }
+              return { entries, versions, hasUnreleased };
+            };
+
             if ( changed.includes( 'CHANGELOG.md' ) ) {
-              core.info( 'CHANGELOG.md is updated.' );
-              core.setOutput( 'changed', 'true' );
-              return;
+              const before = parse( await read( pr.base.repo, pr.base.sha ) );
+              const after = parse( await read( pr.head.repo, pr.head.sha ) );
+
+              // Keep a Changelog 1.1.0: entries go under an [Unreleased] heading.
+              if ( ! after.hasUnreleased ) {
+                core.setFailed( "CHANGELOG.md needs a '## [Unreleased]' section (Keep a Changelog)." );
+                return;
+              }
+
+              // A new entry, or a new version section (a release moves entries out of [Unreleased]).
+              const isNew = ( set, old ) => [ ...set ].some( ( item ) => ! old.has( item ) );
+              if ( isNew( after.entries, before.entries ) || isNew( after.versions, before.versions ) ) {
+                core.info( 'CHANGELOG.md has a new entry.' );
+                return;
+              }
+
+              core.info( 'CHANGELOG.md changed, but has no new entry under [Unreleased].' );
             }
 
             // Docs-only changes are exempt, but only when the API listed every file.
@@ -94,22 +143,4 @@ jobs:
               return;
             }
 
-            core.setFailed( 'Add a CHANGELOG.md entry under [Unreleased], or the meta:no-changelog label.' );
-
-      - name: Check out CHANGELOG.md
-        if: steps.gate.outputs.changed == 'true'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 1
-          sparse-checkout: CHANGELOG.md
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-
-      # Keep a Changelog 1.1.0: entries go under an [Unreleased] heading.
-      - name: Check the Keep a Changelog structure
-        if: steps.gate.outputs.changed == 'true'
-        run: |
-          if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
-            echo "::error file=CHANGELOG.md::CHANGELOG.md needs a '## [Unreleased]' section (Keep a Changelog)."
-            exit 1
-          fi
+            core.setFailed( 'Add an entry under ## [Unreleased] in CHANGELOG.md, or the meta:no-changelog label.' );

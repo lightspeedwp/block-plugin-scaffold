@@ -34,8 +34,17 @@ for ( const file of files ) {
 
 	if ( ! validate( data ) ) {
 		for ( const error of validate.errors ) {
+			// Name the unknown key or the allowed values, which the message leaves out.
+			let detail = '';
+			if ( error.params.additionalProperty ) {
+				detail = ` (${ error.params.additionalProperty })`;
+			} else if ( error.params.allowedValues ) {
+				detail = ` (${ error.params.allowedValues.join( ', ' ) })`;
+			}
 			errors.push(
-				`${ file }: ${ error.instancePath || '/' } ${ error.message }`
+				`${ file }: ${ error.instancePath || '/' } ${
+					error.message
+				}${ detail }`
 			);
 		}
 	}
