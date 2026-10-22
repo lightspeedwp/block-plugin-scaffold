@@ -692,7 +692,7 @@ Make toolchain changes in a generated plugin first, then move them back:
 
 1. Generate a test plugin and commit the untouched output as a baseline.
 2. Make and prove the change in the plugin (lint, tests, CI).
-3. Move each change back into the scaffold source it came from: root templates, `templates/`, or `scripts/toolchain/standard-toolchain.json`.
+3. Move each change back into the scaffold source it came from: `plugin-template/` or `scripts/toolchain/standard-toolchain.json`.
 4. Regenerate with the same config into a fresh folder, and confirm no toolchain files differ:
 
 ```bash
@@ -728,7 +728,7 @@ tour-operator/
 └── scf-json/                 # SCF field groups
 ```
 
-Files that differ between the scaffold and a plugin (the configs above, starter tests, CI workflow and `.gitignore`) come from `templates/`, which the generator copies over the plugin after the main copy. Scaffold-only files (AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) are not copied. CodeRabbit settings and community health files are inherited from the LightSpeed organisation.
+Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) is tooling and is never copied. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. CodeRabbit settings and community health files are inherited from the LightSpeed organisation.
 
 ### 2. Install Dependencies
 

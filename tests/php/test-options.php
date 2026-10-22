@@ -44,7 +44,7 @@ class Test_Options extends WP_UnitTestCase {
 
 		// Include the class if not already loaded.
 		if ( ! class_exists( 'ExamplePlugin_Options' ) ) {
-			require_once dirname( dirname( __DIR__ ) ) . '/inc/class-options.php';
+			require_once dirname( dirname( __DIR__ ) ) . '/plugin-template/inc/class-options.php';
 		}
 
 		$this->options = new ExamplePlugin_Options();

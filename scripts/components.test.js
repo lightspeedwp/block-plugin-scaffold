@@ -5,7 +5,7 @@
  */
 
 const { render, screen, fireEvent, act } = require('@testing-library/react');
-const Slider = require('../src/components/Slider/Slider').default;
+const Slider = require('../plugin-template/src/components/Slider/Slider').default;
 
 describe('Example Plugin Components', () => {
 	beforeEach(() => {

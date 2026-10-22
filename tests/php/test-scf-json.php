@@ -28,7 +28,7 @@ class Test_SCF_JSON extends WP_UnitTestCase {
 
 		// Include the class if not already loaded.
 		if ( ! class_exists( 'ExamplePlugin_SCF_JSON' ) ) {
-			require_once dirname( dirname( __DIR__ ) ) . '/inc/class-scf-json.php';
+			require_once dirname( dirname( __DIR__ ) ) . '/plugin-template/inc/class-scf-json.php';
 		}
 
 		$this->scf_json = new ExamplePlugin_SCF_JSON();

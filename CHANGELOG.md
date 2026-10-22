@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - a CI workflow with JS, PHP and E2E jobs;
   - the 10 standard command aliases (`start`, `build`, `format`, `lint:js`, `lint:css`, `lint:pkg`, `test:unit`, `test:e2e`, `packages-update`, `zip`).
 - `scripts/toolchain/standard-toolchain.json`: the single source for generated `package.json` and `composer.json` dependencies and scripts.
-- `templates/`: plugin-only files, copied over the generated plugin after the main copy.
+- `plugin-template/`: every file a generated plugin is rendered from, kept apart from the scaffold's own tooling.
 - `npm run check:generation` and the `generation-check` CI job: generate both fixture plugins, then install, build, lint, unit-test and e2e-test them.
 - `scripts/toolchain/compare-toolchain.js` to prove a round trip between a test plugin and regenerated output.
 - Generator option `--output-dir <dir>`, and an optional `repository_url` config field (defaults to `https://github.com/lightspeedwp/<slug>`).
@@ -55,6 +55,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- The plugin template files (`src/`, `inc/`, `patterns/`, `{{slug}}.php` and the former `templates/` overlay) now live in `plugin-template/`. The generator renders only that folder, so the scaffold's tooling can no longer leak into a plugin; generated plugins no longer pick up Husky's `.husky/_/` folder or the config file they were generated from.
 - Upgraded to the current `@wordpress/*` majors (`@wordpress/scripts` 36, components 42, block-editor 18); Node.js 24.18+ and npm 11.16+ are now required (`.nvmrc` 24).
 - Builds pass `--experimental-modules`; blocks are discovered from `block.json`, which uses the standard `render: file:./render.php`; front-end styles come from `style-index.css`.
 - The generator formats rendered JavaScript with the WordPress Prettier config, so plugins pass their own lint whatever the slug length.
@@ -80,6 +81,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- Generator exclusions matched path prefixes, so `.git` also skipped `.github/`, `.gitignore` and `.gitattributes`; exclusions now match whole paths within `plugin-template/`.
 - Template bugs found by the new tests:
   - the slider rendered nothing in the editor (5 attributes were missing from `block.json`);
   - `extractImageData()` returned the wrong image size;

@@ -6,7 +6,7 @@
 
 // The scaffold's own Jest suite. @wordpress/scripts 36 no longer ships Jest
 // defaults, so this uses the published preset and runs through
-// `wp-scripts test-unit-jest`. Generated plugins use Vitest (templates/).
+// `wp-scripts test-unit-jest`. Generated plugins use Vitest (plugin-template/).
 module.exports = {
 	preset: '@wordpress/jest-preset-default',
 	transform: {
@@ -31,7 +31,7 @@ module.exports = {
 		'/tests/e2e/',
 		'/.dry-run-backup/',
 		'/generated-plugins/',
-		'/templates/',
+		'/plugin-template/',
 	],
 
 	// Setup files

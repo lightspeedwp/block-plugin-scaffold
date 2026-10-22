@@ -14,8 +14,8 @@
 	</testsuites>
 	<coverage>
 		<include>
-			<directory suffix=".php">./inc</directory>
-			<file>./{{plugin_slug}}.php</file>
+			<directory suffix=".php">./plugin-template/inc</directory>
+			<file>./plugin-template/{{plugin_slug}}.php</file>
 		</include>
 	</coverage>
 </phpunit>

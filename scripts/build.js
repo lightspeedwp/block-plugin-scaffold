@@ -16,7 +16,10 @@ const fs = require('fs');
 // Run wp-scripts build
 try {
 	console.log('🔨 Building assets...');
-	execSync('wp-scripts build --experimental-modules', { stdio: 'inherit' });
+	execSync(
+		'wp-scripts build --experimental-modules --webpack-src-dir=plugin-template/src',
+		{ stdio: 'inherit' }
+	);
 	console.log('✅ Build completed');
 } catch (error) {
 	console.error('❌ Build failed');

@@ -1,7 +1,7 @@
 /**
  * Tests for the standard toolchain in a generated plugin (spec 003): the
- * package and Composer manifests, one config file per tool, the templates
- * overlay, and no scaffold-only or organisation-provided files.
+ * package and Composer manifests, one config file per tool, the plugin-template
+ * files, and no scaffold-only or organisation-provided files.
  *
  * @package
  */
@@ -174,7 +174,7 @@ describe('generatePlugin: config files', () => {
 		].forEach((file) => expect(exists(file)).toBe(false));
 	});
 
-	it('uses the plugin configs from templates/, not the scaffold versions', () => {
+	it('uses the plugin configs from plugin-template/, not the scaffold versions', () => {
 		expect(
 			fs.readFileSync(path.join(outputDir, 'eslint.config.cjs'), 'utf8')
 		).not.toMatch(/scripts\/\*\*/);
@@ -184,7 +184,7 @@ describe('generatePlugin: config files', () => {
 	});
 });
 
-describe('generatePlugin: templates overlay', () => {
+describe('generatePlugin: plugin-template files', () => {
 	it('copies the starter tests and CI workflow', () => {
 		[
 			'tests/js/setup.js',
@@ -194,10 +194,10 @@ describe('generatePlugin: templates overlay', () => {
 			'.github/workflows/ci.yml',
 			'.gitignore',
 		].forEach((file) => expect(exists(file)).toBe(true));
-		expect(exists('templates')).toBe(false);
+		expect(exists('plugin-template')).toBe(false);
 	});
 
-	it('renders the overlay with no template tags left', () => {
+	it('renders the plugin files with no template tags left', () => {
 		listFiles().forEach((file) => {
 			if (!/\.(js|cjs|mjs|json|php|xml|neon|yml)$/.test(file)) {
 				return;

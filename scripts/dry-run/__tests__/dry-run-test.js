@@ -77,16 +77,16 @@ function log(message, color = 'reset') {
  */
 function getTargetFiles() {
 	const patterns = [
-		'src/**/*.{js,jsx}',
-		'src/**/*.scss',
-		'src/scss/**/*.scss',
-		'src/blocks/**/*.scss',
-		'inc/**/*.php',
-		'patterns/**/*.{php,html}',
-		'languages/**/*.pot',
-		'scf-json/**/*.json',
+		'plugin-template/src/**/*.{js,jsx}',
+		'plugin-template/src/**/*.scss',
+		'plugin-template/src/scss/**/*.scss',
+		'plugin-template/src/blocks/**/*.scss',
+		'plugin-template/inc/**/*.php',
+		'plugin-template/patterns/**/*.{php,html}',
+		'plugin-template/languages/**/*.pot',
+		'plugin-template/scf-json/**/*.json',
 		'tests/**/*.{js,php}',
-		'*.php',
+		'plugin-template/*.php',
 		'package.json',
 		'composer.json',
 	];
@@ -147,7 +147,7 @@ let currentRenameOperations = [];
  */
 function renameBlockDirectories() {
 	// TODO: Add validation that the renamed directories are readable by downstream tooling.
-	const placeholderPattern = 'src/blocks/{{slug}}-*';
+	const placeholderPattern = 'plugin-template/src/blocks/{{slug}}-*';
 	const matches = glob.sync(placeholderPattern, {
 		cwd: ROOT_DIR,
 		dot: true,
@@ -380,7 +380,7 @@ async function main() {
 		}
 
 		// Ensure _template.scss is deleted before build/test
-		const templatePartial = path.join(ROOT_DIR, 'src', 'scss', '_template.scss');
+		const templatePartial = path.join(ROOT_DIR, 'plugin-template', 'src', 'scss', '_template.scss');
 		if (fs.existsSync(templatePartial)) {
 			try {
 				fs.unlinkSync(templatePartial);

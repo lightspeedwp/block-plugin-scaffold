@@ -14,7 +14,7 @@ class Test_Uninstall extends WP_UnitTestCase {
 	 * Test that uninstall file exists.
 	 */
 	public function test_uninstall_file_exists() {
-		$uninstall_file = dirname( dirname( __DIR__ ) ) . '/uninstall.php';
+		$uninstall_file = dirname( dirname( __DIR__ ) ) . '/plugin-template/uninstall.php';
 		$this->assertFileExists( $uninstall_file );
 	}
 
