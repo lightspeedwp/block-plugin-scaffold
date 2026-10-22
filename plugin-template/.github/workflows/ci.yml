@@ -45,6 +45,7 @@ jobs:
       - run: composer install --no-interaction --no-progress
       - run: composer run lint
       - run: composer run phpstan
+      - run: composer run test
 
   e2e:
     name: E2E

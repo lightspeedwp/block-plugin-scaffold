@@ -104,7 +104,9 @@
 			"wp-coding-standards/wpcs": "^3.0",
 			"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
 			"phpstan/phpstan": "^2.2",
-			"szepeviktor/phpstan-wordpress": "^2.0"
+			"szepeviktor/phpstan-wordpress": "^2.0",
+			"yoast/phpunit-polyfills": "^4.0",
+			"brain/monkey": "^2.6"
 		},
 		"scripts": {
 			"lint": "phpcs",

@@ -25,6 +25,7 @@ const FILES = [
 	'playwright.config.js',
 	'phpcs.xml',
 	'phpstan.neon',
+	'phpunit.xml',
 	'.wp-env.json',
 	'.npmrc',
 	'.husky/pre-commit',
