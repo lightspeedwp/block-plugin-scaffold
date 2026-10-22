@@ -1,0 +1,30 @@
+{
+	"slug": "gen-check",
+	"name": "Gen Check",
+	"description": "Fixture for the generation check: content model with a post type, taxonomy and fields.",
+	"author": "LightSpeed CI",
+	"author_uri": "https://lightspeedwp.agency",
+	"version": "0.1.0",
+	"license": "GPL-2.0-or-later",
+	"content_model": "custom",
+	"post_types": [
+		{
+			"slug": "trip",
+			"singular": "Trip",
+			"plural": "Trips",
+			"taxonomies": [
+				{
+					"slug": "region",
+					"singular": "Region",
+					"plural": "Regions",
+					"hierarchical": true
+				}
+			],
+			"fields": [
+				{ "name": "price", "label": "Price", "type": "number" },
+				{ "name": "featured", "label": "Featured", "type": "true_false" },
+				{ "name": "gallery", "label": "Gallery", "type": "gallery" }
+			]
+		}
+	]
+}

@@ -1,11 +1,15 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * Block Bindings Registration.
  *
  * @package {{namespace}}
  * @since 6.5.0 Block Bindings API
+ */
+
+namespace {{namespace}}\classes;
+
+/**
+ * Registers the plugin's block bindings source.
  */
 class Block_Bindings {
 
@@ -23,7 +27,7 @@ class Block_Bindings {
 	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_sources' ) );
-		add_filter( 'render_block', array( $this, 'render_paragraph_prefix_block' ), 20, 3 );
+		add_filter( 'render_block', array( $this, 'render_paragraph_prefix_block' ), 20, 2 );
 	}
 
 	/**
@@ -51,8 +55,8 @@ class Block_Bindings {
 	 * Get post meta value for block bindings.
 	 *
 	 * @since 1.0.0
-	 * @param array $source_args Binding arguments (expects 'key').
-	 * @param object $block_instance Block instance object.
+	 * @param array<mixed> $source_args Binding arguments (expects 'key').
+	 * @param object       $block_instance Block instance object.
 	 * @return string|int|null
 	 */
 	public function get_post_meta_value( $source_args, $block_instance ) {
@@ -72,7 +76,7 @@ class Block_Bindings {
 		}
 
 		// Handle core/image and core/cover blocks.
-		if ( 'core/image' === $block_instance->parsed_block['blockName'] 
+		if ( 'core/image' === $block_instance->parsed_block['blockName']
 			|| 'core/cover' === $block_instance->parsed_block['blockName'] ) {
 			$key   = str_replace( '-', '_', $source_args['key'] );
 			$value = get_post_meta( $post_id, $key, true );
@@ -102,12 +106,11 @@ class Block_Bindings {
 	 * Adds prefix text to paragraph blocks that have the 'prefix' attribute.
 	 *
 	 * @since 1.0.0
-	 * @param string $block_content The block content.
-	 * @param array  $parsed_block  Parsed block data.
-	 * @param object $block_obj     Block object.
+	 * @param string       $block_content The block content.
+	 * @param array<mixed> $parsed_block  Parsed block data.
 	 * @return string Modified block content.
 	 */
-	public function render_paragraph_prefix_block( $block_content, $parsed_block, $block_obj ) {
+	public function render_paragraph_prefix_block( $block_content, $parsed_block ) {
 		// Only process paragraph blocks.
 		if ( 'core/paragraph' !== $parsed_block['blockName'] ) {
 			return $block_content;

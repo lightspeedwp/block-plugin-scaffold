@@ -20,7 +20,6 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
         php-version: [8.0, 8.1, 8.2]
 
     steps:
@@ -34,10 +33,10 @@ jobs:
           echo "[$(date -Iseconds)] [INFO] CI/CD workflow starting" >> logs/workflow-ci-cd-${TIMESTAMP}.log
           echo "LOG_FILE=logs/workflow-ci-cd-${TIMESTAMP}.log" >> $GITHUB_ENV
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Setup PHP ${{ matrix.php-version }}
@@ -87,12 +86,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: workflow-logs-node-${{ matrix.node-version }}-php-${{ matrix.php-version }}
+          name: workflow-logs-php-${{ matrix.php-version }}
           path: logs/
           retention-days: 7
 
       - name: Archive build artifacts
-        if: matrix.node-version == '20.x' && matrix.php-version == '8.1'
+        if: matrix.php-version == '8.1'
         uses: actions/upload-artifact@v4
         with:
           name: build-files
@@ -111,7 +110,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Install dependencies
@@ -131,57 +130,33 @@ jobs:
           echo "📦 Checking for outdated dependencies..."
           npm outdated || true
 
-  e2e-tests:
-    name: E2E Tests
+  generation-check:
+    # Required check (spec 003, FR-009): generates a plugin from each fixture
+    # and proves it installs, builds, lints, unit-tests and passes its e2e
+    # tests. The scaffold's own templates hold {{tags}}, so this is where
+    # their PHP, SCSS and e2e behaviour is tested.
+    name: Generation check (${{ matrix.fixture }})
     runs-on: ubuntu-latest
-    needs: lint-and-test
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture: [default, functional-only]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Build plugin
-        run: npm run build
-
-      - name: Start WordPress environment
-        run: npm run env:start
-
-      - name: Run E2E tests
-        run: npm run test:e2e
-
-      - name: Upload E2E test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-test-results
-          path: test-results/
-
-      - name: Upload E2E logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-logs
-          path: logs/
-          retention-days: 7
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check:generation -- --fixture ${{ matrix.fixture }} --e2e
 
   deploy:
     name: Deploy Release
     runs-on: ubuntu-latest
-    needs: [lint-and-test, e2e-tests, security-audit]
+    needs: [lint-and-test, generation-check, security-audit]
     if: github.event_name == 'release'
     permissions:
       contents: write
@@ -193,7 +168,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version-file: .nvmrc
           cache: 'npm'
 
       - name: Setup PHP

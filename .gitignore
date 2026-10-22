@@ -50,8 +50,6 @@ Thumbs.db
 # Composer lock (optional for scaffold)
 composer.lock
 
-# NPM package lock (optional for scaffold)
-package-lock.json
 
 # Local development
 .env

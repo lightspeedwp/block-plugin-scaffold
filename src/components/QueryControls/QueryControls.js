@@ -8,7 +8,7 @@
  *
  * Reusable query configuration controls for collection blocks.
  *
- * @package {{namespace}}
+ * @package
  */
 
 import { __ } from '@wordpress/i18n';

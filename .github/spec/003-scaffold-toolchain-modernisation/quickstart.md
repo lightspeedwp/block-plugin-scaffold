@@ -57,9 +57,9 @@ Then, on a throwaway branch, change one `devDependencies` range in `scripts/tool
 
 **Expected**: Step 3 (install) fails for both fixtures and the command exits with code 1. Revert the change.
 
-Then add the literal text `{{slug}}` to the generated readme template and run the check again.
+Then add the literal text `{{plugin-name}}` (a hyphenated tag the generator does not replace) to the scaffold's `readme.txt` and run the check again.
 
-**Expected**: Step 2 fails and reports the file, line and `{{slug}}`. Revert the change.
+**Expected**: Step 2 fails and reports the file, line and `{{plugin-name}}`. Revert the change.
 
 ## Scenario C — The scaffold's own toolchain (US3)
 

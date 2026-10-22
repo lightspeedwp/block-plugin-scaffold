@@ -1,6 +1,6 @@
 # Contract: Generation Check Command
 
-**Command**: `npm run check:generation [-- --fixture <name>] [-- --keep]`
+**Command**: `npm run check:generation [-- --fixture <name>] [--keep] [--skip-install] [--e2e]`
 
 **Implementation**: `scripts/toolchain/check-generation.js`
 
@@ -8,25 +8,27 @@
 
 ## Inputs
 
-| Input              | Default                                        | Notes                                                                             |
-| ------------------ | ---------------------------------------------- | --------------------------------------------------------------------------------- |
-| Fixtures           | every `*.json` in `tests/fixtures/generation/` | `default.json` (blocks and post types) and `functional-only.json` (spec 002 mode) |
-| `--fixture <name>` | all                                            | Runs only the named fixture                                                       |
-| `--keep`           | off                                            | Keeps the temporary folder and prints its path                                    |
-| `--skip-install`   | off                                            | For local runs against an already installed folder; never used in CI              |
+| Input              | Default                                        | Notes                                                                                 |
+| ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Fixtures           | every `*.json` in `tests/fixtures/generation/` | `default.json` (blocks and post types) and `functional-only.json` (spec 002 mode)     |
+| `--fixture <name>` | all                                            | Runs only the named fixture                                                           |
+| `--keep`           | off                                            | Keeps the temporary folder and prints its path                                        |
+| `--skip-install`   | off                                            | For local runs against an already installed folder; never used in CI                  |
+| `--e2e`            | off                                            | Also starts wp-env in the generated plugin and runs its Playwright tests (used in CI) |
 
 ## Steps for each fixture
 
-| #   | Step                                      | Fails when                                                                                                                                                        |
-| --- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Generate into `fs.mkdtemp(os.tmpdir()/…)` | The generator exits with a non-zero code                                                                                                                          |
-| 2   | Scan for leftover placeholders            | Any `{{…}}` tag or scaffold example value appears in `package.json`, the main plugin PHP file header or `readme.txt` (the check reports the file, line and value) |
-| 3   | `npm install --no-audit --no-fund`        | A non-zero exit code, or `ERESOLVE` / peer-dependency errors in the output                                                                                        |
-| 4   | `npm run build`                           | A non-zero exit code, or any `build/blocks/*/index.js` without a matching `index.asset.php`                                                                       |
-| 5   | `npm run lint:js`                         | A non-zero exit code                                                                                                                                              |
-| 6   | `npm run lint:css`                        | A non-zero exit code                                                                                                                                              |
-| 7   | `npm run lint:pkg`                        | A non-zero exit code                                                                                                                                              |
-| 8   | `npm run test:unit -- --passWithNoTests`  | A non-zero exit code                                                                                                                                              |
+| #   | Step                                              | Fails when                                                                                                                                                        |
+| --- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Generate into `fs.mkdtemp(os.tmpdir()/…)`         | The generator exits with a non-zero code                                                                                                                          |
+| 2   | Scan for leftover placeholders                    | Any `{{…}}` tag or scaffold example value appears in `package.json`, the main plugin PHP file header or `readme.txt` (the check reports the file, line and value) |
+| 3   | `npm install --no-audit --no-fund`                | A non-zero exit code, or `ERESOLVE` / peer-dependency errors in the output                                                                                        |
+| 4   | `npm run build`                                   | A non-zero exit code, or any `build/blocks/*/index.js` without a matching `index.asset.php`                                                                       |
+| 5   | `npm run lint:js`                                 | A non-zero exit code                                                                                                                                              |
+| 6   | `npm run lint:css`                                | A non-zero exit code                                                                                                                                              |
+| 7   | `npm run lint:pkg`                                | A non-zero exit code                                                                                                                                              |
+| 8   | `npm run test:unit`                               | A non-zero exit code                                                                                                                                              |
+| 9   | `--e2e` only: `env:start`, `test:e2e`, `env:stop` | A non-zero exit code from the Playwright run                                                                                                                      |
 
 ## Output
 

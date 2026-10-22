@@ -2,186 +2,169 @@
  * Paragraph Prefix Support
  *
  * Adds prefix text controls and display to paragraph blocks
- * that use block bindings or specific CSS classes.
+ * that use block bindings.
  *
- * @package {{namespace}}
+ * @package
  */
 
-(function (blocks, element, editor, components) {
-	const el = element.createElement;
-	const InspectorControls = editor.InspectorControls;
-	const PanelBody = components.PanelBody;
-	const CheckboxControl = components.CheckboxControl;
-	const TextControl = components.TextControl;
+import { InspectorControls } from '@wordpress/block-editor';
+import { CheckboxControl, PanelBody, TextControl } from '@wordpress/components';
+import { createHigherOrderComponent } from '@wordpress/compose';
+import { addFilter } from '@wordpress/hooks';
+import { __ } from '@wordpress/i18n';
 
-	/**
-	 * Add Inspector Controls for prefix settings.
-	 */
-	const withInspectorControls = wp.compose.createHigherOrderComponent(
-		function (BlockEdit) {
-			return function (props) {
-				if (props.name !== 'core/paragraph') {
-					return el(BlockEdit, props);
-				}
+/**
+ * Add Inspector Controls for prefix settings.
+ */
+const withInspectorControls = createHigherOrderComponent(
+	( BlockEdit ) => ( props ) => {
+		if ( props.name !== 'core/paragraph' ) {
+			return <BlockEdit { ...props } />;
+		}
 
-				// Only show prefix controls for paragraphs with bindings.
-				const hasMetadataBindings =
-					props.attributes.metadata &&
-					props.attributes.metadata.bindings &&
-					props.attributes.metadata.bindings.content;
+		// Only show prefix controls for paragraphs with bindings.
+		const hasMetadataBindings =
+			props.attributes.metadata?.bindings?.content;
 
-				if (!hasMetadataBindings) {
-					return el(BlockEdit, props);
-				}
+		if ( ! hasMetadataBindings ) {
+			return <BlockEdit { ...props } />;
+		}
 
-				let prefix = props.attributes.prefix || '';
-				let prefixBold = props.attributes.prefixBold || false;
+		const { prefix = '', prefixBold = false } = props.attributes;
 
-				return el(
-					element.Fragment,
-					{},
-					el(BlockEdit, props),
-					el(
-						InspectorControls,
-						{},
-						el(
-							PanelBody,
-							{ title: '{{name}}', initialOpen: true },
-							el(TextControl, {
-								label: 'Prefix Text',
-								value: prefix,
-								onChange(value) {
-									props.setAttributes({
-										prefix: value,
-									});
-								},
-								help: 'Text to display before the field value (e.g., "Price:", "From:").',
-							}),
-							el(CheckboxControl, {
-								label: 'Bold Prefix',
-								checked: prefixBold,
-								onChange(value) {
-									props.setAttributes({
-										prefixBold: value,
-									});
-								},
-								help: 'Make the prefix text bold.',
-							})
-						)
-					)
-				);
-			};
-		},
-		'withInspectorControls'
-	);
+		return (
+			<>
+				<BlockEdit { ...props } />
+				<InspectorControls>
+					<PanelBody title={ __( '{{name}}', '{{textdomain}}' ) } initialOpen>
+						<TextControl
+							label={ __( 'Prefix Text', '{{textdomain}}' ) }
+							value={ prefix }
+							onChange={ ( value ) =>
+								props.setAttributes( { prefix: value } )
+							}
+							help={ __(
+								'Text to display before the field value (e.g., "Price:", "From:").',
+								'{{textdomain}}'
+							) }
+						/>
+						<CheckboxControl
+							label={ __( 'Bold Prefix', '{{textdomain}}' ) }
+							checked={ prefixBold }
+							onChange={ ( value ) =>
+								props.setAttributes( { prefixBold: value } )
+							}
+							help={ __(
+								'Make the prefix text bold.',
+								'{{textdomain}}'
+							) }
+						/>
+					</PanelBody>
+				</InspectorControls>
+			</>
+		);
+	},
+	'withInspectorControls'
+);
 
-	wp.hooks.addFilter(
-		'editor.BlockEdit',
-		'{{slug}}/paragraph-prefix-panel',
-		withInspectorControls
-	);
+addFilter(
+	'editor.BlockEdit',
+	'{{slug}}/paragraph-prefix-panel',
+	withInspectorControls
+);
 
-	/**
-	 * Register custom attributes for the paragraph block.
-	 */
-	wp.hooks.addFilter(
-		'blocks.registerBlockType',
-		'{{slug}}/paragraph-prefix-attributes',
-		function (settings, name) {
-			if (name === 'core/paragraph') {
-				settings.attributes = {
-					...settings.attributes,
-					prefix: {
-						type: 'string',
-						default: '',
-					},
-					prefixBold: {
-						type: 'boolean',
-						default: false,
-					},
-				};
-			}
+/**
+ * Register custom attributes for the paragraph block.
+ */
+addFilter(
+	'blocks.registerBlockType',
+	'{{slug}}/paragraph-prefix-attributes',
+	( settings, name ) => {
+		if ( name !== 'core/paragraph' ) {
 			return settings;
 		}
-	);
 
-	/**
-	 * Add visual prefix display in the editor using CSS.
-	 */
-	const withPrefixDisplay = wp.compose.createHigherOrderComponent(
-		function (BlockListBlock) {
-			return function (props) {
-				if (props.name !== 'core/paragraph') {
-					return el(BlockListBlock, props);
-				}
+		return {
+			...settings,
+			attributes: {
+				...settings.attributes,
+				prefix: {
+					type: 'string',
+					default: '',
+				},
+				prefixBold: {
+					type: 'boolean',
+					default: false,
+				},
+			},
+		};
+	}
+);
 
-				const { attributes } = props;
-				const prefix = attributes.prefix || '';
-				const prefixBold = attributes.prefixBold || false;
+/**
+ * Add visual prefix display in the editor using CSS.
+ */
+const withPrefixDisplay = createHigherOrderComponent(
+	( BlockListBlock ) => ( props ) => {
+		if ( props.name !== 'core/paragraph' ) {
+			return <BlockListBlock { ...props } />;
+		}
 
-				if (!prefix) {
-					return el(BlockListBlock, props);
-				}
+		const { prefix = '', prefixBold = false } = props.attributes;
 
-				// Add a space after prefix if it doesn't end with punctuation or space.
-				const needsSpace = !/[\s\p{P}]$/u.test(prefix);
-				const displayPrefix = prefix + (needsSpace ? ' ' : '');
+		if ( ! prefix ) {
+			return <BlockListBlock { ...props } />;
+		}
 
-				// Create CSS for the pseudo-element.
-				const uniqueId = 'prefix-' + props.clientId;
-				const css = `
-					p.${uniqueId}::before {
-						content: "${displayPrefix
-							.replace(/\\/g, '\\\\')
-							.replace(/"/g, '\\"')
-							.replace(/\n/g, '\\A ')} ";
-						font-weight: ${prefixBold ? 'bold' : 'normal'};
-					}
-				`;
+		// Add a space after prefix if it doesn't end with punctuation or space.
+		const needsSpace = ! /[\s\p{P}]$/u.test( prefix );
+		const displayPrefix = prefix + ( needsSpace ? ' ' : '' );
 
-				// Inject the style into the editor iframe.
-				if (typeof document !== 'undefined') {
-					// Find the editor iframe (canvas).
-					const editorCanvas = document.querySelector(
-						'iframe[name="editor-canvas"]'
-					);
-					const targetDoc = editorCanvas
-						? editorCanvas.contentDocument
-						: document;
+		// Create CSS for the pseudo-element.
+		const uniqueId = 'prefix-' + props.clientId;
+		const css = `
+			p.${ uniqueId }::before {
+				content: "${ displayPrefix
+					.replace( /\\/g, '\\\\' )
+					.replace( /"/g, '\\"' )
+					.replace( /\n/g, '\\A ' ) } ";
+				font-weight: ${ prefixBold ? 'bold' : 'normal' };
+			}
+		`;
 
-					if (targetDoc) {
-						let styleEl = targetDoc.getElementById(uniqueId);
-						if (!styleEl) {
-							styleEl = targetDoc.createElement('style');
-							styleEl.id = uniqueId;
-							targetDoc.head.appendChild(styleEl);
-						}
-						styleEl.textContent = css;
-					}
-				}
+		// Inject the style into the editor iframe.
+		const editorCanvas = document.querySelector(
+			'iframe[name="editor-canvas"]'
+		);
+		const targetDoc = editorCanvas
+			? editorCanvas.contentDocument
+			: document;
 
-				// Add custom wrapper props with the unique class.
-				const wrapperProps = {
-					...(props.wrapperProps || {}),
-					className: [props.wrapperProps?.className, uniqueId]
-						.filter(Boolean)
-						.join(' '),
-				};
+		if ( targetDoc ) {
+			let styleEl = targetDoc.getElementById( uniqueId );
+			if ( ! styleEl ) {
+				styleEl = targetDoc.createElement( 'style' );
+				styleEl.id = uniqueId;
+				targetDoc.head.appendChild( styleEl );
+			}
+			styleEl.textContent = css;
+		}
 
-				return el(BlockListBlock, { ...props, wrapperProps });
-			};
-		},
-		'withPrefixDisplay'
-	);
+		// Add custom wrapper props with the unique class.
+		const wrapperProps = {
+			...( props.wrapperProps || {} ),
+			className: [ props.wrapperProps?.className, uniqueId ]
+				.filter( Boolean )
+				.join( ' ' ),
+		};
 
-	wp.hooks.addFilter(
-		'editor.BlockListBlock',
-		'{{slug}}/paragraph-prefix-display',
-		withPrefixDisplay
-	);
-})(
-	window.wp.blocks,
-	window.wp.element,
-	window.wp.blockEditor,
-	window.wp.components
+		return <BlockListBlock { ...props } wrapperProps={ wrapperProps } />;
+	},
+	'withPrefixDisplay'
+);
+
+addFilter(
+	'editor.BlockListBlock',
+	'{{slug}}/paragraph-prefix-display',
+	withPrefixDisplay
 );

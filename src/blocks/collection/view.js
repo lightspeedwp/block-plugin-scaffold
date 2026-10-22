@@ -16,9 +16,10 @@
 
     // Example: listen for filter changes
     block.addEventListener('collectionFilter', (e) => {
-      // Custom extensibility point
-      if (window.{{namespace}}CollectionFilterHandler) {
-        window.{{namespace}}CollectionFilterHandler(e.detail, block);
+      // Custom extensibility point: a site can define this global handler.
+      const handlerName = '{{namespace}}CollectionFilterHandler';
+      if (typeof window[handlerName] === 'function') {
+        window[handlerName](e.detail, block);
       }
     });
     // Add more event listeners as needed for extensibility

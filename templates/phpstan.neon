@@ -1,0 +1,23 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 6
+	bootstrapFiles:
+		- tests/php/phpstan-bootstrap.php
+	paths:
+		- "{{slug}}.php"
+		- uninstall.php
+		- inc/
+	reportUnmatchedIgnoredErrors: false
+	ignoreErrors:
+		# Build output is optional at analysis time; the code checks file_exists() first.
+		-
+			identifier: require.fileNotFound
+			path: inc/class-core.php
+		# uninstall.php guards against an unrendered template prefix; always false once generated.
+		-
+			identifier: identical.alwaysFalse
+			path: uninstall.php
+		# ACF/SCF functions are provided at runtime by Secure Custom Fields.
+		- '#Function (acf_\w+|get_field|have_rows|the_row|get_sub_field|get_row_layout|get_row_index) not found#'

@@ -1,6 +1,4 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * SCF Local JSON Configuration.
  *
@@ -12,6 +10,8 @@ namespace {{namespace}}\classes;
  * @see https://github.com/WordPress/secure-custom-fields/blob/trunk/docs/tutorials/local-json.md
  * @since 1.0.0
  */
+
+namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -65,11 +65,10 @@ class SCF_JSON {
 	 * When field groups are created or modified in the WordPress admin,
 	 * SCF will save the JSON export to this directory.
 	 *
-	 * @param string $path Default save path.
 	 * @return string Modified save path.
 	 * @since 1.0.0
 	 */
-	public function set_save_path( $path ) {
+	public function set_save_path() {
 		return $this->json_path;
 	}
 
@@ -79,14 +78,11 @@ class SCF_JSON {
 	 * SCF will load field groups from all paths in this array.
 	 * JSON files take precedence over database entries.
 	 *
-	 * @param array $paths Existing load paths.
-	 * @return array Modified load paths.
+	 * @param array<mixed> $paths Existing load paths.
+	 * @return array<mixed> Modified load paths.
 	 * @since 1.0.0
 	 */
 	public function add_load_path( $paths ) {
-		// Remove the default path if it exists (optional).
-		// unset( $paths[0] );
-
 		// Add our custom path.
 		$paths[] = $this->json_path;
 
@@ -111,8 +107,8 @@ class SCF_JSON {
 	 *
 	 * Ensures post type JSON files from this plugin are loaded by SCF.
 	 *
-	 * @param array $paths Existing load paths.
-	 * @return array Modified load paths.
+	 * @param array<mixed> $paths Existing load paths.
+	 * @return array<mixed> Modified load paths.
 	 * @since 1.0.0
 	 */
 	public function add_post_type_load_paths( $paths ) {
@@ -125,8 +121,8 @@ class SCF_JSON {
 	 *
 	 * Ensures taxonomy JSON files from this plugin are loaded by SCF.
 	 *
-	 * @param array $paths Existing load paths.
-	 * @return array Modified load paths.
+	 * @param array<mixed> $paths Existing load paths.
+	 * @return array<mixed> Modified load paths.
 	 * @since 1.0.0
 	 */
 	public function add_taxonomy_load_paths( $paths ) {
@@ -147,7 +143,7 @@ class SCF_JSON {
 	/**
 	 * Get all JSON files in the directory.
 	 *
-	 * @return array Array of JSON file paths.
+	 * @return array<mixed> Array of JSON file paths.
 	 * @since 1.0.0
 	 */
 	public function get_json_files() {
@@ -163,7 +159,7 @@ class SCF_JSON {
 	 * For full schema validation, use a dedicated JSON Schema validator.
 	 *
 	 * @param string $file_path Path to the JSON file.
-	 * @return array{valid: bool, errors: array} Validation result.
+	 * @return array{valid: bool, errors: list<string>} Validation result.
 	 * @since 1.0.0
 	 */
 	public function validate_json_file( $file_path ) {
@@ -245,7 +241,7 @@ class SCF_JSON {
 	/**
 	 * Validate all JSON files in the directory.
 	 *
-	 * @return array Array of validation results keyed by filename.
+	 * @return array<mixed> Array of validation results keyed by filename.
 	 * @since 1.0.0
 	 */
 	public function validate_all_json_files() {

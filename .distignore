@@ -22,12 +22,6 @@ playwright-report/
 .phpunit.result.cache
 .phpunit.cache
 
-# Performance monitoring
-lighthouse-reports/
-.lighthouserc.js
-.size-limit.json
-webpack-stats.json
-stats.json
 
 # Build configuration files
 package.json
