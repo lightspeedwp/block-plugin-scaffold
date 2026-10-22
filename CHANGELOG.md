@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get PHPUnit unit tests in `tests/php/` (PHPUnit 11 config, `yoast/phpunit-polyfills`, Brain Monkey, starter tests), run by `composer run test` in the CI PHP job. `compare-toolchain.js` now compares `phpunit.xml`.
+- Generated plugins get a unit test coverage gate (`@vitest/coverage-v8`): `npm run test:unit` fails below 70% branches, 80% statements or 80% functions, measured over the files the tests load.
+- Generated plugins get `tests/e2e/accessibility.spec.js`: on mobile, tablet and desktop viewports the plugin's blocks fit the screen and pass an axe-core WCAG 2.2 AA scan (`@axe-core/playwright`).
+- Generated plugins get `npm run lint:json` (`bin/validate-json.js` with Ajv), which validates every `block.json` against the WordPress block metadata schema (a copy of `.github/schemas/block.6.9.json` in `bin/schemas/`). It runs in `npm run lint`, on staged `block.json` files, and as a `check:generation` step. `compare-toolchain.js` now compares `bin/`.
+- Generated plugins get two workflows: `changelog.yml` (the organisation's changelog require-gate, trimmed so it needs no organisation scripts, with the same "Validate changelog on PR" check name) and `release.yml` (on a `v*.*.*` tag, checks the tag against the plugin header, `readme.txt`, `package.json` and `CHANGELOG.md`, builds, packages with `bin/package-release.js` and publishes a GitHub release with the zip). `compare-toolchain.js` now compares both workflows and `.distignore`; `DEVELOPMENT.md` documents the changelog, release, coverage, PHPUnit, accessibility and schema checks.
 - Generated plugins get the standard LightSpeed toolchain, proven in `lightspeedwp/ls-test` first (spec 003):
   - one thin config per tool, extending the `@wordpress/scripts` defaults;
   - Vitest unit tests and Playwright e2e tests (`tests/js`, `tests/e2e`);
@@ -55,6 +60,10 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- Generated plugins: `.distignore` now leaves out `webpack.config.js` (it listed `.cjs`), `vitest.config.mjs`, `playwright.config.js`, `.prettierrc.js`, `.stylelintrc.json`, `{{slug}}-config.json` and `dist/`.
+- Generated plugins: the pre-commit hook checks the branch name (no direct commits to `main`, `develop` or `release/*`; a type prefix from the organisation's `branch-types.yml`), requires a `CHANGELOG.md` entry for code changes, runs `npm run build` when `src/` changes, then runs lint-staged. Documented in `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`.
+- Generated plugins: the CI PHP job runs on PHP 8.4 and 8.5, and wp-env uses PHP 8.4 (proven in `lightspeedwp/ls-test`).
+- Generated plugins: the changelog workflow and pre-commit hook require a new entry under `[Unreleased]` (or a new version section), CI checkouts no longer keep their credentials, the release job uses no npm cache, schema errors name the bad key or allowed values, and the accessibility test also checks page overflow (review fixes from `lightspeedwp/ls-test#4`).
 - The plugin template files (`src/`, `inc/`, `patterns/`, `{{slug}}.php` and the former `templates/` overlay) now live in `plugin-template/`. The generator renders only that folder, so the scaffold's tooling can no longer leak into a plugin; generated plugins no longer pick up Husky's `.husky/_/` folder or the config file they were generated from.
 - Upgraded to the current `@wordpress/*` majors (`@wordpress/scripts` 36, components 42, block-editor 18); Node.js 24.18+ and npm 11.16+ are now required (`.nvmrc` 24).
 - Builds pass `--experimental-modules`; blocks are discovered from `block.json`, which uses the standard `render: file:./render.php`; front-end styles come from `style-index.css`.

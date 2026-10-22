@@ -196,6 +196,7 @@ function checkFixture(fixturePath, options) {
 		{ name: 'lint:js', run: () => run(dir, npm, ['run', 'lint:js']) },
 		{ name: 'lint:css', run: () => run(dir, npm, ['run', 'lint:css']) },
 		{ name: 'lint:pkg', run: () => run(dir, npm, ['run', 'lint:pkg']) },
+		{ name: 'lint:json', run: () => run(dir, npm, ['run', 'lint:json']) },
 		{ name: 'test:unit', run: () => run(dir, npm, ['run', 'test:unit']) },
 		...(options.e2e
 			? [

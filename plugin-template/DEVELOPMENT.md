@@ -29,7 +29,14 @@ npm install
 composer install
 ```
 
-`npm install` also installs the pre-commit hook (Husky), which lints and formats staged files.
+`npm install` also installs the pre-commit hook (Husky). Before each commit it checks, in order:
+
+1. **Branch name**: no direct commits to `main`, `develop` or `release/*`, and the branch needs a type prefix such as `feat/`, `fix/`, `chore/`, `test/` or `docs/` (the list in `branch-types.yml` in `lightspeedwp/.github`).
+2. **Changelog**: any `.php`, `.js`, `.jsx`, `.ts`, `.tsx` or `.scss` change needs a `CHANGELOG.md` entry in the same commit.
+3. **Build**: `npm run build` runs when `src/` files are staged.
+4. **lint-staged**: lints and formats the staged files, and validates staged `block.json` files against the block schema.
+
+Use `git commit --no-verify` to skip the hook, for example for a repository's first commit on `main`.
 
 ### 2. WordPress Environment
 
@@ -52,13 +59,15 @@ The site runs at <http://localhost:8888> (admin: `admin` / `password`).
 | `npm run start` | Rebuilds on change, with source maps |
 | `npm run build` | Production build, plus an `*.asset.php` file for each script |
 | `npm run format` | Formats JS with the WordPress Prettier config |
-| `npm run lint` | Runs `lint:js`, `lint:css` and `lint:pkg` |
-| `npm run test:unit` | Vitest unit tests in `tests/js` |
-| `npm run test:e2e` | Playwright tests in `tests/e2e` against wp-env |
+| `npm run lint` | Runs `lint:js`, `lint:css`, `lint:pkg` and `lint:json` |
+| `npm run lint:json` | Validates every `block.json` against the WordPress block schema (Ajv) |
+| `npm run test:unit` | Vitest unit tests in `tests/js`, with a coverage gate |
+| `npm run test:e2e` | Playwright tests in `tests/e2e` against wp-env, including axe-core checks |
 | `npm run packages-update` | Updates `@wordpress/*` packages |
 | `npm run zip` | Builds a distribution ZIP |
 | `composer run lint` / `lint:fix` | PHPCS / PHPCBF with WordPress standards |
 | `composer run phpstan` | PHPStan level 6 |
+| `composer run test` | PHPUnit unit tests in `tests/php` |
 
 ### Configuration files
 
@@ -216,16 +225,21 @@ describe( 'SkipLink', () => {
 
 Import `describe`, `test`, `expect` and `vi` from `vitest`; there are no globals.
 
+`npm run test:unit` also measures coverage of the files the tests load, and fails below 70% branches, 80% statements or 80% functions (`vitest.config.mjs`). The data goes to `coverage/lcov.info`.
+
 ### PHP Checks
 
 ```bash
 composer run lint
 composer run phpstan
+composer run test
 ```
+
+PHPUnit tests live in `tests/php` and end in `Test.php`. They extend `tests/php/TestCase.php`, which uses `yoast/phpunit-polyfills` and stubs WordPress functions with Brain Monkey, so they run without a WordPress install. CI runs them on PHP 8.4 and 8.5.
 
 ### End-to-End Testing
 
-Playwright tests live in `tests/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. Start wp-env first:
+Playwright tests live in `tests/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. `tests/e2e/accessibility.spec.js` also checks, at mobile, tablet and desktop widths, that the blocks fit the screen and pass an axe-core WCAG 2.2 AA scan. Start wp-env first:
 
 ```bash
 npm run env:start
@@ -291,21 +305,30 @@ This updates version numbers in:
 - `src/*/block.json`
 - `README.md`
 
+### Changelog
+
+Every pull request to `develop` or `main` needs a `CHANGELOG.md` entry under `[Unreleased]` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/)). The **Changelog** workflow (`.github/workflows/changelog.yml`) checks it. Docs-only and Dependabot pull requests are exempt, and the `meta:no-changelog` label skips the check, except on feature, bug, performance, security, release and hotfix pull requests.
+
 ### Creating Releases
 
-1. **Update version** using the script above
-2. **Test thoroughly** - run all tests and manual testing
-3. **Build production assets** with `npm run build`
-4. **Create git tag** and push
-5. **GitHub Actions** will automatically create release assets
+1. Set the new version in the plugin header (`Version:`), `readme.txt` (`Stable tag:`) and `package.json`, and move the `[Unreleased]` entries under a `## [x.y.z]` heading in `CHANGELOG.md`.
+2. Merge to `main`, then tag the release and push the tag:
 
-### Plugin ZIP Creation
+   ```bash
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+3. The **Release** workflow (`.github/workflows/release.yml`) checks that the tag matches all four versions, builds, packages the plugin and publishes a GitHub release with the zip, using the version's changelog section as the notes.
+
+### Release Package
 
 ```bash
-npm run zip
+npm run build
+node bin/package-release.js
 ```
 
-This creates a distribution-ready ZIP file. `.distignore` leaves out development files (`src/`, `tests/`), config files and dependencies (`node_modules/`, `vendor/`).
+This copies every file `.distignore` does not exclude into `dist/<slug>/`, which the release workflow zips. `.distignore` leaves out development files (`src/`, `tests/`, `bin/`), config files and dependencies (`node_modules/`, `vendor/`).
 
 ## Debugging
 

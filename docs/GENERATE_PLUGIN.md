@@ -719,7 +719,7 @@ tour-operator/
 ├── vitest.config.mjs         # Unit tests (Vitest + Testing Library)
 ├── playwright.config.js      # E2E tests against wp-env
 ├── phpcs.xml / phpstan.neon
-├── .husky/pre-commit         # Lints and formats staged files
+├── .husky/pre-commit         # Branch, changelog, build and lint gates
 ├── .github/workflows/ci.yml  # JS, PHP and E2E jobs
 ├── inc/                      # PHP classes
 ├── src/                      # Blocks, components, hooks, styles
@@ -1204,12 +1204,12 @@ Each JSON file exposes `scope`, `blocks`, `name`, `label`, and `style_data` (or 
 
 ### Pre-Commit Hooks
 
-The generator integrates with Husky pre-commit hooks:
+Generated plugins include a Husky pre-commit hook (`.husky/pre-commit`) that runs these gates in order:
 
-1. **Generation** - Use any generation method
-2. **Customisation** - Modify generated files
-3. **Validation** - Automatic linting and tests
-4. **Commit** - Hooks validate before commit
+1. **Branch name** - Blocks commits on `main`, `develop` and `release/*`, and requires a type prefix from `branch-types.yml` in `lightspeedwp/.github`
+2. **Changelog** - A `.php`, `.js`, `.jsx`, `.ts`, `.tsx` or `.scss` change needs a `CHANGELOG.md` entry
+3. **Build** - Runs `npm run build` when `src/` files are staged
+4. **lint-staged** - Lints and formats staged files and validates staged `block.json` files
 
 ### Linting Standards
 

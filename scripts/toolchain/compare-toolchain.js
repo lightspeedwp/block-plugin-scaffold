@@ -25,14 +25,18 @@ const FILES = [
 	'playwright.config.js',
 	'phpcs.xml',
 	'phpstan.neon',
+	'phpunit.xml',
 	'.wp-env.json',
 	'.npmrc',
 	'.husky/pre-commit',
 	'.github/workflows/ci.yml',
+	'.github/workflows/changelog.yml',
+	'.github/workflows/release.yml',
+	'.distignore',
 	'webpack.config.js',
 ];
 // Folders whose files are all compared.
-const DIRS = ['tests/js', 'tests/e2e', 'tests/php'];
+const DIRS = ['bin', 'tests/js', 'tests/e2e', 'tests/php'];
 // Manifest fields compared; metadata such as name and URLs is left out.
 const PACKAGE_FIELDS = [
 	'engines',

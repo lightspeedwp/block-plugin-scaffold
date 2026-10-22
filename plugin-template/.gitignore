@@ -4,12 +4,14 @@ vendor/
 
 # Build output
 build/
+dist/
 *.zip
 
 # Logs and caches
 *.log
 .cache/
 .phpunit.result.cache
+.phpunit.cache/
 coverage/
 test-results/
 playwright-report/
