@@ -10,12 +10,15 @@ import {
 
 describe( 'buildQueryArgs', () => {
 	test( 'applies defaults', () => {
-		expect( buildQueryArgs( {} ) ).toEqual( {
-			post_type: '',
+		const args = buildQueryArgs( {} );
+
+		expect( args ).toMatchObject( {
 			posts_per_page: 6,
 			order: 'desc',
 			orderby: 'date',
 		} );
+		// The plugin's first post type, or '' for a functional-only plugin.
+		expect( args.post_type ).toEqual( expect.any( String ) );
 	} );
 
 	test( 'maps optional query settings', () => {

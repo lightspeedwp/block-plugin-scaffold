@@ -1771,20 +1771,31 @@ Start development mode with file watching:
 npm run start
 \`\`\`
 
-## Testing
+## Checks
 
-Start WordPress environment:
+\`\`\`bash
+npm run lint          # lint:js, lint:css and lint:pkg
+npm run test:unit     # Vitest
+composer run lint     # PHPCS
+composer run phpstan  # PHPStan
+\`\`\`
+
+## End-to-end tests
+
+Start WordPress (add \`-- --runtime=playground\` if Docker is not available), then run Playwright:
 
 \`\`\`bash
 npm run env:start
+npm run test:e2e
 \`\`\`
 
-Access at: http://localhost:8888
+The site runs at http://localhost:8888. See DEVELOPMENT.md for every command.
 
 ## Requirements
 
 - WordPress ${config.requires_wp}+
 - PHP ${config.requires_php}+
+- Node.js 24.18+ (for development)
 - Secure Custom Fields plugin
 
 ## License

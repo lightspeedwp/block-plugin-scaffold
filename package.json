@@ -81,6 +81,7 @@
 		"build:quick": "wp-scripts build --experimental-modules",
 		"check-engines": "wp-scripts check-engines",
 		"check-licenses": "wp-scripts check-licenses",
+		"check:generation": "node scripts/toolchain/check-generation.js",
 		"check:markdown-references": "node scripts/check-markdown-references.js",
 		"check:toolchain": "jest scripts/__tests__/generate-plugin.toolchain.test.js",
 		"clean:gh-references": "node scripts/clean-github-references.js",

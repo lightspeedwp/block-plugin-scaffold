@@ -106,7 +106,7 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 - [x] T029 [P] [US1] Move T013 to `templates/github/workflows/ci.yml`, and make the generator copy it to `.github/workflows/ci.yml` in the output
 - [x] T030 [P] [US1] Move T014 (asset descriptor enqueueing) back into `inc/` and the main plugin file template, if anything changed
 - [x] T031 [P] [US4] Move the T016 build flag (if one was needed) back into `scripts/build.js`, `webpack.config.js` and `standard-toolchain.json`
-- [ ] T032 [P] [US2] Rewrite `scripts/utils/placeholders.js` with plugin-scaffold keys from `scripts/mustache-variables-registry.json`, add `scripts/utils/__tests__/placeholders.test.js`, and add `scripts/toolchain/fill-placeholders.js --check` as `prelint` for any config file that still holds a tag — **Deferred to phase 6**: nothing in the toolchain uses `placeholders.js` now (raw templates are linted with formatting off, and SCSS is linted in the generated plugin), but the mustache registry validator still reads it
+- [x] T032 [P] [US2] Rewrite `scripts/utils/placeholders.js` with plugin-scaffold keys from `scripts/mustache-variables-registry.json`, add `scripts/utils/__tests__/placeholders.test.js`, and add `scripts/toolchain/fill-placeholders.js --check` as `prelint` for any config file that still holds a tag — **Done in phase 6**: rewritten to render tags through the generator's `replaceMustacheVars()` with the example config; `fill-placeholders.js` was not needed
 - [x] T033 [US3] Change the Node matrix to `[22.x, 24.x]` in every scaffold workflow under `.github/workflows/` that sets up Node
 - [x] T034 [US3] Run the scaffold's own `npm run lint`, `npm test`, `composer run lint` and `npm run test:e2e` (with `wp-env`), plus [quickstart.md Scenario C](./quickstart.md#scenario-c--the-scaffolds-own-toolchain-us3)
 
@@ -148,12 +148,21 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 **Independent Test**: [quickstart.md Scenario B](./quickstart.md#scenario-b--the-generation-check-catches-a-broken-template-us2)
 
-- [ ] T038 [P] [US2] Create `tests/fixtures/generation/default.json` and `functional-only.json` from `$TEST_CONFIG`, with all client details replaced by test-only metadata ([data-model.md §4](./data-model.md#4-generation-fixture))
-- [ ] T039 [P] [US2] Write `scripts/toolchain/__tests__/check-generation.test.js` for the leftover-placeholder scanner and the step runner
-- [ ] T040 [US2] Implement `scripts/toolchain/check-generation.js` following [generation-check.md](./contracts/generation-check.md), and add the `check:generation` script
-- [ ] T041 [US2] Add a `generation-check` job to `.github/workflows/ci-cd.yml` (Node 22 and 24, npm cache). In the pull request, note that a repository admin must make it a required check on `develop` and `main`
-- [ ] T042 [US2] Run [quickstart.md Scenario B](./quickstart.md#scenario-b--the-generation-check-catches-a-broken-template-us2) with both seeded breaks
-- [ ] T043 [US1] With the user's approval, push the regenerated plugin from T036 to a private scratch repository, and confirm its own CI workflow passes on the first push (SC-010). Delete the scratch repository afterwards if the user agrees
+- [x] T038 [P] [US2] Create `tests/fixtures/generation/default.json` and `functional-only.json` from `$TEST_CONFIG`, with all client details replaced by test-only metadata ([data-model.md §4](./data-model.md#4-generation-fixture))
+- [x] T039 [P] [US2] Write `scripts/toolchain/__tests__/check-generation.test.js` for the leftover-placeholder scanner and the step runner
+- [x] T040 [US2] Implement `scripts/toolchain/check-generation.js` following [generation-check.md](./contracts/generation-check.md), and add the `check:generation` script
+- [x] T041 [US2] Add a `generation-check` job to `.github/workflows/ci-cd.yml` (Node 22 and 24, npm cache). In the pull request, note that a repository admin must make it a required check on `develop` and `main`
+- [x] T042 [US2] Run [quickstart.md Scenario B](./quickstart.md#scenario-b--the-generation-check-catches-a-broken-template-us2) with both seeded breaks
+- [x] T043 [US1] With the user's approval, push the regenerated plugin from T036 to a private scratch repository, and confirm its own CI workflow passes on the first push (SC-010). Delete the scratch repository afterwards if the user agrees
+
+> **Phase 6 notes (S3)**:
+>
+> - **Results**: `npm run check:generation -- --e2e --playground` passes all 9 steps (generate, leftover scan, install, build plus asset files, lint:js, lint:css, lint:pkg, test:unit, e2e) for **both** fixtures. The ls-test round trip still gives 0 differences.
+> - **Found by the default fixture**, which ls-test (functional-only) could not cover: 185 stylelint errors in the collection block's CSS/SCSS, a `dot-notation` error in its `view.js`, and a starter query test that assumed no post types (fixed in ls-test too).
+> - **Scenario B**: an impossible devDependency range fails at `npm install`; an unrendered `{{plugin-name}}` in `readme.txt` fails the leftover scan with `readme.txt:95  {{plugin-name}}`. Both files were restored.
+> - **CI**: `generation-check` replaces the E2E job that ran wp-env against the raw templates (their PHP holds `{{namespace}}`). It runs both fixtures with `--e2e` on Docker. A repository admin must add `Generation check (default)` and `Generation check (functional-only)` to the required checks on `develop` and `main`.
+> - **T043**: no scratch repository needed. `lightspeedwp/ls-test` is a generated plugin with the same `ci.yml` (0 toolchain differences), and its CI passed on its first push and on every push since.
+> - **T032**: `placeholders.js` now renders tags through the generator with the example config; the validator's strict mode, which never matched, now uses it.
 
 **Checkpoint**: Generation is gated. This completes S3.
 
@@ -161,11 +170,18 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 ## Phase 7: Documentation, instructions and governance (US4, US5)
 
-- [ ] T044 [P] [US4] Write `docs/INTERACTIVITY-AND-DATAVIEWS.md` using what T016 and T017 proved
-- [ ] T045 [P] [US5] Update `README.md`, `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`: the aliases, the one-config-per-tool rule, Node 22, `--output-dir`, `check:generation`, and the generate-fix-move-back workflow for future toolchain changes
-- [ ] T046 [P] [US5] Update `.github/instructions/` (`javascript-react-development`, `jest-tests`, `playwright-tests`, `testing-e2e`, `blocks-development`) to use the standard aliases and the Playwright utilities, and to drop references to removed configs and Puppeteer
-- [ ] T047 [US5] Amend `.specify/memory/constitution.md` (PATCH 1.0.1): Node ≥ 22.22 / npm ≥ 10, with a Sync Impact Report
-- [ ] T048 [US5] Run [quickstart.md Scenario E](./quickstart.md#scenario-e--documentation-and-instructions-us5)
+- [x] T044 [P] [US4] Write `docs/INTERACTIVITY-AND-DATAVIEWS.md` using what T016 and T017 proved
+- [x] T045 [P] [US5] Update `README.md`, `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`: the aliases, the one-config-per-tool rule, Node 22, `--output-dir`, `check:generation`, and the generate-fix-move-back workflow for future toolchain changes
+- [x] T046 [P] [US5] Update `.github/instructions/` (`javascript-react-development`, `jest-tests`, `playwright-tests`, `testing-e2e`, `blocks-development`) to use the standard aliases and the Playwright utilities, and to drop references to removed configs and Puppeteer
+- [x] T047 [US5] Amend `.specify/memory/constitution.md` (PATCH 1.0.1): Node ≥ 22.22 / npm ≥ 10, with a Sync Impact Report
+- [x] T048 [US5] Run [quickstart.md Scenario E](./quickstart.md#scenario-e--documentation-and-instructions-us5)
+
+> **Phase 7 notes (S4)**:
+>
+> - **T045**: there is no root `README.md` (the generator writes one per plugin), so the generated README content was updated instead, along with `DEVELOPMENT.md` (shipped with every plugin), `docs/GENERATE_PLUGIN.md` and `docs/RELEASE_PROCESS.md`.
+> - **T048**: the Scenario E search finds no references to removed aliases, configs, Puppeteer, the Jest preset or Node 18/20 in docs or instruction files.
+> - **T050**: the scaffold's old lockfile was gitignored, so there is no committed "before" audit to compare. The new lockfile is committed in #48.
+> - **Not done**: `scripts/mustache-variables-registry.json` was not regenerated for `repository_url`. Its validator already fails on `develop` (47 stale and 2 unregistered variables), which is a separate clean-up.
 
 **Checkpoint**: The documentation matches the toolchain. This completes S4.
 
@@ -173,9 +189,9 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T049 Add a `CHANGELOG.md` entry to each pull request (_Added_, _Changed_, _Deprecated_ or _Removed_)
-- [ ] T050 [P] Run `npm audit --omit=dev` before T024 and after T037, and record the change in S1
-- [ ] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md)
+- [x] T049 Add a `CHANGELOG.md` entry to each pull request (_Added_, _Changed_, _Deprecated_ or _Removed_)
+- [x] T050 [P] Run `npm audit --omit=dev` before T024 and after T037, and record the change in S1
+- [x] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md) — raised as lightspeedwp/block-theme-scaffold#12
 - [ ] T052 Archive the test plugin. Keep `$TEST_PLUGIN` and its Git history until S1 and S2 are merged, as the record of what was moved back
 
 ---

@@ -11,6 +11,8 @@ updated: 2025-12-16
 
 This document explains how Jest tests are organized and written in the multi-block-plugin-scaffold repository, based on [Jest Documentation](https://jestjs.io/docs/getting-started) and WordPress block development standards.
 
+> **Scope**: Jest covers the **scaffold repository's own** tests (the generator CLI, validation and agent scripts), run with `npm run test:unit` (`wp-scripts test-unit-jest` with `@wordpress/jest-preset-default`). **Generated plugins use Vitest**, because `@wordpress/scripts` 36 retired its Jest defaults. For plugin unit tests, see `templates/tests/js/` and the Vitest section of [javascript-react-development.instructions.md](./javascript-react-development.instructions.md).
+
 ## Table of Contents
 
 - [Test File Organization](#test-file-organization)
