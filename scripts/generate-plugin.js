@@ -43,9 +43,9 @@ const LICENSE_URIS = {
 	'Apache-2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
 };
 
-// Files that differ between the scaffold and a generated plugin. Copied over
-// the plugin root after the main copy (spec 003).
-const TEMPLATES_DIR = path.join(scaffoldDir, 'templates');
+// Every file a generated plugin is rendered from. The rest of the scaffold is
+// the generator's own tooling and is never copied.
+const PLUGIN_TEMPLATE_DIR = path.join(scaffoldDir, 'plugin-template');
 
 // Standard toolchain proven in a generated plugin (spec 003).
 const STANDARD_TOOLCHAIN = require('./toolchain/standard-toolchain.json');
@@ -664,12 +664,16 @@ function copyDirWithReplacement(srcDir, destDir, config, excludePaths = []) {
 
 	for (const entry of entries) {
 		const srcPath = path.join(srcDir, entry.name);
-		const relativePath = path.relative(scaffoldDir, srcPath);
+		const relativePath = path.relative(PLUGIN_TEMPLATE_DIR, srcPath);
 
 		// Skip excluded paths, and OS junk files in any folder.
 		if (
 			entry.name === '.DS_Store' ||
-			excludePaths.some((exclude) => relativePath.startsWith(exclude))
+			excludePaths.some(
+				(exclude) =>
+					relativePath === exclude ||
+					relativePath.startsWith(`${exclude}/`)
+			)
 		) {
 			log('DEBUG', `Skipping excluded path: ${relativePath}`);
 			continue;
@@ -686,33 +690,6 @@ function copyDirWithReplacement(srcDir, destDir, config, excludePaths = []) {
 			copyDirWithReplacement(srcPath, destPath, config, excludePaths);
 		} else {
 			copyFileWithReplacement(srcPath, destPath, config);
-		}
-	}
-}
-
-/**
- * Remove scaffold-only dry-run tests from the generated plugin output.
- *
- * These files validate the template during dry-runs and should not ship with
- * a production plugin to avoid confusion and unnecessary bloat.
- *
- * @param {string} outputDir
- */
-function removeScaffoldOnlyTests(outputDir) {
-	const testDirs = [
-		path.join(outputDir, 'scripts', 'dry-run', '__tests__'),
-	];
-
-	for (const dirPath of testDirs) {
-		if (fs.existsSync(dirPath)) {
-			fs.rmSync(dirPath, { recursive: true, force: true });
-			log(
-				'INFO',
-				`Removed scaffold-only dry-run tests: ${path.relative(
-					outputDir,
-					dirPath
-				)}`
-			);
 		}
 	}
 }
@@ -858,6 +835,40 @@ function processFilesInPlace(targetDir, config) {
 }
 
 /**
+ * Move the rendered plugin-template/ files up to the repository root
+ * (template mode), replacing the scaffold's own copies of shared files such as
+ * eslint.config.cjs and .gitignore.
+ *
+ * @param {string} targetDir - Repository root being turned into the plugin
+ */
+function hoistPluginTemplate(targetDir) {
+	const templateDir = path.join(targetDir, 'plugin-template');
+	if (!fs.existsSync(templateDir)) {
+		log('WARN', 'plugin-template/ not found, nothing to move to the root');
+		return;
+	}
+
+	function moveEntries(srcDir, destDir) {
+		for (const entry of fs.readdirSync(srcDir, { withFileTypes: true })) {
+			const srcPath = path.join(srcDir, entry.name);
+			const destPath = path.join(destDir, entry.name);
+
+			if (entry.isDirectory() && fs.existsSync(destPath)) {
+				moveEntries(srcPath, destPath);
+				continue;
+			}
+
+			fs.rmSync(destPath, { recursive: true, force: true });
+			fs.renameSync(srcPath, destPath);
+		}
+	}
+
+	moveEntries(templateDir, targetDir);
+	fs.rmSync(templateDir, { recursive: true, force: true });
+	log('INFO', 'Moved plugin-template/ files to the repository root');
+}
+
+/**
  * Prompt user for confirmation (template mode)
  * @param {string} message - Confirmation message
  * @return {Promise<boolean>} - True if confirmed, false otherwise
@@ -961,56 +972,12 @@ function generatePlugin(config, inPlace = false) {
 		log('INFO', 'Template mode: Validating current directory');
 	}
 
-	// Paths to exclude from copying
+	// Paths in plugin-template/ to exclude from copying
 	const excludePaths = [
+		// Left behind by installing or building inside plugin-template/.
 		'node_modules',
 		'vendor',
 		'build',
-		'logs',
-		'tmp',
-		'reports',
-		'generated-plugins',
-		'output-plugin',
-		'output',
-		'.git',
-		'.github/reports',
-		'.github/agents',
-		'.github/prompts',
-		'tests',
-		'docs',
-		'scripts',
-		'bin',
-		'.dry-run-backup',
-		'plugin-config.json',
-		// Replaced by generateChangelog(); records the scaffold's history.
-		'CHANGELOG.md',
-		// Locks the scaffold's dependencies, not the generated package.json's,
-		// so npm ci would refuse to install. npm install creates a fresh one.
-		'package-lock.json',
-		// Scaffold development artefacts that do not belong in a generated plugin.
-		'dryrun-debug.log',
-		'test-results',
-		'multi-block-plugin-scaffold.code-workspace',
-		'IMPLEMENTATION-SUMMARY.md',
-		'SCF-JSON-REGISTRATION-CHANGES.md',
-		'.specify',
-		'.todo',
-		// Plugin-only overlay, copied separately after the main copy.
-		'templates',
-		// Scaffold-only tooling and AI assistant settings (spec 003, FR-025).
-		'.devcontainer',
-		'.gemini',
-		'.gpt',
-		'.qodo',
-		'.mustacheignore',
-		'.lighthouserc.js',
-		'.size-limit.json',
-		'.stylelintignore',
-		'.prettierignore',
-		'codecov.yml',
-		'jest.config.js',
-		'VERSION',
-		'AGENTS.md',
 		// Per-post-type template: never copied as-is. generatePerCPTBlocks()
 		// renders one {post-type}-collection block from it per post type, and
 		// is skipped entirely in functional-only mode.
@@ -1040,26 +1007,22 @@ function generatePlugin(config, inPlace = false) {
 		);
 	}
 
-	// Copy scaffold files with mustache replacement
+	// Render the plugin files with mustache replacement
 	if (inPlace) {
 		log('INFO', 'Replacing mustache variables in current directory...');
 		// In template mode, process files in place
 		processFilesInPlace(outputDir, fullConfig);
+		hoistPluginTemplate(outputDir);
 	} else {
-		log('INFO', 'Copying scaffold files to output directory...');
-		// In generator mode, copy from scaffold to output
+		log('INFO', 'Copying plugin-template files to output directory...');
+		// In generator mode, render plugin-template/ into the output
 		copyDirWithReplacement(
-			scaffoldDir,
+			PLUGIN_TEMPLATE_DIR,
 			outputDir,
 			fullConfig,
 			excludePaths
 		);
-		removeScaffoldOnlyTests(outputDir);
 		stripExcludedModuleExports(outputDir, fullConfig.isFunctionalOnly);
-
-		// Plugin-only files (configs, starter tests, CI) replace scaffold versions.
-		log('INFO', 'Copying plugin templates over the output...');
-		copyDirWithReplacement(TEMPLATES_DIR, outputDir, fullConfig);
 
 		// Generate per-CPT blocks after copying
 		if (
@@ -1163,7 +1126,7 @@ function generatePerCPTBlocks(outputDir, config) {
 		return;
 	}
 
-	const templateDir = path.join(scaffoldDir, COLLECTION_BLOCK_TEMPLATE);
+	const templateDir = path.join(PLUGIN_TEMPLATE_DIR, COLLECTION_BLOCK_TEMPLATE);
 	if (!fs.existsSync(templateDir)) {
 		log('WARN', `Collection block template not found: ${COLLECTION_BLOCK_TEMPLATE}`);
 		return;

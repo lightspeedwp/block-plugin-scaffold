@@ -7,7 +7,7 @@
 
 // Define constants for PHPStan.
 define( 'EXAMPLE_PLUGIN_VERSION', '1.0.0' );
-define( 'EXAMPLE_PLUGIN_PLUGIN_DIR', dirname( __DIR__ ) . '/' );
+define( 'EXAMPLE_PLUGIN_PLUGIN_DIR', dirname( __DIR__ ) . '/plugin-template/' );
 define( 'EXAMPLE_PLUGIN_PLUGIN_URL', 'https://example.com/wp-content/plugins/example-plugin/' );
 define( 'EXAMPLE_PLUGIN_PLUGIN_BASENAME', 'example-plugin/example-plugin.php' );
 

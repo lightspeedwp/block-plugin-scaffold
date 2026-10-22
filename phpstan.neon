@@ -4,9 +4,9 @@ includes:
 parameters:
 	level: 6
 	paths:
-		- "{{slug}}.php"
-		- uninstall.php
-		- inc/
+		- "plugin-template/{{slug}}.php"
+		- plugin-template/uninstall.php
+		- plugin-template/inc/
 	excludePaths:
 		- vendor/
 		- tests/

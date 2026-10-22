@@ -12,12 +12,12 @@
 	<exclude-pattern>/logs/</exclude-pattern>
 	<exclude-pattern>/generated-plugins/</exclude-pattern>
 	<!-- Exclude scaffold files with mustache placeholders -->
-	<exclude-pattern>inc/class-*.php</exclude-pattern>
-	<exclude-pattern>src/blocks/{{slug}}-*/</exclude-pattern>
-	<exclude-pattern>src/components/</exclude-pattern>
-	<exclude-pattern>patterns/{{slug}}-*.php</exclude-pattern>
-	<file>./{{slug}}.php</file>
-	<file>./uninstall.php</file>
+	<exclude-pattern>plugin-template/inc/class-*.php</exclude-pattern>
+	<exclude-pattern>plugin-template/src/blocks/{{slug}}-*/</exclude-pattern>
+	<exclude-pattern>plugin-template/src/components/</exclude-pattern>
+	<exclude-pattern>plugin-template/patterns/{{slug}}-*.php</exclude-pattern>
+	<file>./plugin-template/{{slug}}.php</file>
+	<file>./plugin-template/uninstall.php</file>
 
 	<!-- How to scan -->
 	<arg value="sp"/> <!-- Show sniff and progress -->

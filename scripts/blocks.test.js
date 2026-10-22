@@ -22,7 +22,7 @@ function requireBlock(modulePathTemplate) {
 	}
 }
 
-const CardEdit = requireBlock('../src/blocks/{{slug}}-card/edit').default;
+const CardEdit = requireBlock('../plugin-template/src/blocks/{{slug}}-card/edit').default;
 
 describe('Example Plugin Blocks', () => {
 	beforeEach(() => {

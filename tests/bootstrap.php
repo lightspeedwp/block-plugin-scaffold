@@ -94,7 +94,7 @@ function _manually_load_plugin() {
 		}
 	}
 
-	require dirname( __DIR__ ) . '/example-plugin.php';
+	require dirname( __DIR__ ) . '/plugin-template/example-plugin.php';
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );

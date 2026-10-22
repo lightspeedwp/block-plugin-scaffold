@@ -78,7 +78,7 @@
 		"analyze-bundle": "webpack-bundle-analyzer build/stats.json build",
 		"audit:markdown": "npm run check:markdown-references && npm run clean:markdown-references",
 		"build": "node scripts/build.js",
-		"build:quick": "wp-scripts build --experimental-modules",
+		"build:quick": "wp-scripts build --experimental-modules --webpack-src-dir=plugin-template/src",
 		"check-engines": "wp-scripts check-engines",
 		"check-licenses": "wp-scripts check-licenses",
 		"check:generation": "node scripts/toolchain/check-generation.js",
@@ -123,9 +123,9 @@
 		"lint:md:docs": "wp-scripts lint-md-docs",
 		"lint:pkg": "wp-scripts lint-pkg-json",
 		"lint:pkg-json": "npm run lint:pkg",
-		"makejson": "wp i18n make-json languages --no-purge",
-		"makepot": "wp i18n make-pot . languages/example-plugin.pot --slug=example-plugin --domain=example-plugin --exclude=node_modules,vendor,build,tests",
-		"makepot:php": "wp i18n make-pot . languages/example-plugin.pot --slug=example-plugin --domain=example-plugin --exclude=node_modules,vendor,build,tests,src",
+		"makejson": "wp i18n make-json plugin-template/languages --no-purge",
+		"makepot": "wp i18n make-pot plugin-template plugin-template/languages/example-plugin.pot --slug=example-plugin --domain=example-plugin --exclude=node_modules,vendor,build,tests",
+		"makepot:php": "wp i18n make-pot plugin-template plugin-template/languages/example-plugin.pot --slug=example-plugin --domain=example-plugin --exclude=node_modules,vendor,build,tests,src",
 		"packages-update": "wp-scripts packages-update",
 		"performance": "npm run lighthouse && npm run size-limit",
 		"plugin-zip": "npm run zip",
@@ -133,7 +133,7 @@
 		"release:status": "node scripts/release.agent.js status",
 		"release:validate": "node scripts/release.agent.js validate",
 		"size-limit": "size-limit",
-		"start": "wp-scripts start --experimental-modules",
+		"start": "wp-scripts start --experimental-modules --webpack-src-dir=plugin-template/src",
 		"test": "npm run test:unit",
 		"test:dry-run": "node scripts/test-dry-run.js",
 		"test:dry-run:coverage": "node scripts/test-dry-run.js --coverage",
@@ -153,7 +153,7 @@
 		"zip": "wp-scripts plugin-zip"
 	},
 	"lint-staged": {
-		"src/**/*.{js,jsx}": [
+		"plugin-template/src/**/*.{js,jsx}": [
 			"wp-scripts lint-js --fix"
 		],
 		"package.json": [

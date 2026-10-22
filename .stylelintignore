@@ -27,4 +27,4 @@ bin/
 scripts/
 
 # SCSS templates contain {{tags}}; they are linted in the generated plugin.
-src/
+plugin-template/src/

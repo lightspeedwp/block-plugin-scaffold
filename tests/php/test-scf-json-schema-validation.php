@@ -35,10 +35,10 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->schema_path = dirname( dirname( __DIR__ ) ) . '/scf-json/schema/scf-field-group.schema.json';
+		$this->schema_path = dirname( dirname( __DIR__ ) ) . '/plugin-template/scf-json/schema/scf-field-group.schema.json';
 
 		// Include the validator class if it exists.
-		$validator_file = dirname( dirname( __DIR__ ) ) . '/inc/class-scf-json-validator.php';
+		$validator_file = dirname( dirname( __DIR__ ) ) . '/plugin-template/inc/class-scf-json-validator.php';
 		if ( file_exists( $validator_file ) ) {
 			require_once $validator_file;
 			// Validator class will be instantiated if available.
@@ -161,7 +161,7 @@ class Test_SCF_JSON_Schema_Validation extends WP_UnitTestCase {
 	 * Test validator class exists if implementation is available.
 	 */
 	public function test_validator_class_available() {
-		$validator_file = dirname( dirname( __DIR__ ) ) . '/inc/class-scf-json-validator.php';
+		$validator_file = dirname( dirname( __DIR__ ) ) . '/plugin-template/inc/class-scf-json-validator.php';
 
 		if ( file_exists( $validator_file ) ) {
 			$this->assertNotNull( $this->validator, 'Validator should be instantiated' );
