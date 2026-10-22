@@ -81,6 +81,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- Generator exclusions matched path prefixes, so `.git` also skipped `.github/`, `.gitignore` and `.gitattributes`; exclusions now match whole paths within `plugin-template/`.
 - Template bugs found by the new tests:
   - the slider rendered nothing in the editor (5 attributes were missing from `block.json`);
   - `extractImageData()` returned the wrong image size;
