@@ -17,5 +17,16 @@ export default defineConfig( {
 		include: [ 'tests/js/**/*.test.{js,jsx}' ],
 		restoreMocks: true,
 		setupFiles: [ './tests/js/setup.js' ],
+		// Measures the files the tests load; fails the run below the thresholds.
+		coverage: {
+			enabled: true,
+			provider: 'v8',
+			reporter: [ 'text', 'lcov' ],
+			thresholds: {
+				branches: 70,
+				statements: 80,
+				functions: 80,
+			},
+		},
 	},
 } );
