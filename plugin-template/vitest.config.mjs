@@ -21,7 +21,7 @@ export default defineConfig( {
 		coverage: {
 			enabled: true,
 			provider: 'v8',
-			reporter: [ 'text', 'lcov' ],
+			reporter: [ 'text', 'lcovonly' ],
 			thresholds: {
 				branches: 70,
 				statements: 80,
