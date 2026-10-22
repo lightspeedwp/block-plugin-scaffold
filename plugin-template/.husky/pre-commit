@@ -1,1 +1,48 @@
+# Pre-commit gates, in order: branch name, changelog entry, build, then
+# lint-staged (block.json schema check and the linters, on staged files).
+# Skip them all with `git commit --no-verify`.
+
+fail() {
+	echo "pre-commit: $1" >&2
+	exit 1
+}
+
+# 1. Branch name. Prefixes come from branch-types.yml in lightspeedwp/.github.
+branch=$(git symbolic-ref --quiet --short HEAD || true)
+if [ -n "$branch" ]; then
+	case "$branch" in
+		main | develop | release/*)
+			fail "commit on a working branch, not directly on $branch."
+			;;
+		claude/* | copilot/* | openai/*)
+			fail "'${branch%%/*}/' is not an allowed branch prefix."
+			;;
+		feat/?* | task/?* | proto/?* | fix/?* | hotfix/?* | revert/?* | \
+			refactor/?* | chore/?* | docs/?* | doc/?* | i18n/?* | test/?* | \
+			perf/?* | ci/?* | build/?* | deps/?* | security/?* | design/?* | \
+			ds/?* | a11y/?* | ux/?* | ops/?* | audit/?* | codex/?* | \
+			research/?* | api/?* | schema/?* | content/?* | seo/?* | \
+			config/?* | migrate/?* | qa/?* | uat/?* | aiops/?* | \
+			automation/?* | telemetry/?* | epic/?*)
+			;;
+		*)
+			fail "branch '$branch' needs a type prefix such as feat/, fix/, chore/, test/ or docs/."
+			;;
+	esac
+fi
+
+staged=$(git diff --cached --name-only)
+
+# 2. A code change needs a CHANGELOG.md entry in the same commit.
+if echo "$staged" | grep -qE '\.(php|js|jsx|ts|tsx|scss)$' &&
+	! echo "$staged" | grep -qx 'CHANGELOG.md'; then
+	fail "code changed without a CHANGELOG.md entry. Add one under [Unreleased]."
+fi
+
+# 3. Source changes must still build.
+if echo "$staged" | grep -q '^src/'; then
+	npm run build --silent || fail "npm run build failed."
+fi
+
+# 4. Schema validation and linters on the staged files.
 npx lint-staged

@@ -29,7 +29,14 @@ npm install
 composer install
 ```
 
-`npm install` also installs the pre-commit hook (Husky), which lints and formats staged files.
+`npm install` also installs the pre-commit hook (Husky). Before each commit it checks, in order:
+
+1. **Branch name**: no direct commits to `main`, `develop` or `release/*`, and the branch needs a type prefix such as `feat/`, `fix/`, `chore/`, `test/` or `docs/` (the list in `branch-types.yml` in `lightspeedwp/.github`).
+2. **Changelog**: any `.php`, `.js`, `.jsx`, `.ts`, `.tsx` or `.scss` change needs a `CHANGELOG.md` entry in the same commit.
+3. **Build**: `npm run build` runs when `src/` files are staged.
+4. **lint-staged**: lints and formats the staged files, and validates staged `block.json` files against the block schema.
+
+Use `git commit --no-verify` to skip the hook, for example for a repository's first commit on `main`.
 
 ### 2. WordPress Environment
 

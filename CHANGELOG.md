@@ -59,6 +59,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- Generated plugins: the pre-commit hook checks the branch name (no direct commits to `main`, `develop` or `release/*`; a type prefix from the organisation's `branch-types.yml`), requires a `CHANGELOG.md` entry for code changes, runs `npm run build` when `src/` changes, then runs lint-staged. Documented in `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`.
 - Generated plugins: the CI PHP job runs on PHP 8.4 and 8.5, and wp-env uses PHP 8.4 (proven in `lightspeedwp/ls-test`).
 - The plugin template files (`src/`, `inc/`, `patterns/`, `{{slug}}.php` and the former `templates/` overlay) now live in `plugin-template/`. The generator renders only that folder, so the scaffold's tooling can no longer leak into a plugin; generated plugins no longer pick up Husky's `.husky/_/` folder or the config file they were generated from.
 - Upgraded to the current `@wordpress/*` majors (`@wordpress/scripts` 36, components 42, block-editor 18); Node.js 24.18+ and npm 11.16+ are now required (`.nvmrc` 24).
