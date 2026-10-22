@@ -1,21 +1,11 @@
 {
-	"core": "WordPress/WordPress#6.5",
-	"phpVersion": "8.0",
 	"plugins": [
+		"https://downloads.wordpress.org/plugin/secure-custom-fields.zip",
 		"."
 	],
-	"themes": [
-		"WordPress/theme-developer-resources#trunk"
-	],
-	"mappings": {
-		"wp-content/plugins/{{slug}}": "."
-	},
 	"config": {
 		"WP_DEBUG": true,
-		"WP_DEBUG_LOG": true,
 		"SCRIPT_DEBUG": true
 	},
-	"lifecycleScripts": {
-		"afterStart": "wp plugin activate {{slug}}"
-	}
+	"testsEnvironment": false
 }

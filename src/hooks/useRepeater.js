@@ -47,30 +47,30 @@ import { useSelect } from '@wordpress/data';
  *   </div>
  * );
  */
-export default function useRepeater(postId, fieldName, postType = 'item') {
+export default function useRepeater( postId, fieldName, postType = 'item' ) {
 	return useSelect(
-		(select) => {
-			if (!postId || !fieldName) {
+		( select ) => {
+			if ( ! postId || ! fieldName ) {
 				return { rows: [], isLoading: false };
 			}
 
-			const post = select('core').getEntityRecord(
+			const post = select( 'core' ).getEntityRecord(
 				'postType',
 				postType,
 				postId
 			);
-			const isLoading = select('core/data').isResolving(
+			const isLoading = select( 'core/data' ).isResolving(
 				'core',
 				'getEntityRecord',
-				['postType', postType, postId]
+				[ 'postType', postType, postId ]
 			);
 
 			const fieldValue =
-				post?.acf?.[fieldName] ?? post?.meta?.[fieldName] ?? null;
-			const rows = Array.isArray(fieldValue) ? fieldValue : [];
+				post?.acf?.[ fieldName ] ?? post?.meta?.[ fieldName ] ?? null;
+			const rows = Array.isArray( fieldValue ) ? fieldValue : [];
 
 			return { rows, isLoading };
 		},
-		[postId, fieldName, postType]
+		[ postId, fieldName, postType ]
 	);
 }

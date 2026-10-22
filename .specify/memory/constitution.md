@@ -1,5 +1,16 @@
 <!--
-Sync Impact Report
+Sync Impact Report (1.0.1)
+- Version change: 1.0.0 → 1.0.1 (PATCH: tooling constraints updated to match the current toolchain;
+  no principle added, removed or redefined)
+- Modified sections: Technology & Tooling Constraints. Node.js 18.0+ / npm 8.0+ → Node.js 24.18+ /
+  npm 11.16+ (required by @wordpress/scripts 36 and @wordpress/env 11); WordPress 6.0+ → 6.5+ (the
+  plugin header minimum); build system notes view script modules; testing stack names Vitest for
+  generated plugins, Jest for the scaffold's own CLI tests, and the generation check.
+- Templates requiring follow-up: none.
+- Source: spec 003 (Scaffold Toolchain Modernisation), research.md amendment A3 and task T047.
+-->
+<!--
+Sync Impact Report (1.0.0)
 - Version change: TEMPLATE (unratified placeholders) → 1.0.0 (initial ratification)
 - Modified principles: none (first concrete adoption — all 5 slots filled in for the first time)
 - Added sections: Core Principles I-V (all newly named), Technology & Tooling Constraints,
@@ -74,15 +85,18 @@ placeholder integrity is an ongoing property the scaffold must maintain, not a o
 
 ## Technology & Tooling Constraints
 
-- **Runtime/tooling versions**: Node.js 18.0+ / npm 8.0+, PHP 8.0+ with Composer, WordPress 6.0+
-  for testing.
-- **Build system**: Webpack via `@wordpress/scripts`; block metadata via `block.json`.
+- **Runtime/tooling versions**: Node.js 24.18+ / npm 11.16+ (see `.nvmrc`), PHP 8.0+ with Composer,
+  WordPress 6.5+ for testing.
+- **Build system**: Webpack via `@wordpress/scripts` (with `--experimental-modules` for view script
+  modules); block metadata via `block.json`.
 - **Templating**: Mustache variables for plugin/block scaffolding templates; all generated
   `block.json`/config JSON MUST validate against the schemas under `.github/schemas/`.
 - **Fields**: Secure Custom Fields (SCF) JSON is the supported custom-fields mechanism; SCF JSON
   changes MUST validate against `.github/schemas/scf-field-group.schema.json`.
-- **Testing stack**: PHPUnit (`tests/php`), Jest (`*.test.js`), Playwright-style e2e specs
-  (`tests/e2e`).
+- **Testing stack**: generated plugins use Vitest (`tests/js`), Playwright with
+  `@wordpress/e2e-test-utils-playwright` (`tests/e2e`), PHPCS and PHPStan; the scaffold's own CLI
+  tests use Jest (`wp-scripts test-unit-jest`); `npm run check:generation` proves generated plugins
+  in CI.
 
 ## Development Workflow
 
@@ -116,5 +130,5 @@ Complexity Tracking table rather than silently ignored. Use `AGENTS.md` and
 `.github/custom-instructions.md` for day-to-day operational guidance that implements these
 principles in detail.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date of these
-practices (AGENTS.md / coding-standards instructions) was not recorded; backfill if known | **Last Amended**: 2026-09-11
+**Version**: 1.0.1 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date of these
+practices (AGENTS.md / coding-standards instructions) was not recorded; backfill if known | **Last Amended**: 2026-10-20

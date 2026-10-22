@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+build/
+*.zip
+
+# Logs and caches
+*.log
+.cache/
+.phpunit.result.cache
+coverage/
+test-results/
+playwright-report/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Playwright artifacts
+artifacts/

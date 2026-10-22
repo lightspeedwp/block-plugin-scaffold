@@ -1,6 +1,4 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * Repeater and Flexible Content Fields using Secure Custom Fields.
  *
@@ -8,6 +6,8 @@ namespace {{namespace}}\classes;
  * @see https://wordpress.org/plugins/secure-custom-fields/
  * @since 1.0.0
  */
+
+namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

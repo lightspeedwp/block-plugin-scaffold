@@ -1,73 +1,30 @@
 /**
- * Webpack Configuration for Multi-Block Plugin.
+ * Webpack configuration.
  *
- * @package
+ * @wordpress/scripts already builds every block it finds through block.json
+ * (scripts, styles, view modules and render.php). This adds the plugin's
+ * shared entry and the editor scripts in src/js.
  */
+const path = require( 'path' );
+const { globSync } = require( 'glob' );
+const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 
-/* eslint import/no-extraneous-dependencies: ["error", {"devDependencies": true}] */
+const extraEntries = () => ( {
+	index: './src/index.js',
+	...Object.fromEntries(
+		globSync( 'src/js/**/*.js' ).map( ( file ) => [
+			`js/${ path.relative( 'src/js', file ).replace( /\.js$/, '' ) }`,
+			`./${ file }`,
+		] )
+	),
+} );
 
-const defaultConfig = require('@wordpress/scripts/config/webpack.config');
-const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const withExtraEntries = ( config ) => ( {
+	...config,
+	entry: () => ( { ...config.entry(), ...extraEntries() } ),
+} );
 
-// Find all block entry points.
-const glob = require('glob');
-
-const blockEntries = {};
-const blockDirs = glob.sync('./src/blocks/*/index.js');
-
-blockDirs.forEach((blockPath) => {
-	const blockName = path.basename(path.dirname(blockPath));
-	blockEntries[`blocks/${blockName}/index`] = path.resolve(
-		process.cwd(),
-		blockPath
-	);
-});
-
-// Find all JS files in src/js directory.
-const jsEntries = {};
-const jsDirs = glob.sync('./src/js/**/*.js');
-
-jsDirs.forEach((jsPath) => {
-	const relativePath = path.relative('./src/js', jsPath);
-	const entryName = relativePath.replace(/\.js$/, '');
-	jsEntries[`js/${entryName}`] = path.resolve(process.cwd(), jsPath);
-});
-
-module.exports = {
-	...defaultConfig,
-	entry: {
-		index: path.resolve(process.cwd(), 'src', 'index.js'),
-		...blockEntries,
-		...jsEntries,
-	},
-	output: {
-		filename: '[name].js',
-		path: path.resolve(process.cwd(), 'build'),
-	},
-	resolve: {
-		...defaultConfig.resolve,
-		alias: {
-			...(defaultConfig.resolve?.alias || {}),
-			'@': path.resolve(process.cwd(), 'src'),
-			'@blocks': path.resolve(process.cwd(), 'src', 'blocks'),
-			'@components': path.resolve(process.cwd(), 'src', 'components'),
-			'@hooks': path.resolve(process.cwd(), 'src', 'hooks'),
-			'@utils': path.resolve(process.cwd(), 'src', 'utils'),
-		},
-	},
-	plugins: [
-		...defaultConfig.plugins,
-		new CopyWebpackPlugin({
-			patterns: [
-				{
-					from: 'src/blocks/*/render.php',
-					to: ({ context, absoluteFilename }) => {
-						const blockName = path.basename(path.dirname(absoluteFilename));
-						return `blocks/${blockName}/render.php`;
-					},
-				},
-			],
-		}),
-	],
-};
+// With --experimental-modules, @wordpress/scripts exports [ scripts, modules ].
+module.exports = Array.isArray( defaultConfig )
+	? [ withExtraEntries( defaultConfig[ 0 ] ), ...defaultConfig.slice( 1 ) ]
+	: withExtraEntries( defaultConfig );

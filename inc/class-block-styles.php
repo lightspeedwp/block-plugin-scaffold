@@ -1,11 +1,11 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * Block Style Variations Registration.
  *
  * @package {{namespace}}
  */
+
+namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -63,7 +63,7 @@ class Block_Styles {
 			return array();
 		}
 
-		$files = array();
+		$files    = array();
 		$iterator = new \RecursiveIteratorIterator(
 			new \RecursiveDirectoryIterator( $directory, \FilesystemIterator::SKIP_DOTS )
 		);
@@ -88,13 +88,7 @@ class Block_Styles {
 	 * @return array<int,array<mixed>> List of style definitions.
 	 */
 	private function load_style_definitions( $file_path ) {
-		$content = file_get_contents( $file_path );
-
-		if ( false === $content ) {
-			return array();
-		}
-
-		$data = json_decode( $content, true );
+		$data = wp_json_file_decode( $file_path, array( 'associative' => true ) );
 
 		if ( ! is_array( $data ) || empty( $data ) ) {
 			return array();
@@ -142,7 +136,7 @@ class Block_Styles {
 
 		$args = array(
 			'name'  => $name,
-			'label' => __( $label, '{{textdomain}}' ),
+			'label' => $label,
 		);
 
 		if ( ! empty( $definition['class_name'] ) ) {

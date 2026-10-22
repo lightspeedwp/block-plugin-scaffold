@@ -7,16 +7,12 @@
 	"category": "{{slug}}",
 	"icon": "admin-post",
 	"description": "Display a custom field value from the current post with optional prefix.",
-	"keywords": [
-		"field",
-		"meta",
-		"custom"
-	],
+	"keywords": [ "field", "meta", "custom" ],
 	"textdomain": "{{textdomain}}",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
-	"style": "file:./index.css",
-	"render": "{{namespace}}_render_field_display",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
 	"supports": {
 		"html": false,
 		"align": true,
@@ -60,10 +56,7 @@
 			"default": ""
 		}
 	},
-	"usesContext": [
-		"postId",
-		"postType"
-	],
+	"usesContext": [ "postId", "postType" ],
 	"example": {
 		"attributes": {
 			"fieldKey": "example_field",

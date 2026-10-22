@@ -8,7 +8,7 @@
  *
  * A reusable component for filtering by taxonomy terms in the block editor.
  *
- * @package {{namespace}}
+ * @package
  */
 
 import { __ } from '@wordpress/i18n';

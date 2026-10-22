@@ -106,29 +106,35 @@ my-block-plugin/
 
 ### Recommended Tools
 
-Use `@wordpress/scripts` for modern WordPress block development:
+Use `@wordpress/scripts` for modern WordPress block development. Generated plugins get the standard LightSpeed command aliases, defined in `scripts/toolchain/standard-toolchain.json`:
 
 ```json
 {
   "scripts": {
-    "dev": "wp-scripts start",
-    "build": "wp-scripts build",
-    "lint:js": "wp-scripts lint-js",
-    "lint:style": "wp-scripts lint-style",
+    "start": "wp-scripts start --experimental-modules",
+    "build": "wp-scripts build --experimental-modules",
     "format": "wp-scripts format",
-    "test:unit": "wp-scripts test-unit-js"
+    "lint:js": "wp-scripts lint-js",
+    "lint:css": "wp-scripts lint-style",
+    "lint:pkg": "wp-scripts lint-pkg-json",
+    "test:unit": "wp-scripts test-unit-js",
+    "test:e2e": "wp-scripts test-playwright",
+    "packages-update": "wp-scripts packages-update",
+    "zip": "wp-scripts plugin-zip"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^27.0.0"
+    "@wordpress/scripts": "^36.1.0"
   }
 }
 ```
 
+`--experimental-modules` builds each block's `viewScriptModule` for the Interactivity API (see `docs/INTERACTIVITY-AND-DATAVIEWS.md`).
+
 ### Workflow
 
-1. **Development**: Run `npm run dev` for live rebuilding
+1. **Development**: Run `npm run start` for live rebuilding
 2. **Production**: Run `npm run build` for optimized output
-3. **Linting**: Run `npm run lint:js` and `npm run lint:style`
+3. **Linting**: Run `npm run lint` (`lint:js`, `lint:css` and `lint:pkg`); the pre-commit hook lints staged files
 4. **Formatting**: Run `npm run format` before committing
 
 ### What `@wordpress/scripts` Provides
@@ -733,13 +739,13 @@ See [security.instructions.md](./security.instructions.md) for comprehensive sec
     "dev": "wp-scripts start",
     "build": "wp-scripts build",
     "lint:js": "wp-scripts lint-js",
-    "lint:style": "wp-scripts lint-style",
+    "lint:css": "wp-scripts lint-style",
     "format": "wp-scripts format",
     "test:unit": "wp-scripts test-unit-js",
-    "plugin-zip": "wp-scripts plugin-zip"
+    "zip": "wp-scripts plugin-zip"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^27.0.0"
+    "@wordpress/scripts": "^36.1.0"
   }
 }
 ```

@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       {{name}}
- * Plugin URI:        {{plugin_uri}}
+ * Plugin URI:
  * Description:       {{description}}
  * Version:           {{version}}
  * Requires at least: {{requires_wp}}
@@ -39,11 +39,11 @@ require_once {{namespace|upper}}_DIR . 'inc/class-core.php';
  * @return \{{namespace}}\classes\Core Main plugin instance.
  */
 function {{namespace}}_init() {
-       global ${{namespace}};
-       if ( null === ${{namespace}} ) {
-	       ${{namespace}} = new \{{namespace}}\classes\Core();
-       }
-       return ${{namespace}};
+	global ${{namespace}};
+	if ( null === ${{namespace}} ) {
+		${{namespace}} = new \{{namespace}}\classes\Core();
+	}
+	return ${{namespace}};
 }
 
 // Initialize the plugin.

@@ -1,12 +1,12 @@
 <?php
-namespace {{namespace}}\classes;
-
 /**
  * Core Class initiating the rest of the classes.
  *
  * @package {{namespace}}
  * @since 1.0.0
  */
+
+namespace {{namespace}}\classes;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -77,7 +77,7 @@ class Core {
 	public function register_blocks() {
 		// Auto-register all blocks in build/blocks/ (filtered for flexibility).
 		$default_dir = {{namespace|upper}}_DIR . 'build/blocks/';
-		$blocks_dir = apply_filters( '{{namespace}}_blocks_dir', $default_dir );
+		$blocks_dir  = apply_filters( '{{namespace}}_blocks_dir', $default_dir );
 
 		if ( ! is_dir( $blocks_dir ) ) {
 			return;
@@ -90,24 +90,7 @@ class Core {
 		}
 
 		foreach ( $blocks as $block_json ) {
-			$block_dir = dirname( $block_json );
-			
-			// Load render.php if it exists.
-			$render_file = $block_dir . '/render.php';
-			if ( file_exists( $render_file ) ) {
-				require_once $render_file;
-			}
-			
-			// Read block.json to get render callback.
-			$block_metadata = json_decode( file_get_contents( $block_json ), true );
-			$args = array();
-			
-			// If render callback is specified, add it.
-			if ( ! empty( $block_metadata['render'] ) && is_string( $block_metadata['render'] ) && function_exists( $block_metadata['render'] ) ) {
-				$args['render_callback'] = $block_metadata['render'];
-			}
-			
-			register_block_type( $block_dir, $args );
+			register_block_type( dirname( $block_json ) );
 		}
 	}
 
@@ -118,15 +101,17 @@ class Core {
 	 * @return void
 	 */
 	public function enqueue_editor_assets() {
-		// Enqueue paragraph prefix script.
-		$prefix_script = {{namespace|upper}}_DIR . 'build/js/blocks/paragraph-prefix.js';
-		
-		if ( file_exists( $prefix_script ) ) {
+		// Enqueue the paragraph prefix script with its generated dependencies.
+		$asset_file = {{namespace|upper}}_DIR . 'build/js/blocks/paragraph-prefix.asset.php';
+
+		if ( file_exists( $asset_file ) ) {
+			$asset = require $asset_file;
+
 			wp_enqueue_script(
 				'{{slug}}-paragraph-prefix',
 				{{namespace|upper}}_URL . 'build/js/blocks/paragraph-prefix.js',
-				array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-hooks' ),
-				{{namespace|upper}}_VERSION,
+				$asset['dependencies'],
+				$asset['version'],
 				true
 			);
 		}
@@ -136,8 +121,8 @@ class Core {
 	 * Register custom block category.
 	 *
 	 * @since 1.0.0
-	 * @param array $categories Existing block categories.
-	 * @return array Modified block categories.
+	 * @param array<mixed> $categories Existing block categories.
+	 * @return array<mixed> Modified block categories.
 	 */
 	public function register_block_category( $categories ) {
 		return array_merge(

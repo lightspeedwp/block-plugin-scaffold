@@ -140,7 +140,8 @@ describe('generatePlugin: output with post types', () => {
 	});
 
 	it('fills plugin_slug placeholders from slug', () => {
-		['phpunit.xml', 'USAGE.md', 'SUPPORT.md'].forEach((file) => {
+		// SUPPORT.md is inherited from lightspeedwp/.github (spec 003, FR-028).
+		['phpunit.xml', 'USAGE.md'].forEach((file) => {
 			const content = fs.readFileSync(path.join(outputDir, file), 'utf8');
 			expect(content).toContain(CONFIG.slug);
 		});
@@ -166,8 +167,9 @@ describe('generatePlugin: output with post types', () => {
 		);
 		expect(composer.scripts).toEqual(
 			expect.objectContaining({
-				phpstan: 'phpstan analyse',
-				phpcs: 'phpcs',
+				lint: 'phpcs',
+				'lint:fix': 'phpcbf',
+				phpstan: 'phpstan analyse --memory-limit=1G',
 			})
 		);
 		expect(
@@ -195,14 +197,14 @@ describe('generatePlugin: output with post types', () => {
 		expect(leftoverPlaceholders('CHANGELOG.md')).toEqual([]);
 	});
 
-	it('generates a package.json that can build the copied webpack config', () => {
+	it('generates a package.json that can build the webpack config', () => {
 		const pkg = JSON.parse(
 			fs.readFileSync(path.join(outputDir, 'package.json'), 'utf8')
 		);
 		expect(Object.keys(pkg.devDependencies)).toEqual(
 			expect.arrayContaining([
 				'@wordpress/scripts',
-				'copy-webpack-plugin',
+				// Required directly by webpack.config.js.
 				'glob',
 			])
 		);

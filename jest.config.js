@@ -4,10 +4,17 @@
  * @see https://jestjs.io/docs/configuration
  */
 
-const defaultConfig = require('@wordpress/scripts/config/jest-unit.config');
-
+// The scaffold's own Jest suite. @wordpress/scripts 36 no longer ships Jest
+// defaults, so this uses the published preset and runs through
+// `wp-scripts test-unit-jest`. Generated plugins use Vitest (templates/).
 module.exports = {
-	...defaultConfig,
+	preset: '@wordpress/jest-preset-default',
+	transform: {
+		'\\.[jt]sx?$': [
+			'babel-jest',
+			{ presets: [ '@wordpress/babel-preset-default' ] },
+		],
+	},
 
 	// Test file patterns
 	testMatch: [
@@ -23,6 +30,8 @@ module.exports = {
 		'/build/',
 		'/tests/e2e/',
 		'/.dry-run-backup/',
+		'/generated-plugins/',
+		'/templates/',
 	],
 
 	// Setup files

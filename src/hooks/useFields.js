@@ -42,22 +42,22 @@ import { useSelect } from '@wordpress/data';
  *   </div>
  * );
  */
-export default function useFields(postId, postType = 'item') {
+export default function useFields( postId, postType = 'item' ) {
 	return useSelect(
-		(select) => {
-			if (!postId) {
+		( select ) => {
+			if ( ! postId ) {
 				return { fields: {}, isLoading: false };
 			}
 
-			const post = select('core').getEntityRecord(
+			const post = select( 'core' ).getEntityRecord(
 				'postType',
 				postType,
 				postId
 			);
-			const isLoading = select('core/data').isResolving(
+			const isLoading = select( 'core/data' ).isResolving(
 				'core',
 				'getEntityRecord',
-				['postType', postType, postId]
+				[ 'postType', postType, postId ]
 			);
 
 			// ACF fields are typically in the 'acf' object or in 'meta'.
@@ -65,6 +65,6 @@ export default function useFields(postId, postType = 'item') {
 
 			return { fields, isLoading };
 		},
-		[postId, postType]
+		[ postId, postType ]
 	);
 }

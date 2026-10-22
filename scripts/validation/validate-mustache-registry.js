@@ -196,13 +196,11 @@ function main() {
 
 	// Strict mode: check for placeholder values
 	if (strictMode && missingRegistry.length > 0) {
-		const placeholdersPath = path.join(ROOT_DIR, 'scripts', 'utils', 'placeholders.js');
-		let placeholders = {};
-		try {
-			placeholders = require(placeholdersPath);
-		} catch (e) {
-			// ignore
-		}
+		// Example value of each new variable, from the scaffold's example config.
+		const { getPlaceholder } = require(path.join(ROOT_DIR, 'scripts', 'utils', 'placeholders.js'));
+		const placeholders = Object.fromEntries(
+			missingRegistry.map((varName) => [varName, getPlaceholder(varName)])
+		);
 
 		const missingPlaceholders = checkNewVariablesHavePlaceholders(missingRegistry, placeholders);
 		if (missingPlaceholders.length > 0) {

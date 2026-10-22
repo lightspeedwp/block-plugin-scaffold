@@ -1,12 +1,14 @@
+import { __ } from '@wordpress/i18n';
+
 /**
  * {{name}} LoadingSpinner
  * Accessible loading spinner for WordPress blocks and frontend.
- * @param root0
- * @param root0.label
+ * @param {Object} root0       Component props.
+ * @param {string} root0.label
  */
-export default function LoadingSpinner({
-	label = __('Loading…', '{{textdomain}}'),
-}) {
+export default function LoadingSpinner( {
+	label = __( 'Loading…', '{{textdomain}}' ),
+} ) {
 	return (
 		<div
 			className="{{namespace}}-loading-spinner"
@@ -16,7 +18,7 @@ export default function LoadingSpinner({
 			<span className="{{namespace}}-spinner" aria-hidden="true">
 				⏳
 			</span>
-			<span className="{{namespace}}-loading-label">{label}</span>
+			<span className="{{namespace}}-loading-label">{ label }</span>
 		</div>
 	);
 }

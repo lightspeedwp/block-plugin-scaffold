@@ -1,54 +1,75 @@
 {
-  "apiVersion": 3,
-  "name": "{{slug}}/slider",
-  "title": "{{name|title}} Slider",
-  "category": "{{slug}}",
-  "icon": "images-alt2",
-  "description": "A slider block for displaying images or content.",
-  "keywords": ["slider", "carousel", "gallery", "media"],
-  "textdomain": "{{textdomain}}",
-  "attributes": {
-    "slidesToShow": {
-      "type": "number",
-      "default": 3
-    },
-    "autoplay": {
-      "type": "boolean",
-      "default": false
-    },
-    "showArrows": {
-      "type": "boolean",
-      "default": true
-    },
-    "showDots": {
-      "type": "boolean",
-      "default": true
-    }
-  },
-  "supports": {
-    "html": false,
-    "align": ["wide", "full"],
-    "anchor": true,
-    "customClassName": true,
-    "spacing": {
-      "margin": true,
-      "padding": true
-    },
-    "color": {
-      "background": true,
-      "text": true
-    }
-  },
-  "example": {
-    "attributes": {
-      "slidesToShow": 3,
-      "autoplay": true,
-      "showArrows": true,
-      "showDots": true
-    }
-  },
-  "editorScript": "file:./index.js",
-  "editorStyle": "file:./index.css",
-  "style": "file:./index.css",
-  "render": "{{namespace}}_render_slider"
+	"apiVersion": 3,
+	"name": "{{slug}}/slider",
+	"title": "{{name}} Slider",
+	"category": "{{slug}}",
+	"icon": "images-alt2",
+	"description": "A slider block for displaying images or content.",
+	"keywords": [ "slider", "carousel", "gallery", "media" ],
+	"textdomain": "{{textdomain}}",
+	"attributes": {
+		"source": {
+			"type": "string",
+			"enum": [ "custom", "posts", "repeater" ],
+			"default": "custom"
+		},
+		"slides": {
+			"type": "array",
+			"default": []
+		},
+		"slidesToShow": {
+			"type": "number",
+			"default": 3
+		},
+		"autoplay": {
+			"type": "boolean",
+			"default": false
+		},
+		"showArrows": {
+			"type": "boolean",
+			"default": true
+		},
+		"showDots": {
+			"type": "boolean",
+			"default": true
+		},
+		"autoplaySpeed": {
+			"type": "number",
+			"default": 5000
+		},
+		"infinite": {
+			"type": "boolean",
+			"default": false
+		},
+		"slidesToScroll": {
+			"type": "number",
+			"default": 1
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ],
+		"anchor": true,
+		"customClassName": true,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"background": true,
+			"text": true
+		}
+	},
+	"example": {
+		"attributes": {
+			"slidesToShow": 3,
+			"autoplay": true,
+			"showArrows": true,
+			"showDots": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
 }

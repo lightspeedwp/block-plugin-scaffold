@@ -1,0 +1,241 @@
+---
+description: 'Task list for feature implementation'
+---
+
+# Tasks: Scaffold Toolchain Modernisation
+
+**Input**: Design documents from `.github/spec/003-scaffold-toolchain-modernisation/`
+
+**Prerequisites**: [plan.md](./plan.md), [spec.md](./spec.md), [research.md](./research.md), [data-model.md](./data-model.md), [contracts/](./contracts/), [quickstart.md](./quickstart.md)
+
+**Tests**: Included. The plan's Constitution Check (Principle IV) requires a test and lint gate on every change. Scaffold-side behaviour changes get a test task, written first.
+
+**Way of working**: Generate first, fix in the test plugin, then move the changes back (spec [_Delivery Approach_](./spec.md#delivery-approach), [research.md R14](./research.md#r14-working-in-a-generated-test-plugin-first)).
+
+- **Phases 1–3 happen in the test plugin** (`$TEST_PLUGIN`). Each task is one commit in the test plugin's own Git history, and its message names the **move-back target** given in the task.
+- **Phases 4–5 happen in the scaffold**. They move each test plugin commit back into the scaffold, then prove the round trip.
+- **Phases 6–7** add the CI gate and documentation.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: The user story this task belongs to (US1–US5)
+- **→ Target**: Where the change goes when it is moved back into the scaffold (Phase 1–3 tasks only)
+
+## Paths
+
+- `$SCAFFOLD`: this repository's root.
+- `$TEST_PLUGIN`: the test plugin, `/Users/warwick/Studio/beta/wp-content/plugins/ls-test/` (repository [`lightspeedwp/ls-test`](https://github.com/lightspeedwp/ls-test), default branch `develop`). It is a functional-only plugin already generated from the scaffold, with a baseline commit (`feba74c`). It runs inside the local `beta` WordPress site, so end-to-end tests can use that site through `WP_BASE_URL` instead of `wp-env`.
+- `$TEST_CONFIG`: the plugin config the user supplies when work starts. The baseline was generated from `ls-test-config.json` in the test plugin, but the user confirms which config to use at T001.
+- `$AUDIT`: `TOOLCHAIN-AUDIT.md` at the root of the test plugin. It is the defect list for the test plugin only, and is left out of the round-trip comparison.
+
+---
+
+## Phase 1: Workbench Setup
+
+**Purpose**: Generate the test plugin from the user's config and record the starting state
+
+- [x] T001 Receive `$TEST_CONFIG` from the user (do not start before then). Validate it with `node scripts/generate-plugin.js --validate $TEST_CONFIG`. Create branch L1 in `$TEST_PLUGIN` from `develop`, and open its draft pull request ([Branches & Pull Requests](#branches--pull-requests))
+- [x] T002 Confirm the existing baseline (`feba74c`) was generated from `$TEST_CONFIG` by the current scaffold `develop`. If it was not, or the scaffold has changed since, regenerate with the **current, unchanged** generator: `node scripts/generate-plugin.js --config $TEST_CONFIG --output-dir <tmp>`. Then copy the output over `$TEST_PLUGIN`, keeping `.git`
+- [x] T003 Record the scaffold commit SHA the baseline came from at the top of `$AUDIT`, and tag the baseline commit `baseline-003` in `$TEST_PLUGIN`
+- [x] T004 Baseline audit in `$TEST_PLUGIN`: run `npm install`, then every standard alias in [command-aliases.md](./contracts/command-aliases.md), `composer install` and `composer run lint`. Record each result, the config file each tool actually loads (`--print-config` or debug output) and every leaked scaffold-only file in `$AUDIT`. Also list every file that duplicates config the organisation already provides (see [research.md R15](./research.md#r15-inherit-organisation-config-instead-of-copying-it)). This is the starting defect list
+
+**Checkpoint**: The test plugin exists, has a baseline commit, and its defects are recorded.
+
+---
+
+## Phase 2: User Story 1 in the test plugin — make it work out of the box (Priority: P1) 🎯 MVP
+
+**Goal**: The test plugin installs, builds, lints and passes unit and end-to-end tests with the standard toolchain.
+
+**Independent Test**: [quickstart.md Scenario A](./quickstart.md#scenario-a--the-test-plugin-works-out-of-the-box-us1) in `$TEST_PLUGIN`
+
+All tasks in this phase are done in `$TEST_PLUGIN`, one commit each.
+
+- [x] T005 [US1] Rewrite `package.json` to match [generated-package-manifest.md](./contracts/generated-package-manifest.md): the plugin's own metadata, the 10 standard aliases, the current stable majors from [research.md R3](./research.md#r3-version-ranges-current-stable-majors-not-the-source-documents-numbers) (check the registry again), `engines` (Node ≥ 22.22, npm ≥ 10), `prepare: husky` and `lint-staged`. Delete `package-lock.json` and reinstall. **→ Target**: `scripts/toolchain/standard-toolchain.json` and `generatePackageJson()`
+- [x] T006 [US1] Delete the leaked scaffold-only files listed in `$AUDIT`: the scaffold's `.github/workflows/*`, `.github/skills`, `.github/spec`, `.github/projects`, `.github/schemas`, `.github/__tests__`, `.github/tests`, `.gemini`, `.gpt`, `.qodo`, scaffold reports and similar. Also delete every file the organisation already provides (FR-028, [research.md R15](./research.md#r15-inherit-organisation-config-instead-of-copying-it)): `.coderabbit.yml` (CodeRabbit's central config in `lightspeedwp/coderabbit` applies instead), and `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md` and `SUPPORT.md` (GitHub serves the `lightspeedwp/.github` defaults instead). Keep `LICENSE`, `CODEOWNERS` and `README.md`, which GitHub does not inherit. **→ Target**: `excludePaths` in `scripts/generate-plugin.js`
+- [x] T007 [US1] Replace the config files with one per tool, as in [research.md R4](./research.md#r4-config-file-formats): `eslint.config.cjs` (flat), `.stylelintrc.json`, `.prettierrc.js`, `.npmpackagejsonlintrc.json`, `jest.config.js`. Delete `.eslintrc.cjs`, `.eslint.config.cjs`, `.stylelint.config.cjs`, `.prettier.config.cjs`, `.jest.config.cjs` and `.npmpackagejsonlintrc.cjs`. Deal with `.postcss.config.cjs` according to the audit. **→ Target**: the scaffold's root config files (copied by the generator)
+- [x] T008 [US1] Add `playwright.config.js` extending `@wordpress/scripts/config/playwright.config.js` (`testDir: './tests/e2e'`, `baseURL` from `WP_BASE_URL`, defaulting to `http://localhost:8888`). **→ Target**: the scaffold's root `playwright.config.js`
+- [x] T009 [US1] Run `npm run lint:js`, `npm run lint:css` and `npm run format`, and fix every finding in `src/`. **→ Target**: the scaffold's `src/` templates (with template tags restored)
+- [x] T010 [P] [US1] Add a `lint:fix` script (`phpcbf`) to `composer.json`, so the `lint-staged` PHP rule works (FR-026), and fix any `composer run lint` findings. **→ Target**: `generateComposerJson()` and the scaffold's root `composer.json`
+- [x] T011 [P] [US1] Add `.husky/pre-commit` running `npx lint-staged`. Check that a commit containing a lint error is blocked. **→ Target**: the scaffold's root `.husky/pre-commit` (copied by the generator)
+- [x] T012 [US1] Add starter tests (FR-024): `tests/js/example.test.js` (a unit test on one block's `save`/`edit` or one hook) and `tests/e2e/blocks.spec.js` (the editor loads and each generated block can be inserted, using `@wordpress/e2e-test-utils-playwright` fixtures). **→ Target**: a new `templates/tests/` folder that the generator copies (the scaffold's own `tests/` stays excluded)
+- [x] T013 [US1] Add `.github/workflows/ci.yml` for the plugin. It runs `npm ci`, `lint:js`, `lint:css`, `lint:pkg`, `test:unit`, `build`, `composer run lint`, and `test:e2e` against `wp-env`, on Node 22 and 24. It must call only commands the plugin defines (FR-025). **→ Target**: a new `templates/github/workflows/ci.yml` that the generator copies
+- [x] T014 [US1] Check that the plugin's PHP enqueues block and editor scripts from each `*.asset.php`, never from a hard-coded dependency list (FR-006). Fix any hard-coded list. **→ Target**: the scaffold's `inc/` and main plugin file templates
+- [x] T015 [US1] Run [quickstart.md Scenario A](./quickstart.md#scenario-a--the-test-plugin-works-out-of-the-box-us1) in `$TEST_PLUGIN`, including `test:e2e` with `npm run env:start`. Update `$AUDIT` so every baseline defect is marked fixed, together with the commit that fixed it
+
+**Checkpoint**: The test plugin is fully green. Its commit history (`git log baseline..HEAD`) is the list of changes to move back.
+
+---
+
+## Phase 3: User Story 4 in the test plugin — modern APIs (Priority: P3)
+
+**Goal**: Prove the Interactivity API and DataViews build in the test plugin before anything is moved back.
+
+All tasks in this phase are done in `$TEST_PLUGIN`.
+
+- [x] T016 [US4] Add a throwaway `view.js` that imports `@wordpress/interactivity`, and set `viewScriptModule` in one block's `block.json`. Run `npm run build` and confirm `view.asset.php` lists the module dependency. If a build flag is needed, commit it. **→ Target**: `standard-toolchain.json → scripts` and the scaffold's `scripts/build.js` or `webpack.config.js`. Revert the throwaway files
+- [x] T017 [P] [US4] Add a throwaway admin script that imports `@wordpress/dataviews`. Confirm it builds with no extra install and that `@wordpress/dataviews` is either bundled on purpose or external, as WordPress core expects for the chosen version. Record the outcome in `$AUDIT` and revert
+
+**Checkpoint**: Modern API readiness is proven. Everything left to move back is committed in the test plugin.
+
+---
+
+## Phase 4: Move changes back into the scaffold (US1, US3)
+
+**Goal**: Each test plugin commit lands in the scaffold source named in its **→ Target**, with template tags restored. The scaffold's own toolchain is aligned at the same time (US3).
+
+**Independent Test**: The scaffold's own `npm run lint`, `npm test`, `composer run lint` and `npm run test:e2e` pass, and Phase 5's round trip passes.
+
+### Tests first (scaffold) ⚠️
+
+- [x] T018 [P] [US1] Create `.github/schemas/standard-toolchain.schema.json` ([data-model.md §1](./data-model.md#1-standard-toolchain-definition)) and write `scripts/toolchain/__tests__/standard-toolchain.test.js`. The test validates the schema, includes a drift test against the root `package.json`, and checks the 10 aliases
+- [x] T019 [P] [US1] Write `scripts/toolchain/__tests__/generate-package-json.test.js` covering every invariant in [generated-package-manifest.md](./contracts/generated-package-manifest.md), including `--in-place` keeping client-added keys
+- [x] T020 [P] [US1] Extend `tests/bin/generate-plugin.test.js` to check four things: no scaffold-only files in the output (T006); exactly one config file per tool (T007); `templates/tests/` and `templates/github/workflows/ci.yml` are copied (T012, T013); and an invalid slug is rejected before any file is written
+
+### Moving back
+
+- [x] T021 [US1] Create `scripts/toolchain/standard-toolchain.json` from the test plugin's `package.json` (T005). Refactor `generatePackageJson()` in `scripts/generate-plugin.js` to read it, add the `--in-place` merge and slug validation (`scripts/lib/config-schema.js`), and add the `--output-dir` flag
+- [x] T022 [US1] Add the T006 deletions to `excludePaths` in `scripts/generate-plugin.js`
+- [x] T023 [US1] [US3] Copy the T007 and T008 config files to the scaffold root, restoring template tags where a value must vary per plugin (prefer tag-free, [research.md R6](./research.md#r6-filling-template-tags-in-the-scaffolds-own-config-files)). Delete the scaffold's duplicate configs. Keep scaffold-only overrides out of the copied files
+- [x] T024 [US3] Delete the scaffold's own copies of organisation-provided files: `.coderabbit.yml`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md` and `SUPPORT.md` (FR-028). If the scaffold needs a CodeRabbit rule the central config lacks, add a `.coderabbit.yml` containing only `inheritance: true` and that rule. Update the scaffold's own `package.json` to the same ranges and aliases. Keep `lint:pkg-json` and `plugin-zip` as deprecated aliases. Remove `puppeteer-core` once `grep -r puppeteer scripts tests` is clean. Set `engines`, `.nvmrc` (`22`) and `"prepare": "husky"`, and regenerate `package-lock.json`
+- [x] T025 [US1] [US3] Move the T009 `src/` lint fixes back into the scaffold's `src/` templates, and fix any extra findings in scaffold-only code (`scripts/`, `tests/`) under the new configs, including Jest 30 incompatibilities
+- [x] T026 [P] [US1] Move T010 back into `generateComposerJson()` and the root `composer.json` (`lint:fix`)
+- [x] T027 [P] [US1] Move T011 (`.husky/pre-commit`) to the scaffold root, and make sure the generator copies it
+- [x] T028 [P] [US1] Move T012 to `templates/tests/` with template tags restored, and make the generator copy it to `tests/` in the output
+- [x] T029 [P] [US1] Move T013 to `templates/github/workflows/ci.yml`, and make the generator copy it to `.github/workflows/ci.yml` in the output
+- [x] T030 [P] [US1] Move T014 (asset descriptor enqueueing) back into `inc/` and the main plugin file template, if anything changed
+- [x] T031 [P] [US4] Move the T016 build flag (if one was needed) back into `scripts/build.js`, `webpack.config.js` and `standard-toolchain.json`
+- [x] T032 [P] [US2] Rewrite `scripts/utils/placeholders.js` with plugin-scaffold keys from `scripts/mustache-variables-registry.json`, add `scripts/utils/__tests__/placeholders.test.js`, and add `scripts/toolchain/fill-placeholders.js --check` as `prelint` for any config file that still holds a tag — **Done in phase 6**: rewritten to render tags through the generator's `replaceMustacheVars()` with the example config; `fill-placeholders.js` was not needed
+- [x] T033 [US3] Change the Node matrix to `[22.x, 24.x]` in every scaffold workflow under `.github/workflows/` that sets up Node
+- [x] T034 [US3] Run the scaffold's own `npm run lint`, `npm test`, `composer run lint` and `npm run test:e2e` (with `wp-env`), plus [quickstart.md Scenario C](./quickstart.md#scenario-c--the-scaffolds-own-toolchain-us3)
+
+> **Phase 4 notes (S1)**:
+>
+> - **`templates/` overlay**: plugin-only files live in `templates/` and are copied over the generated plugin root. The scaffold root keeps its own `eslint.config.cjs`, `phpcs.xml` and `phpstan.neon`, because its root PHP files contain `{{namespace}}` and its CLI needs ignores.
+> - **Formatting**: `{{tags}}` render to values of any length, so the generator formats rendered JavaScript (`formatGeneratedOutput()`), and the scaffold's own lint turns off `prettier/prettier` for `src/`. SCSS templates are linted in the generated plugin (phase 6).
+> - **T034**: scaffold `npm run lint` passes and the Jest suite fails only the 16 suites (9 tests) that already fail on `develop`. `composer run lint` and e2e cannot run on raw templates; they are covered in the generated plugin.
+
+**Checkpoint**: The scaffold holds every change from the test plugin. Its own toolchain matches.
+
+---
+
+## Phase 5: Round-trip proof (US1, FR-027)
+
+**Goal**: Regenerating from the updated scaffold reproduces the hand-fixed test plugin.
+
+**Independent Test**: [quickstart.md Scenario F](./quickstart.md#scenario-f--round-trip-proof-fr-027)
+
+- [x] T035 [US1] Write `scripts/toolchain/compare-toolchain.js <dir-a> <dir-b>`, which compares only toolchain files ([spec Key Entities](./spec.md#key-entities)) and prints a unified diff. Add `scripts/toolchain/__tests__/compare-toolchain.test.js`
+- [x] T036 [US1] Regenerate from the updated scaffold with the same `$TEST_CONFIG` into a fresh folder (`--output-dir /tmp/rt`), then run `node scripts/toolchain/compare-toolchain.js $TEST_PLUGIN /tmp/rt/<slug>`. **It must show 0 differences** (SC-009). For each difference, decide whether the test plugin or the scaffold is right, fix it, and run the comparison again
+- [x] T037 [US1] In the regenerated folder, run `npm install` and all of Scenario A. It must pass with no edits
+
+> **Phase 5 notes (S2)**:
+>
+> - **T036**: `node scripts/generate-plugin.js --config ls-test-config.json --output-dir <tmp>`, then `compare-toolchain.js` against ls-test gave **0 differences**. The generated `package.json` is byte-identical to ls-test's.
+> - **T037**: in the regenerated copy, `npm install`, `build`, `lint`, `test:unit`, `composer run lint` and `composer run phpstan` pass with no edits; `test:e2e` passes 4/4 (wp-env Playground).
+> - **Found and fixed**: `lint:pkg` failed because the WordPress package lint requires `homepage`, `repository` and `bugs`, and ls-test only passed through hand-added URLs. The config schema gains an optional `repository_url`, which defaults to `https://github.com/lightspeedwp/<slug>`.
+> - **Added**: the `--output-dir` flag from T021, which had been ticked without being implemented.
+> - **Known quirk**: the first e2e run straight after a fresh Playground start can fail with "Not logged in"; it passes on a re-run. CI uses the Docker runtime, which is not affected.
+
+**Checkpoint**: The move-back is complete and proven. This completes S2.
+
+---
+
+## Phase 6: User Story 2 — gate generation in CI (Priority: P1)
+
+**Goal**: The round trip becomes a repeatable, required check on fixture configs.
+
+**Independent Test**: [quickstart.md Scenario B](./quickstart.md#scenario-b--the-generation-check-catches-a-broken-template-us2)
+
+- [x] T038 [P] [US2] Create `tests/fixtures/generation/default.json` and `functional-only.json` from `$TEST_CONFIG`, with all client details replaced by test-only metadata ([data-model.md §4](./data-model.md#4-generation-fixture))
+- [x] T039 [P] [US2] Write `scripts/toolchain/__tests__/check-generation.test.js` for the leftover-placeholder scanner and the step runner
+- [x] T040 [US2] Implement `scripts/toolchain/check-generation.js` following [generation-check.md](./contracts/generation-check.md), and add the `check:generation` script
+- [x] T041 [US2] Add a `generation-check` job to `.github/workflows/ci-cd.yml` (Node 22 and 24, npm cache). In the pull request, note that a repository admin must make it a required check on `develop` and `main`
+- [x] T042 [US2] Run [quickstart.md Scenario B](./quickstart.md#scenario-b--the-generation-check-catches-a-broken-template-us2) with both seeded breaks
+- [x] T043 [US1] With the user's approval, push the regenerated plugin from T036 to a private scratch repository, and confirm its own CI workflow passes on the first push (SC-010). Delete the scratch repository afterwards if the user agrees
+
+> **Phase 6 notes (S3)**:
+>
+> - **Results**: `npm run check:generation -- --e2e --playground` passes all 9 steps (generate, leftover scan, install, build plus asset files, lint:js, lint:css, lint:pkg, test:unit, e2e) for **both** fixtures. The ls-test round trip still gives 0 differences.
+> - **Found by the default fixture**, which ls-test (functional-only) could not cover: 185 stylelint errors in the collection block's CSS/SCSS, a `dot-notation` error in its `view.js`, and a starter query test that assumed no post types (fixed in ls-test too).
+> - **Scenario B**: an impossible devDependency range fails at `npm install`; an unrendered `{{plugin-name}}` in `readme.txt` fails the leftover scan with `readme.txt:95  {{plugin-name}}`. Both files were restored.
+> - **CI**: `generation-check` replaces the E2E job that ran wp-env against the raw templates (their PHP holds `{{namespace}}`). It runs both fixtures with `--e2e` on Docker. A repository admin must add `Generation check (default)` and `Generation check (functional-only)` to the required checks on `develop` and `main`.
+> - **T043**: no scratch repository needed. `lightspeedwp/ls-test` is a generated plugin with the same `ci.yml` (0 toolchain differences), and its CI passed on its first push and on every push since.
+> - **T032**: `placeholders.js` now renders tags through the generator with the example config; the validator's strict mode, which never matched, now uses it.
+
+**Checkpoint**: Generation is gated. This completes S3.
+
+---
+
+## Phase 7: Documentation, instructions and governance (US4, US5)
+
+- [x] T044 [P] [US4] Write `docs/INTERACTIVITY-AND-DATAVIEWS.md` using what T016 and T017 proved
+- [x] T045 [P] [US5] Update `README.md`, `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`: the aliases, the one-config-per-tool rule, Node 22, `--output-dir`, `check:generation`, and the generate-fix-move-back workflow for future toolchain changes
+- [x] T046 [P] [US5] Update `.github/instructions/` (`javascript-react-development`, `jest-tests`, `playwright-tests`, `testing-e2e`, `blocks-development`) to use the standard aliases and the Playwright utilities, and to drop references to removed configs and Puppeteer
+- [x] T047 [US5] Amend `.specify/memory/constitution.md` (PATCH 1.0.1): Node ≥ 22.22 / npm ≥ 10, with a Sync Impact Report
+- [x] T048 [US5] Run [quickstart.md Scenario E](./quickstart.md#scenario-e--documentation-and-instructions-us5)
+
+> **Phase 7 notes (S4)**:
+>
+> - **T045**: there is no root `README.md` (the generator writes one per plugin), so the generated README content was updated instead, along with `DEVELOPMENT.md` (shipped with every plugin), `docs/GENERATE_PLUGIN.md` and `docs/RELEASE_PROCESS.md`.
+> - **T048**: the Scenario E search finds no references to removed aliases, configs, Puppeteer, the Jest preset or Node 18/20 in docs or instruction files.
+> - **T050**: the scaffold's old lockfile was gitignored, so there is no committed "before" audit to compare. The new lockfile is committed in #48.
+> - **Not done**: `scripts/mustache-variables-registry.json` was not regenerated for `repository_url`. Its validator already fails on `develop` (47 stale and 2 unregistered variables), which is a separate clean-up.
+
+**Checkpoint**: The documentation matches the toolchain. This completes S4.
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
+
+- [x] T049 Add a `CHANGELOG.md` entry to each pull request (_Added_, _Changed_, _Deprecated_ or _Removed_)
+- [x] T050 [P] Run `npm audit --omit=dev` before T024 and after T037, and record the change in S1
+- [x] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md) — raised as lightspeedwp/block-theme-scaffold#12
+- [ ] T052 Archive the test plugin. Keep `$TEST_PLUGIN` and its Git history until S1 and S2 are merged, as the record of what was moved back
+
+---
+
+## Dependencies & Execution Order
+
+```text
+Phase 1 (workbench) ─▶ Phase 2 (US1 in test plugin) ─▶ Phase 3 (US4 in test plugin)
+                                                              │
+                                                              ▼
+                            Phase 4 (move back) ─▶ Phase 5 (round trip) ─▶ Phase 6 (CI gate) ─▶ Phase 7 (docs)
+```
+
+- Phase 2 tasks run in order (T005 first, since the other tasks need the new packages). T010 and T011 can run alongside T009.
+- Phase 3 needs T005.
+- Phase 4 needs Phases 2 and 3 to be finished, so that nothing is moved back that later changed in the test plugin. The tests (T018–T020) come before T021–T031. T026–T032 run in parallel after T023.
+- Phase 5 needs all of Phase 4.
+- Phase 6 needs Phase 5. The fixtures (T038) come from the proven config.
+- Phase 7 can start once Phase 5 has passed.
+
+## Branches & Pull Requests
+
+| #   | Repository              | Phase                     | Branch                                                        | PR base   | Ready for review when |
+| --- | ----------------------- | ------------------------- | ------------------------------------------------------------- | --------- | --------------------- |
+| S0  | `block-plugin-scaffold` | Spec                      | `documentation/003-scaffold-toolchain-modernisation` (PR #47) | `develop` | Already open          |
+| L1  | `ls-test`               | 1. Workbench setup        | `chore/003-baseline-audit`                                    | `develop` | T004 done             |
+| L2  | `ls-test`               | 2. US1 in the test plugin | `feat/003-standard-toolchain`                                 | L1        | T015 done             |
+| L3  | `ls-test`               | 3. US4 in the test plugin | `feat/003-modern-api-check`                                   | L2        | T017 done             |
+| S1  | `block-plugin-scaffold` | 4. Move back              | `feat/003-toolchain-move-back`                                | S0        | T034 done             |
+| S2  | `block-plugin-scaffold` | 5. Round trip             | `test/003-round-trip`                                         | S1        | T037 done             |
+| S3  | `block-plugin-scaffold` | 6. CI gate                | `ci/003-generation-check`                                     | S2        | T043 done             |
+| S4  | `block-plugin-scaffold` | 7. Docs and governance    | `doc/003-toolchain-docs`                                      | S3        | T048 done             |
+
+**Rules**:
+
+- Each phase gets its own branch, cut from the previous phase's branch in the same repository. The first test plugin branch (L1) starts from `ls-test`'s `develop`, and the first scaffold implementation branch (S1) starts from the spec branch (S0).
+- Open each pull request as a **draft** against the branch below it, with the phase's first commit. Mark it **ready for review** only when the phase's last task (the _Ready for review when_ column) is ticked.
+- Merge from the bottom of each stack up. When a lower branch is merged and deleted, GitHub moves the next pull request's base to `develop` automatically.
+- Phase 8 tasks go into the pull request named in each task.
+- New branch names use the org's allowed prefixes (`.github/branch-types.yml` in `lightspeedwp/.github`). `documentation/` is not on that list, so S0 is an exception: it was renamed because a remote `docs` branch blocks `docs/…` names. Later documentation work uses `doc/`.
+
+## Implementation Strategy
+
+1. **Workbench first**: audit and fix until green in the test plugin (T001–T017, stack L1–L3 in `ls-test`). Nothing in the scaffold changes yet, so this is low-risk and fully reversible.
+2. **Move back, then prove it** (S1, S2): the version jump and config changes are already proven, so moving them back is mostly mechanical. The round trip (T036) is the acceptance gate.
+3. **Then lock it in**: the CI generation check stops future changes from breaking what the round trip proved.
+4. Run `/speckit-analyze` before T005, to cross-check the spec, plan and tasks.

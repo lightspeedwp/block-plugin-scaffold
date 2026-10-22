@@ -54,60 +54,60 @@ import { useState, useCallback, useEffect, useRef } from '@wordpress/element';
  * slider.goToSlide(2);
  * slider.play();
  */
-export default function useSlider({
+export default function useSlider( {
 	totalSlides = 0,
 	slidesToShow = 1,
 	slidesToScroll = 1,
 	infinite = true,
 	autoplay = false,
 	autoplaySpeed = 5000,
-} = {}) {
-	const [currentIndex, setCurrentIndex] = useState(0);
-	const [isPlaying, setIsPlaying] = useState(autoplay);
-	const autoplayRef = useRef(null);
+} = {} ) {
+	const [ currentIndex, setCurrentIndex ] = useState( 0 );
+	const [ isPlaying, setIsPlaying ] = useState( autoplay );
+	const autoplayRef = useRef( null );
 
-	const maxIndex = Math.max(0, totalSlides - slidesToShow);
+	const maxIndex = Math.max( 0, totalSlides - slidesToShow );
 
-	const nextSlide = useCallback(() => {
-		setCurrentIndex((prev) => {
-			if (prev >= maxIndex) {
+	const nextSlide = useCallback( () => {
+		setCurrentIndex( ( prev ) => {
+			if ( prev >= maxIndex ) {
 				return infinite ? 0 : prev;
 			}
-			return Math.min(prev + slidesToScroll, maxIndex);
-		});
-	}, [maxIndex, infinite, slidesToScroll]);
+			return Math.min( prev + slidesToScroll, maxIndex );
+		} );
+	}, [ maxIndex, infinite, slidesToScroll ] );
 
-	const prevSlide = useCallback(() => {
-		setCurrentIndex((prev) => {
-			if (prev <= 0) {
+	const prevSlide = useCallback( () => {
+		setCurrentIndex( ( prev ) => {
+			if ( prev <= 0 ) {
 				return infinite ? maxIndex : 0;
 			}
-			return Math.max(prev - slidesToScroll, 0);
-		});
-	}, [maxIndex, infinite, slidesToScroll]);
+			return Math.max( prev - slidesToScroll, 0 );
+		} );
+	}, [ maxIndex, infinite, slidesToScroll ] );
 
 	const goToSlide = useCallback(
-		(index) => {
-			setCurrentIndex(Math.min(Math.max(0, index), maxIndex));
+		( index ) => {
+			setCurrentIndex( Math.min( Math.max( 0, index ), maxIndex ) );
 		},
-		[maxIndex]
+		[ maxIndex ]
 	);
 
-	const play = useCallback(() => setIsPlaying(true), []);
-	const pause = useCallback(() => setIsPlaying(false), []);
+	const play = useCallback( () => setIsPlaying( true ), [] );
+	const pause = useCallback( () => setIsPlaying( false ), [] );
 
 	// Autoplay effect.
-	useEffect(() => {
-		if (isPlaying && totalSlides > slidesToShow) {
-			autoplayRef.current = setInterval(nextSlide, autoplaySpeed);
+	useEffect( () => {
+		if ( isPlaying && totalSlides > slidesToShow ) {
+			autoplayRef.current = setInterval( nextSlide, autoplaySpeed );
 		}
 
 		return () => {
-			if (autoplayRef.current) {
-				clearInterval(autoplayRef.current);
+			if ( autoplayRef.current ) {
+				clearInterval( autoplayRef.current );
 			}
 		};
-	}, [isPlaying, nextSlide, autoplaySpeed, totalSlides, slidesToShow]);
+	}, [ isPlaying, nextSlide, autoplaySpeed, totalSlides, slidesToShow ] );
 
 	return {
 		currentIndex,
