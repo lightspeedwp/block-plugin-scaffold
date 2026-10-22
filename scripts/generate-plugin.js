@@ -26,7 +26,14 @@ const schemaPath = path.join(
 	scaffoldDir,
 	'.github/schemas/plugin-config.schema.json'
 );
-const outputBaseDir = path.resolve(process.cwd(), 'generated-plugins');
+// Output base: --output-dir <path>, or generated-plugins/ in the current folder.
+const outputDirArgIndex = process.argv.indexOf('--output-dir');
+const outputBaseDir = path.resolve(
+	process.cwd(),
+	outputDirArgIndex !== -1 && process.argv[outputDirArgIndex + 1]
+		? process.argv[outputDirArgIndex + 1]
+		: 'generated-plugins'
+);
 
 // License URIs for the schema's supported license identifiers.
 const LICENSE_URIS = {
@@ -354,6 +361,12 @@ function applyDefaults(config) {
 	result.license_uri =
 		result.license_uri || LICENSE_URIS[result.license] || '';
 	result.tested_up_to = result.tested_up_to || result.requires_wp;
+	// Repository for package.json homepage, repository and bugs, which the
+	// WordPress package lint requires.
+	result.repository_url = (
+		result.repository_url || `https://github.com/lightspeedwp/${result.slug}`
+	).replace(/\/+$/, '');
+
 	result.contributors =
 		result.contributors ||
 		String(result.author || '')
@@ -1670,6 +1683,9 @@ function generatePackageJson(outputDir, config) {
 		author: config.author,
 		license: config.license,
 		keywords: ['wordpress', 'block-plugin', 'gutenberg'],
+		homepage: config.repository_url,
+		repository: { type: 'git', url: `${config.repository_url}.git` },
+		bugs: { url: `${config.repository_url}/issues` },
 		engines: STANDARD_TOOLCHAIN.engines,
 		main: 'build/index.js',
 		dependencies: STANDARD_TOOLCHAIN.dependencies,
@@ -1755,20 +1771,31 @@ Start development mode with file watching:
 npm run start
 \`\`\`
 
-## Testing
+## Checks
 
-Start WordPress environment:
+\`\`\`bash
+npm run lint          # lint:js, lint:css and lint:pkg
+npm run test:unit     # Vitest
+composer run lint     # PHPCS
+composer run phpstan  # PHPStan
+\`\`\`
+
+## End-to-end tests
+
+Start WordPress (add \`-- --runtime=playground\` if Docker is not available), then run Playwright:
 
 \`\`\`bash
 npm run env:start
+npm run test:e2e
 \`\`\`
 
-Access at: http://localhost:8888
+The site runs at http://localhost:8888. See DEVELOPMENT.md for every command.
 
 ## Requirements
 
 - WordPress ${config.requires_wp}+
 - PHP ${config.requires_php}+
+- Node.js 24.18+ (for development)
 - Secure Custom Fields plugin
 
 ## License
@@ -1841,6 +1868,7 @@ Options:
   --in-place         Generate in current directory (template mode)
   --template         Alias for --in-place
   --force            Overwrite existing output directory
+  --output-dir <dir> Write to <dir>/<slug>/ instead of generated-plugins/<slug>/
   --help             Show this help message
 
 Modes:

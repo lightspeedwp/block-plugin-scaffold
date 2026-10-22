@@ -77,7 +77,7 @@ The repository uses these Playwright-related packages:
 tests/
 ├── e2e/                          # All Playwright E2E tests
 │   ├── config/
-│   │   └── playwright.config.ts  # Playwright configuration
+│   │   └── (playwright.config.js lives at the plugin root)
 │   ├── specs/                    # Test specifications
 │   │   ├── blocks/               # Custom block tests (no templates)
 │   │   ├── admin/
@@ -111,63 +111,28 @@ archive-{{slug}}.spec.ts        # Archive page tests
 
 ### Configuration File
 
-Located at `tests/e2e/config/playwright.config.ts` or `playwright.config.ts`:
+Generated plugins have `playwright.config.js` at the root. It extends the `@wordpress/scripts` Playwright config, and `npm run test:e2e` runs it through `wp-scripts test-playwright`:
 
-```typescript
-import { defineConfig, devices } from '@playwright/test';
+```javascript
+// Default to the wp-env development site, which both runtimes serve.
+process.env.WP_BASE_URL ??= 'http://localhost:8888';
 
-export default defineConfig({
-	// Test directory
-	testDir: './tests/e2e/specs',
+const { defineConfig } = require( '@playwright/test' );
+const baseConfig = require( '@wordpress/scripts/config/playwright.config.js' );
 
-	// Maximum time one test can run
-	timeout: 30 * 1000,
-
-	// Test execution settings
-	fullyParallel: true,
-	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 2 : 0,
-	workers: process.env.CI ? 1 : undefined,
-
-	// Reporter configuration
-	reporter: [
-		['html'],
-		['list'],
-		['junit', { outputFile: 'test-results/junit.xml' }],
-	],
-
-	// Shared settings for all projects
-	use: {
-		baseURL: process.env.WP_BASE_URL || 'http://localhost:8889',
-		trace: 'on-first-retry',
-		screenshot: 'only-on-failure',
-		video: 'retain-on-failure',
-	},
-
-	// Browser projects
-	projects: [
-		{
-			name: 'chromium',
-			use: { ...devices['Desktop Chrome'] },
-		},
-		{
-			name: 'firefox',
-			use: { ...devices['Desktop Firefox'] },
-		},
-		{
-			name: 'webkit',
-			use: { ...devices['Desktop Safari'] },
-		},
-	],
-
-	// Local dev server (optional)
+module.exports = defineConfig( {
+	...baseConfig,
+	testDir: './tests/e2e',
 	webServer: {
-		command: 'npm run start',
-		url: 'http://localhost:8889',
-		reuseExistingServer: !process.env.CI,
+		...baseConfig.webServer,
+		command: 'npm run env:start',
 	},
-});
+} );
 ```
+
+Keep this file small and override only what the plugin needs. Write specs with the fixtures from `@wordpress/e2e-test-utils-playwright` (`admin`, `editor`, `page`, `requestUtils`); see `tests/e2e/blocks.spec.js` in a generated plugin.
+
+`.wp-env.json` installs Secure Custom Fields and turns off the separate tests site (`"testsEnvironment": false`), so tests run against port 8888. Without Docker, start wp-env with `npm run env:start -- --runtime=playground`. Right after a fresh Playground start, the first run can fail with "Not logged in"; run it again.
 
 ### Environment Variables
 
@@ -175,7 +140,7 @@ Configure in `.env` file:
 
 ```bash
 # WordPress site URL
-WP_BASE_URL=http://localhost:8889
+WP_BASE_URL=http://localhost:8888
 
 # WordPress admin credentials
 WP_USERNAME=admin
@@ -624,10 +589,10 @@ PWDEBUG=1 npx playwright test
 
 ```bash
 # Generate tests with codegen
-npx playwright codegen http://localhost:8889/wp-admin
+npx playwright codegen http://localhost:8888/wp-admin
 
 # Generate tests for specific workflow
-npx playwright codegen --save-storage=auth.json http://localhost:8889/wp-admin
+npx playwright codegen --save-storage=auth.json http://localhost:8888/wp-admin
 ```
 
 ## Debugging and Troubleshooting
@@ -659,7 +624,7 @@ await page.locator('.block').screenshot({ path: 'block.png' });
 
 ### Videos
 
-Configure in `playwright.config.ts`:
+Configure in `playwright.config.js`:
 
 ```typescript
 use: {

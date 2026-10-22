@@ -7,19 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Simplified the generated plugin's settings navigation (LS-4287). `inc/class-options.php` now registers one settings page under **Settings** (`options-general.php`) instead of a top-level menu with General, Display and API subpages. The page shows a single field group with Branding, Contact and API tabs.
-
-### Removed
-
-- Removed the Display settings subpage and its fields (items per page, archive layout, show sidebar, featured image size), plus the Social Media tab and its social links repeater, from the generated options page (LS-4287).
-
-### Documentation
-
-- Audited the scaffold for unreplaced default-prefix (`example-plugin`) references (LS-3726). Found 10 genuine unreplaced occurrences, including a build-breaking Composer PSR-4 autoload mismatch and a build-breaking `src/index.js` import-path mismatch. See [audit-report.md](.github/spec/001-plugin-prefix-audit/audit-report.md) for full findings and remediation actions; no code was changed as part of the audit itself.
-
 ### Added
+
+- Generated plugins get the standard LightSpeed toolchain, proven in `lightspeedwp/ls-test` first (spec 003):
+  - one thin config per tool, extending the `@wordpress/scripts` defaults;
+  - Vitest unit tests and Playwright e2e tests (`tests/js`, `tests/e2e`);
+  - a Husky pre-commit hook running lint-staged;
+  - a CI workflow with JS, PHP and E2E jobs;
+  - the 10 standard command aliases (`start`, `build`, `format`, `lint:js`, `lint:css`, `lint:pkg`, `test:unit`, `test:e2e`, `packages-update`, `zip`).
+- `scripts/toolchain/standard-toolchain.json`: the single source for generated `package.json` and `composer.json` dependencies and scripts.
+- `templates/`: plugin-only files, copied over the generated plugin after the main copy.
+- `npm run check:generation` and the `generation-check` CI job: generate both fixture plugins, then install, build, lint, unit-test and e2e-test them.
+- `scripts/toolchain/compare-toolchain.js` to prove a round trip between a test plugin and regenerated output.
+- Generator option `--output-dir <dir>`, and an optional `repository_url` config field (defaults to `https://github.com/lightspeedwp/<slug>`).
+- `docs/INTERACTIVITY-AND-DATAVIEWS.md`: when and how to use the Interactivity API and DataViews.
 
 #### Shared Components
 
@@ -54,6 +55,15 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- Upgraded to the current `@wordpress/*` majors (`@wordpress/scripts` 36, components 42, block-editor 18); Node.js 24.18+ and npm 11.16+ are now required (`.nvmrc` 24).
+- Builds pass `--experimental-modules`; blocks are discovered from `block.json`, which uses the standard `render: file:./render.php`; front-end styles come from `style-index.css`.
+- The generator formats rendered JavaScript with the WordPress Prettier config, so plugins pass their own lint whatever the slug length.
+- The scaffold's own Jest suite runs through `wp-scripts test-unit-jest`; `package-lock.json` is committed, so CI's npm cache works.
+- `scripts/utils/placeholders.js` renders example values through the generator (it was a theme-scaffold copy).
+- Constitution 1.0.1: tooling constraints updated.
+
+- Simplified the generated plugin's settings navigation (LS-4287). `inc/class-options.php` now registers one settings page under **Settings** (`options-general.php`) instead of a top-level menu with General, Display and API subpages. The page shows a single field group with Branding, Contact and API tabs.
+
 - `docs/RELEASE_PROCESS.md` now merges the previous release playbooks, documents reporting/planning folder rules, and highlights the `scripts/utils/dry-run-release.js` helper before `release.agent.js` runs against templated files.
 - `package.json` validation scripts and `docs/GENERATE_PLUGIN.md` now call `scripts/validation/validate-plugin-config.js`, keeping CLI validation aligned with the action-first naming scheme.
 - Instructions and prompts reference `.github/reports/`, `.github/projects/plans/`, and `tmp/` for reporting, planning, and temporary data, and the new frontmatter doc is linked from the docs index.
@@ -64,7 +74,21 @@ All components use mustache placeholders and follow WordPress accessibility and 
 - Generated `composer.json` now includes `szepeviktor/phpstan-wordpress`, `dealerdirect/phpcodesniffer-composer-installer` (with `allow-plugins`), and `test`, `phpcs`, `phpcbf`, `phpstan` and `lint` scripts.
 - `readme.txt` rewritten as a single WordPress.org readme that documents the real `{namespace}_blocks_dir` filter.
 
+### Deprecated
+
+- `npm run lint:pkg-json` and `npm run plugin-zip`: use `lint:pkg` and `zip`. The old names will be removed in the next minor release.
+
 ### Fixed
+
+- Template bugs found by the new tests:
+  - the slider rendered nothing in the editor (5 attributes were missing from `block.json`);
+  - `extractImageData()` returned the wrong image size;
+  - 10 components called `__()` without importing it;
+  - a fake `role="button"` in the slider editor;
+  - the paragraph-prefix script loaded with no dependencies;
+  - the collection block's CSS failed lint.
+- Generated plugins now pass PHPCS (`inc/` was previously excluded) and PHPStan level 6 (which had crashed at its memory limit).
+- Generated plugins no longer receive scaffold-only files (AI tool settings, devcontainer, Lighthouse, size-limit, codecov, `VERSION`, the scaffold's `AGENTS.md`) or `.DS_Store` files.
 
 - `.github/schemas/plugin-config.schema.json`: moved the `oneOf` for post type `taxonomies` entries from the array level to the `items` level, so each taxonomy entry (string slug or legacy object) is validated individually instead of requiring the whole array to be one type or the other.
 - `uninstall.php` deleted unrelated site data: its `{{plugin_slug}}`, `{{post_type_slug}}` and `{{taxonomy_slug}}` placeholders rendered empty, so it force-deleted regular posts and every underscore-prefixed option, post meta, user meta and term meta row.
@@ -89,8 +113,19 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Removed
 
+- Duplicate or never-loaded config files (`.eslintrc.cjs`, `.eslint.config.cjs`, `.stylelint.config.cjs`, `.prettier.config.cjs`, `.jest.config.cjs`, `.postcss.config.cjs`, `.npmpackagejsonlintrc.cjs`, `.browserslistrc`, `.eslintignore`).
+- Local copies of organisation-provided config: `.coderabbit.yml` (inherited from `lightspeedwp/coderabbit`), and `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md` and `SUPPORT.md` (inherited from `lightspeedwp/.github`).
+- Unused packages: `puppeteer-core`, `@playwright/experimental-ct-react`, `playwright`, `@wordpress/create-block`, `gray-matter`, `axe-playwright`, and 7 runtime packages no template imported.
+- The CI E2E job that ran against the raw templates.
+
+- Removed the Display settings subpage and its fields (items per page, archive layout, show sidebar, featured image size), plus the Social Media tab and its social links repeater, from the generated options page (LS-4287).
+
 - Scaffold-only development files are no longer copied into generated plugins: `dryrun-debug.log`, `test-results/`, `multi-block-plugin-scaffold.code-workspace`, `IMPLEMENTATION-SUMMARY.md`, `SCF-JSON-REGISTRATION-CHANGES.md`, `.specify/` and `.todo/`.
 - Removed the placeholder `uninstall-{{slug}}.php`; WordPress only runs `uninstall.php`.
+
+### Documentation
+
+- Audited the scaffold for unreplaced default-prefix (`example-plugin`) references (LS-3726). Found 10 genuine unreplaced occurrences, including a build-breaking Composer PSR-4 autoload mismatch and a build-breaking `src/index.js` import-path mismatch. See [audit-report.md](.github/spec/001-plugin-prefix-audit/audit-report.md) for full findings and remediation actions; no code was changed as part of the audit itself.
 
 ## [1.0.1] - 2025-12-15
 

@@ -567,7 +567,7 @@ Ensure proper exclusions:
 cat .distignore
 
 # Test plugin ZIP doesn't include dev files
-npm run plugin-zip
+npm run zip
 unzip -l *.zip | grep -E "src/|tests/|docs/"  # Should be empty
 ```
 
