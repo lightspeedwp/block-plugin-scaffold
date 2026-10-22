@@ -523,7 +523,7 @@ A comprehensive WordPress plugin scaffold with dual-mode generation, mustache te
 ### 📋 Requirements
 - WordPress 6.5+
 - PHP 8.0+
-- Node.js 18+
+- Node.js 24.18+ (see `.nvmrc`)
 
 ### 📝 Full Changelog
 See [CHANGELOG.md](https://github.com/lightspeedwp/multi-block-plugin-scaffold/blob/main/CHANGELOG.md) for details.

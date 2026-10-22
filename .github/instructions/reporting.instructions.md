@@ -624,7 +624,7 @@ Stylelint 16 released with improved CSS parsing and new rule options. Upgrade im
 
 ## Changes Made
 
-1. Updated .stylelint.config.cjs
+1. Updated .stylelintrc.json
 2. Reviewed deprecated rules
 3. Added new recommended rules
 4. Updated CI/CD workflow
@@ -642,7 +642,7 @@ All CSS/SCSS linting tests passing. No changes required in codebase.
 ## Related Files
 
 - [logs/migration-stylelint-2025-12-07T10-30-00.log](../logs/) - Migration execution log
-- [.stylelint.config.cjs](./.stylelint.config.cjs) - Updated configuration
+- [.stylelintrc.json](./.stylelintrc.json) - Updated configuration
 ```
 
 ### Bad Report

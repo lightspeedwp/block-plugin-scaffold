@@ -562,25 +562,40 @@ const handleSave = async (post) => {
 
 ## Testing
 
-### Jest Setup
+### Unit Test Setup (Vitest)
+
+`@wordpress/scripts` 36 runs unit tests with Vitest (`wp-scripts test-unit-js`); the WordPress Jest preset is retired. Generated plugins ship this `vitest.config.mjs`:
 
 ```javascript
-// jest.config.js
-module.exports = {
-  testEnvironment: "jsdom",
-  transform: {
-    "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
-  },
-  moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
-  },
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
-};
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react-swc';
+
+export default defineConfig( {
+	plugins: [
+		react( {
+			// Block source uses JSX in .js files, as @wordpress/scripts allows.
+			parserConfig: ( id ) =>
+				/\.[cm]?jsx?$/.test( id )
+					? { syntax: 'ecmascript', jsx: true }
+					: undefined,
+		} ),
+	],
+	test: {
+		environment: 'jsdom',
+		globals: false,
+		include: [ 'tests/js/**/*.test.{js,jsx}' ],
+		restoreMocks: true,
+		setupFiles: [ './tests/js/setup.js' ],
+	},
+} );
 ```
+
+Import `describe`, `test`, `expect` and `vi` from `vitest` (there are no globals), and use `vi.fn()` where Jest used `jest.fn()`. The scaffold repository's own CLI tests still use Jest, through `wp-scripts test-unit-jest`.
 
 ### Component Testing
 
 ```javascript
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MyComponent from "./MyComponent";
@@ -592,7 +607,7 @@ describe("MyComponent", () => {
   });
 
   it("calls onClick when clicked", async () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const user = userEvent.setup();
 
     render(<MyComponent onClick={onClick} />);

@@ -170,11 +170,18 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 ## Phase 7: Documentation, instructions and governance (US4, US5)
 
-- [ ] T044 [P] [US4] Write `docs/INTERACTIVITY-AND-DATAVIEWS.md` using what T016 and T017 proved
-- [ ] T045 [P] [US5] Update `README.md`, `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`: the aliases, the one-config-per-tool rule, Node 22, `--output-dir`, `check:generation`, and the generate-fix-move-back workflow for future toolchain changes
-- [ ] T046 [P] [US5] Update `.github/instructions/` (`javascript-react-development`, `jest-tests`, `playwright-tests`, `testing-e2e`, `blocks-development`) to use the standard aliases and the Playwright utilities, and to drop references to removed configs and Puppeteer
-- [ ] T047 [US5] Amend `.specify/memory/constitution.md` (PATCH 1.0.1): Node ≥ 22.22 / npm ≥ 10, with a Sync Impact Report
-- [ ] T048 [US5] Run [quickstart.md Scenario E](./quickstart.md#scenario-e--documentation-and-instructions-us5)
+- [x] T044 [P] [US4] Write `docs/INTERACTIVITY-AND-DATAVIEWS.md` using what T016 and T017 proved
+- [x] T045 [P] [US5] Update `README.md`, `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`: the aliases, the one-config-per-tool rule, Node 22, `--output-dir`, `check:generation`, and the generate-fix-move-back workflow for future toolchain changes
+- [x] T046 [P] [US5] Update `.github/instructions/` (`javascript-react-development`, `jest-tests`, `playwright-tests`, `testing-e2e`, `blocks-development`) to use the standard aliases and the Playwright utilities, and to drop references to removed configs and Puppeteer
+- [x] T047 [US5] Amend `.specify/memory/constitution.md` (PATCH 1.0.1): Node ≥ 22.22 / npm ≥ 10, with a Sync Impact Report
+- [x] T048 [US5] Run [quickstart.md Scenario E](./quickstart.md#scenario-e--documentation-and-instructions-us5)
+
+> **Phase 7 notes (S4)**:
+>
+> - **T045**: there is no root `README.md` (the generator writes one per plugin), so the generated README content was updated instead, along with `DEVELOPMENT.md` (shipped with every plugin), `docs/GENERATE_PLUGIN.md` and `docs/RELEASE_PROCESS.md`.
+> - **T048**: the Scenario E search finds no references to removed aliases, configs, Puppeteer, the Jest preset or Node 18/20 in docs or instruction files.
+> - **T050**: the scaffold's old lockfile was gitignored, so there is no committed "before" audit to compare. The new lockfile is committed in #48.
+> - **Not done**: `scripts/mustache-variables-registry.json` was not regenerated for `repository_url`. Its validator already fails on `develop` (47 stale and 2 unregistered variables), which is a separate clean-up.
 
 **Checkpoint**: The documentation matches the toolchain. This completes S4.
 
@@ -182,9 +189,9 @@ All tasks in this phase are done in `$TEST_PLUGIN`.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T049 Add a `CHANGELOG.md` entry to each pull request (_Added_, _Changed_, _Deprecated_ or _Removed_)
-- [ ] T050 [P] Run `npm audit --omit=dev` before T024 and after T037, and record the change in S1
-- [ ] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md)
+- [x] T049 Add a `CHANGELOG.md` entry to each pull request (_Added_, _Changed_, _Deprecated_ or _Removed_)
+- [x] T050 [P] Run `npm audit --omit=dev` before T024 and after T037, and record the change in S1
+- [x] T051 [P] Raise an issue in `lightspeedwp/block-theme-scaffold` that links [command-aliases.md](./contracts/command-aliases.md) — raised as lightspeedwp/block-theme-scaffold#12
 - [ ] T052 Archive the test plugin. Keep `$TEST_PLUGIN` and its Git history until S1 and S2 are merged, as the record of what was moved back
 
 ---

@@ -87,7 +87,7 @@ flowchart LR
 Short description of what the blocks provide.
 
 ## Requirements
-- Node 20+
+- Node 24.18+
 - PHP 8.1+
 
 ## Commands

@@ -224,6 +224,7 @@ Additional placeholders for specific use cases:
 | `{{name_plural_lower}}` | Lowercase plural | `tours` | `{{name_plural}}` |
 | `{{plugin_uri}}` | Plugin URL | `https://example.com/plugin` | User input |
 | `{{author_uri}}` | Author URL | `https://example.com` | User input |
+| `{{repository_url}}` | Repository URL (package.json `homepage`, `repository`, `bugs`) | `https://github.com/lightspeedwp/tour-operator` | User input, or `https://github.com/lightspeedwp/<slug>` |
 | `{{license_uri}}` | License URL | `https://www.gnu.org/licenses/gpl-2.0.html` | Auto-generated from `{{license}}` |
 | `{{requires_wp}}` | Min WordPress | `6.5` | User input or default |
 | `{{requires_php}}` | Min PHP | `8.0` | User input or default |
@@ -492,6 +493,9 @@ node scripts/generate-plugin.js
 # With configuration file
 node scripts/generate-plugin.js --config plugin-config.json
 
+# Write to another folder (creates <dir>/<slug>/)
+node scripts/generate-plugin.js --config plugin-config.json --output-dir ../plugins
+
 # With inline arguments
 node scripts/generate-plugin.js \
   --slug tour-operator \
@@ -673,46 +677,72 @@ node scripts/validation/validate-plugin-config.js my-plugin.json
 node scripts/generate-plugin.js --config my-plugin.json
 ```
 
+## Checking the Generator (scaffold maintainers)
+
+`npm run check:generation` generates a plugin from each fixture in `tests/fixtures/generation/` (default mode and functional-only) into a temporary folder. It then checks for leftover `{{tags}}` or example values, installs, builds, lints and unit-tests the plugin. Add `--e2e` to run its Playwright tests too, and `--playground` to use wp-env without Docker. CI runs it with `--e2e` on every pull request (the `generation-check` job).
+
+```bash
+npm run check:generation
+npm run check:generation -- --fixture default --e2e --playground
+```
+
+### Changing the plugin toolchain
+
+Make toolchain changes in a generated plugin first, then move them back:
+
+1. Generate a test plugin and commit the untouched output as a baseline.
+2. Make and prove the change in the plugin (lint, tests, CI).
+3. Move each change back into the scaffold source it came from: root templates, `templates/`, or `scripts/toolchain/standard-toolchain.json`.
+4. Regenerate with the same config into a fresh folder, and confirm no toolchain files differ:
+
+```bash
+node scripts/generate-plugin.js --config my-plugin-config.json --output-dir /tmp/rt
+node scripts/toolchain/compare-toolchain.js path/to/test-plugin /tmp/rt/<slug>
+```
+
+This is how spec 003 was delivered (see `.github/spec/003-scaffold-toolchain-modernisation/`).
+
 ## Post-Generation Workflow
 
 ### 1. Review Generated Files
-
-```bash
-cd output-plugin/
-tree -L 2
-```
 
 Expected structure:
 
 ```text
 tour-operator/
 ├── tour-operator.php         # Main plugin file (slug-based name)
-├── package.json              # Node dependencies
-├── composer.json             # PHP dependencies
+├── package.json              # Standard toolchain (scripts/toolchain/standard-toolchain.json)
+├── composer.json             # PHPCS, PHPStan and PHPUnit scripts
+├── eslint.config.cjs         # One config per tool, each extending
+├── .stylelintrc.json         #   the @wordpress/scripts defaults
+├── .prettierrc.js
+├── vitest.config.mjs         # Unit tests (Vitest + Testing Library)
+├── playwright.config.js      # E2E tests against wp-env
+├── phpcs.xml / phpstan.neon
+├── .husky/pre-commit         # Lints and formats staged files
+├── .github/workflows/ci.yml  # JS, PHP and E2E jobs
 ├── inc/                      # PHP classes
-├── src/                      # Source files
-│   ├── blocks/               # Block implementations
-│   ├── components/           # Shared React components
-│   ├── hooks/                # Custom React hooks
-│   └── scss/                 # Stylesheets
+├── src/                      # Blocks, components, hooks, styles
+├── tests/                    # Starter unit (js), e2e and PHPStan files
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups
 ```
 
+Files that differ between the scaffold and a plugin (the configs above, starter tests, CI workflow and `.gitignore`) come from `templates/`, which the generator copies over the plugin after the main copy. Scaffold-only files (AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) are not copied. CodeRabbit settings and community health files are inherited from the LightSpeed organisation.
+
 ### 2. Install Dependencies
 
-```bash
-# Install Node.js dependencies
-npm install
+Requires Node.js 24.18+ (`nvm use`).
 
-# Install Composer dependencies
+```bash
+npm install
 composer install
 ```
 
 ### 3. Build the Plugin
 
 ```bash
-# Development build with watch mode
+# Rebuild on change
 npm run start
 
 # Production build
@@ -733,23 +763,21 @@ Add custom fields following the [SCF Fields Reference](.github/instructions/scf-
 ### 5. Run Tests
 
 ```bash
-# All tests
-npm run test
-
-# JavaScript unit tests
+# JavaScript unit tests (Vitest)
 npm run test:unit
 
-# PHP tests
-composer run test
+# PHP static analysis
+composer run phpstan
 
-# E2E tests
+# E2E tests (start wp-env first; add -- --runtime=playground without Docker)
+npm run env:start
 npm run test:e2e
 ```
 
 ### 6. Run Linting
 
 ```bash
-# All linters
+# All linters (lint:js, lint:css, lint:pkg)
 npm run lint
 
 # JavaScript
@@ -757,6 +785,9 @@ npm run lint:js
 
 # CSS/SCSS
 npm run lint:css
+
+# package.json
+npm run lint:pkg
 
 # PHP
 composer run lint
@@ -1039,7 +1070,7 @@ cat logs/generate-plugin-my-plugin.log | jq '.[] | select(.message | contains("f
 
 **Build Errors:**
 
-- Node.js version: Use Node.js 18+ or run `nvm use`
+- Node.js version: Use Node.js 24.18+ or run `nvm use`
 - Webpack errors: Run `npm install` again
 
 **SCF Field Errors:**
