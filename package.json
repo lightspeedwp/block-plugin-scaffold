@@ -144,6 +144,7 @@
 		"test:scf": "./vendor/bin/phpunit tests/php/test-scf-json*.php",
 		"test:scf:verbose": "./vendor/bin/phpunit tests/php/test-scf-json*.php --verbose",
 		"test:unit": "wp-scripts test-unit-jest",
+		"toolchain:lockfiles": "node scripts/toolchain/update-lockfiles.js",
 		"update-version": "node scripts/update-version.js",
 		"validate:all": "npm run validate:config && npm run validate:schemas && npm run validate:frontmatter && npm run validate:post-types",
 		"validate:config": "node scripts/validation/validate-plugin-config.js tests/fixtures/plugin-config.mock.json",

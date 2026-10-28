@@ -208,10 +208,11 @@ describe('generatePlugin: output with post types', () => {
 				'glob',
 			])
 		);
-		// The scaffold's lock file does not match the generated package.json.
-		expect(fs.existsSync(path.join(outputDir, 'package-lock.json'))).toBe(
-			false
+		// The plugin's own lock file, not the scaffold's.
+		const lock = JSON.parse(
+			fs.readFileSync(path.join(outputDir, 'package-lock.json'), 'utf8')
 		);
+		expect(lock.packages[''].devDependencies).toEqual(pkg.devDependencies);
 	});
 
 	it('does not copy scaffold development artefacts', () => {

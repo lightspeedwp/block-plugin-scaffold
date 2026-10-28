@@ -3,7 +3,8 @@
  * Generation check (spec 003, FR-008 to FR-011).
  *
  * Generates a plugin from each fixture in tests/fixtures/generation/ into a
- * temporary folder, then installs, builds, lints and unit-tests it, so a
+ * temporary folder, then installs it from its lockfiles, builds, lints and
+ * unit-tests it, and validates its composer.lock, so a
  * scaffold change that breaks generated plugins fails before it is merged.
  *
  * Usage: node scripts/toolchain/check-generation.js
@@ -170,9 +171,11 @@ function checkFixture(fixturePath, options) {
 			? []
 			: [
 					{
-						name: 'npm install',
+						// npm ci fails when package-lock.json does not match
+						// package.json, so this also checks the shipped lock.
+						name: 'npm ci',
 						run: () => {
-							const output = run(dir, npm, ['install', '--no-audit', '--no-fund']);
+							const output = run(dir, npm, ['ci', '--no-audit', '--no-fund']);
 							if (/ERESOLVE|peer dep(endency)? conflict/i.test(output)) {
 								const error = new Error('peer dependency conflict');
 								error.output = output;
@@ -199,6 +202,16 @@ function checkFixture(fixturePath, options) {
 		{ name: 'lint:json', run: () => run(dir, npm, ['run', 'lint:json']) },
 		{ name: 'lint:md:docs', run: () => run(dir, npm, ['run', 'lint:md:docs']) },
 		{ name: 'test:unit', run: () => run(dir, npm, ['run', 'test:unit']) },
+		...(options.skipInstall
+			? []
+			: [
+					{
+						// Fails when composer.lock's content-hash does not
+						// match composer.json.
+						name: 'composer validate',
+						run: () => run(dir, 'composer', ['validate', '--no-check-publish']),
+					},
+				]),
 		...(options.e2e
 			? [
 					{
