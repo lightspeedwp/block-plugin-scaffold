@@ -6,8 +6,9 @@
  *
  * Prints a unified diff for every toolchain file that differs and exits with
  * 1, or exits with 0 when they match. Plugin metadata in package.json and
- * composer.json is left out, so two plugins with different names compare by
- * toolchain only.
+ * composer.json is left out. Other files, such as AGENTS.md and the agent
+ * folders, contain the plugin's name, so compare plugins with the same slug:
+ * a plugin and a fresh generation of its config.
  *
  * @package
  */

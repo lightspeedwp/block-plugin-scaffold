@@ -11,7 +11,8 @@ playwright-report
 test-results
 languages
 
-# Written by tools, in their own format
+# Written by tools, in their own format (/*-config.json is the generator's
+# config, named after the plugin slug)
 .github/workflows/dependency-automation.yml
 .specify
-{{slug}}-config.json
+/*-config.json
