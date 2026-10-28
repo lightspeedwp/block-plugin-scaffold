@@ -63,6 +63,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- Generated plugins use the Gutenberg test layout (BPS-10): `test/unit/` (Vitest), `test/e2e/` (Playwright) and `phpunit/` (PHPUnit and the PHPStan bootstrap), with every config, `.distignore`, `compare-toolchain.js`, the generator's formatting step and the docs updated.
 - Generated plugins use the Gutenberg config names: `eslint.config.mjs`, `prettier.config.mjs`, `.stylelintrc.js` and `phpcs.xml.dist`, and an `.editorconfig` with tabs (spaces for YAML). Template mode removes the scaffold's own copies under the old names. The generated README and the template docs pass markdownlint.
 - Generated plugins: `.distignore` now leaves out `webpack.config.js` (it listed `.cjs`), `vitest.config.mjs`, `playwright.config.js`, `.prettierrc.js`, `.stylelintrc.json`, `{{slug}}-config.json` and `dist/`.
 - Generated plugins: the pre-commit hook checks the branch name (no direct commits to `main`, `develop` or `release/*`; a type prefix from the organisation's `branch-types.yml`), requires a `CHANGELOG.md` entry for code changes, runs `npm run build` when `src/` changes, then runs lint-staged. Documented in `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`.

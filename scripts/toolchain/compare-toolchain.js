@@ -47,7 +47,7 @@ const FILES = [
 	'webpack.config.js',
 ];
 // Folders whose files are all compared.
-const DIRS = ['bin', 'tools', 'tests/js', 'tests/e2e', 'tests/php'];
+const DIRS = ['bin', 'tools', 'test/unit', 'test/e2e', 'phpunit'];
 // Manifest fields compared; metadata such as name and URLs is left out.
 const PACKAGE_FIELDS = [
 	'engines',

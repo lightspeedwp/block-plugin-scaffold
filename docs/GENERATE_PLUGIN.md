@@ -727,7 +727,8 @@ tour-operator/
 ├── .github/workflows/ci.yml  # JS, PHP and E2E jobs
 ├── inc/                      # PHP classes
 ├── src/                      # Blocks, components, hooks, styles
-├── tests/                    # Starter unit (js), e2e and PHPStan files
+├── test/unit/ & test/e2e/    # Starter Vitest and Playwright tests
+├── phpunit/                  # PHPUnit tests and the PHPStan bootstrap
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups
 ```

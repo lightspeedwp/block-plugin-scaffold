@@ -1651,7 +1651,7 @@ function formatGeneratedOutput(outputDir) {
 			'warn',
 			'--write',
 			'src/**/*.{js,jsx}',
-			'tests/**/*.js',
+			'test/**/*.js',
 			'*.{js,cjs,mjs}',
 		],
 		{ cwd: outputDir, stdio: 'pipe' }

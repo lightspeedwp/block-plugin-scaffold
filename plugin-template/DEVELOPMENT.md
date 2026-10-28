@@ -61,13 +61,13 @@ The site runs at <http://localhost:8888> (admin: `admin` / `password`).
 | `npm run format` | Formats JS with the WordPress Prettier config |
 | `npm run lint` | Runs `lint:js`, `lint:css`, `lint:pkg` and `lint:json` |
 | `npm run lint:json` | Validates every `block.json` against the WordPress block schema (Ajv) |
-| `npm run test:unit` | Vitest unit tests in `tests/js`, with a coverage gate |
-| `npm run test:e2e` | Playwright tests in `tests/e2e` against wp-env, including axe-core checks |
+| `npm run test:unit` | Vitest unit tests in `test/unit`, with a coverage gate |
+| `npm run test:e2e` | Playwright tests in `test/e2e` against wp-env, including axe-core checks |
 | `npm run packages-update` | Updates `@wordpress/*` packages |
 | `npm run zip` | Builds a distribution ZIP |
 | `composer run lint` / `lint:fix` | PHPCS / PHPCBF with WordPress standards |
 | `composer run phpstan` | PHPStan level 6 |
-| `composer run test` | PHPUnit unit tests in `tests/php` |
+| `composer run test` | PHPUnit unit tests in `phpunit/` |
 
 ### Configuration files
 
@@ -200,7 +200,7 @@ src/
 
 ### JavaScript Testing
 
-Unit tests use Vitest and Testing Library. They live in `tests/js` and run in jsdom:
+Unit tests use Vitest and Testing Library. They live in `test/unit` and run in jsdom:
 
 ```bash
 npm run test:unit
@@ -235,11 +235,11 @@ composer run phpstan
 composer run test
 ```
 
-PHPUnit tests live in `tests/php` and end in `Test.php`. They extend `tests/php/TestCase.php`, which uses `yoast/phpunit-polyfills` and stubs WordPress functions with Brain Monkey, so they run without a WordPress install. CI runs them on PHP 8.4 and 8.5.
+PHPUnit tests live in `phpunit/` and end in `Test.php`. They extend `phpunit/TestCase.php`, which uses `yoast/phpunit-polyfills` and stubs WordPress functions with Brain Monkey, so they run without a WordPress install. CI runs them on PHP 8.4 and 8.5.
 
 ### End-to-End Testing
 
-Playwright tests live in `tests/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. `tests/e2e/accessibility.spec.js` also checks, at mobile, tablet and desktop widths, that the blocks fit the screen and pass an axe-core WCAG 2.2 AA scan. Start wp-env first:
+Playwright tests live in `test/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. `test/e2e/accessibility.spec.js` also checks, at mobile, tablet and desktop widths, that the blocks fit the screen and pass an axe-core WCAG 2.2 AA scan. Start wp-env first:
 
 ```bash
 npm run env:start
@@ -330,7 +330,7 @@ npm run build
 node bin/package-release.js
 ```
 
-This copies every file `.distignore` does not exclude into `dist/<slug>/`, which the release workflow zips. `.distignore` leaves out development files (`src/`, `tests/`, `bin/`), config files and dependencies (`node_modules/`, `vendor/`).
+This copies every file `.distignore` does not exclude into `dist/<slug>/`, which the release workflow zips. `.distignore` leaves out development files (`src/`, `test/`, `phpunit/`, `bin/`, `tools/`), config files and dependencies (`node_modules/`, `vendor/`).
 
 ## Debugging
 

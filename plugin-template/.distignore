@@ -14,7 +14,8 @@ vendor/
 src/
 
 # Tests
-tests/
+test/
+phpunit/
 coverage/
 artifacts/
 test-results/

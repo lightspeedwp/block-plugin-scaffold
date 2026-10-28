@@ -199,11 +199,11 @@ describe('generatePlugin: config files', () => {
 describe('generatePlugin: plugin-template files', () => {
 	it('copies the starter tests and CI workflow', () => {
 		[
-			'tests/js/setup.js',
+			'test/unit/setup.js',
 			'bin/validate-json.js',
-			'tests/js/utils/fields.test.js',
-			'tests/e2e/blocks.spec.js',
-			'tests/php/phpstan-bootstrap.php',
+			'test/unit/utils/fields.test.js',
+			'test/e2e/blocks.spec.js',
+			'phpunit/phpstan-bootstrap.php',
 			'.github/workflows/ci.yml',
 			'.gitignore',
 		].forEach((file) => expect(exists(file)).toBe(true));
