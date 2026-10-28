@@ -44,6 +44,7 @@ const FILES = [
 	'.github/workflows/changelog.yml',
 	'.github/workflows/release.yml',
 	'.distignore',
+	'.coderabbit.yml',
 	'webpack.config.js',
 ];
 // Folders whose files are all compared.

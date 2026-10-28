@@ -147,6 +147,9 @@ assets/
 # CodeRabbit config
 .coderabbit.yml
 
+# Editor workspace
+*.code-workspace
+
 # Distribution ignore file itself
 .distignore
 

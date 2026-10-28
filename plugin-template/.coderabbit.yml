@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# Review settings for {{name}}. The LightSpeed organisation settings
+# (lightspeedwp/.github) apply first; this file adds the plugin's own paths.
+inheritance: true
+
+language: en-GB
+
+reviews:
+  path_filters:
+    - '!build/**'
+    - '!dist/**'
+    - '!vendor/**'
+    - '!coverage/**'
+    - '!artifacts/**'
+    - '!languages/*.pot'
+    - '!bin/schemas/**'
+    - '!**/package-lock.json'
+    - '!**/composer.lock'
+
+  path_instructions:
+    - path: '**/*.php'
+      instructions: |
+        WordPress plugin PHP. Review against the WordPress Coding Standards (phpcs.xml.dist) and PHPStan level 6 (phpstan.neon):
+        - Escape all output late (esc_html, esc_attr, esc_url, wp_kses_post) and sanitise all input.
+        - Check nonces and capabilities on every form, AJAX and REST handler.
+        - Prefix functions, classes, hooks and options with the plugin namespace; use the `{{textdomain}}` text domain for every translatable string.
+        - Guard direct access with `defined( 'ABSPATH' ) || exit;`.
+
+    - path: 'src/**/*.{js,jsx}'
+      instructions: |
+        Block editor and front-end code. Review against the Gutenberg coding guidelines:
+        - Use `@wordpress/*` packages (element, components, block-editor, data, i18n) rather than bundling alternatives.
+        - Translate user-facing strings with `__()` and the `{{textdomain}}` text domain.
+        - Use the Interactivity API for front-end behaviour (see docs/INTERACTIVITY-AND-DATAVIEWS.md); no jQuery.
+        - Keep components accessible: labels, keyboard support and focus management.
+
+    - path: 'src/**/*.scss'
+      instructions: |
+        Styles. Class names follow BEM (`.block__element--modifier`), which Stylelint enforces. Prefer CSS custom properties and theme.json presets over hard-coded colours and sizes.
+
+    - path: 'src/blocks/*/block.json'
+      instructions: |
+        Block metadata. It must validate against the WordPress block.json schema (`npm run lint:json`). Check `apiVersion` 3, the plugin namespace in `name`, the text domain, and that every `file:` path exists.
+
+    - path: '{test,phpunit}/**'
+      instructions: |
+        Tests: Vitest in test/unit, Playwright in test/e2e, PHPUnit with Brain Monkey in phpunit/. Each test should be isolated, clean up what it creates and assert behaviour, not implementation details.
+
+    - path: '.github/workflows/**'
+      instructions: |
+        GitHub Actions. Check least-privilege `permissions`, `persist-credentials: false` on checkouts, pinned Node and PHP versions, and that release steps only run on tags.
+
+    - path: '{tools,bin}/**'
+      instructions: |
+        Build and release tooling (Node.js). Check error handling, exit codes for CI, and that paths are relative to the plugin root.

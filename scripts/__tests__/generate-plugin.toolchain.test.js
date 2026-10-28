@@ -164,6 +164,10 @@ describe('generatePlugin: config files', () => {
 			'tsconfig.build.json',
 			'jsconfig.json',
 			'tools/webpack/extra-entries.js',
+			'.coderabbit.yml',
+			'toolchain-check.code-workspace',
+			'docs/README.md',
+			'docs/INTERACTIVITY-AND-DATAVIEWS.md',
 			'phpstan.neon',
 			'.husky/pre-commit',
 		].forEach((file) => expect(exists(file)).toBe(true));
@@ -237,7 +241,6 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 			'codecov.yml',
 			'VERSION',
 			'AGENTS.md',
-			'.coderabbit.yml',
 			'CODE_OF_CONDUCT.md',
 			'SUPPORT.md',
 		].forEach((file) => expect([file, exists(file)]).toEqual([file, false]));

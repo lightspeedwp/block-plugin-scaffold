@@ -71,7 +71,7 @@ The site runs at <http://localhost:8888> (admin: `admin` / `password`).
 
 ### Configuration files
 
-Config files use the names the Gutenberg repository uses, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.mjs` (with the plugin's own additions in `tools/eslint/`), `.stylelintrc.js` (BEM class names), `prettier.config.mjs`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml.dist` and `phpstan.neon`. `.stylelintignore`, `.jshintignore`, `.markdownlintignore`, `.markdownlint.json` and `.npmpackagejsonlintrc.json` set what each linter checks; `npm run lint:md:docs` lints the Markdown files. The code of conduct and support files are inherited from the LightSpeed organisation.
+Config files use the names the Gutenberg repository uses, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.mjs` (with the plugin's own additions in `tools/eslint/`), `.stylelintrc.js` (BEM class names), `prettier.config.mjs`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml.dist` and `phpstan.neon`. `.stylelintignore`, `.jshintignore`, `.markdownlintignore`, `.markdownlint.json` and `.npmpackagejsonlintrc.json` set what each linter checks; `npm run lint:md:docs` lints the Markdown files. `{{slug}}.code-workspace` opens the plugin in VS Code with these settings, the recommended extensions and tasks for each command. `.coderabbit.yml` adds the plugin's review rules to the LightSpeed organisation settings. Project-specific documentation lives in `docs/`. The code of conduct and support files are inherited from the LightSpeed organisation.
 
 ## Architecture
 

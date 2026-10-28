@@ -1,0 +1,157 @@
+{
+	"folders": [
+		{
+			"name": "{{name}}",
+			"path": "."
+		}
+	],
+	"settings": {
+		// Editor: tabs and the WordPress Prettier style, as .editorconfig sets.
+		"editor.insertSpaces": false,
+		"editor.tabSize": 4,
+		"editor.detectIndentation": false,
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.codeActionsOnSave": {
+			"source.fixAll.eslint": "explicit",
+			"source.fixAll.stylelint": "explicit"
+		},
+		"editor.rulers": [ 80 ],
+
+		// Files
+		"files.eol": "\n",
+		"files.insertFinalNewline": true,
+		"files.trimTrailingWhitespace": true,
+		"files.exclude": {
+			"**/.DS_Store": true
+		},
+		"files.watcherExclude": {
+			"**/node_modules/**": true,
+			"**/vendor/**": true,
+			"**/build/**": true,
+			"**/dist/**": true,
+			"**/coverage/**": true,
+			"**/artifacts/**": true
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/vendor": true,
+			"**/build": true,
+			"**/dist": true,
+			"**/coverage": true,
+			"**/artifacts": true,
+			"**/package-lock.json": true,
+			"**/composer.lock": true,
+			"languages/*.pot": true
+		},
+
+		// Languages
+		"[php]": {
+			"editor.defaultFormatter": "valeryanm.vscode-phpsab"
+		},
+		"[yaml]": {
+			"editor.insertSpaces": true,
+			"editor.tabSize": 2
+		},
+		"[markdown]": {
+			"editor.wordWrap": "on",
+			"files.trimTrailingWhitespace": false
+		},
+
+		// Linters use the project configs.
+		"eslint.useFlatConfig": true,
+		"stylelint.validate": [ "css", "scss" ],
+		"css.validate": false,
+		"scss.validate": false,
+		"phpsab.standard": "phpcs.xml.dist",
+		"phpsab.executablePathCS": "./vendor/bin/phpcs",
+		"phpsab.executablePathCBF": "./vendor/bin/phpcbf",
+		"intelephense.environment.phpVersion": "8.4.0",
+		"intelephense.stubs": [ "Core", "date", "json", "pcre", "SPL", "standard", "wordpress" ],
+		"json.schemas": [
+			{
+				"fileMatch": [ "src/blocks/*/block.json" ],
+				"url": "https://schemas.wp.org/trunk/block.json"
+			}
+		],
+
+		"npm.packageManager": "npm"
+	},
+	"extensions": {
+		"recommendations": [
+			"editorconfig.editorconfig",
+			"esbenp.prettier-vscode",
+			"dbaeumer.vscode-eslint",
+			"stylelint.vscode-stylelint",
+			"davidanson.vscode-markdownlint",
+			"bmewburn.vscode-intelephense-client",
+			"valeryanm.vscode-phpsab",
+			"ms-playwright.playwright",
+			"vitest.explorer"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "start: watch and rebuild",
+				"type": "npm",
+				"script": "start",
+				"isBackground": true,
+				"problemMatcher": []
+			},
+			{
+				"label": "build",
+				"type": "npm",
+				"script": "build",
+				"group": { "kind": "build", "isDefault": true },
+				"problemMatcher": []
+			},
+			{
+				"label": "lint: JavaScript, CSS, package.json, block.json and Markdown",
+				"type": "npm",
+				"script": "lint",
+				"problemMatcher": []
+			},
+			{
+				"label": "test: unit (Vitest)",
+				"type": "npm",
+				"script": "test:unit",
+				"group": { "kind": "test", "isDefault": true },
+				"problemMatcher": []
+			},
+			{
+				"label": "test: e2e (Playwright)",
+				"type": "npm",
+				"script": "test:e2e",
+				"group": "test",
+				"problemMatcher": []
+			},
+			{
+				"label": "env: start wp-env",
+				"type": "npm",
+				"script": "env:start",
+				"problemMatcher": []
+			},
+			{
+				"label": "php: lint (PHPCS)",
+				"type": "shell",
+				"command": "composer run lint",
+				"problemMatcher": []
+			},
+			{
+				"label": "php: PHPStan",
+				"type": "shell",
+				"command": "composer run phpstan",
+				"problemMatcher": []
+			},
+			{
+				"label": "php: test (PHPUnit)",
+				"type": "shell",
+				"command": "composer run test",
+				"group": "test",
+				"problemMatcher": []
+			}
+		]
+	}
+}

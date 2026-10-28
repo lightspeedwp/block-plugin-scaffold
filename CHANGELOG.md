@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get `{{slug}}.code-workspace` (VS Code settings, extensions and tasks), their own `.coderabbit.yml` (plugin review rules on top of the organisation settings) and `docs/`, with an index and the Interactivity API and DataViews guide that `DEVELOPMENT.md` links to (BPS-10).
 - Generated plugins get the build configuration from the Gutenberg layout (BPS-10): `.browserslistrc`, `postcss.config.mjs`, `tsconfig.json`, `tsconfig.build.json`, `jsconfig.json` and `tools/webpack/extra-entries.js`, which `webpack.config.js` uses. CSS now targets the WordPress browser list; JavaScript output is unchanged.
 - Generated plugins get the lint configuration from the Gutenberg layout (BPS-10): `.stylelintignore`, `.jshintignore`, `.markdownlintignore`, `.markdownlint.json`, `.npmpackagejsonlintrc.json` and `tools/eslint/`, plus `npm run lint:md:docs` in `npm run lint`. Stylelint requires BEM class names. `check:generation` runs `lint:md:docs`, and `compare-toolchain.js` compares the new files and `tools/`.
 - Generated plugins get the root files from the Gutenberg layout (BPS-10): `SECURITY.md`, `CONTRIBUTING.md`, `changelog.txt` and `.gitattributes`.
