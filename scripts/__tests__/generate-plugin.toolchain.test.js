@@ -15,7 +15,7 @@ const path = require('path');
 const TEMP_CWD = fs.mkdtempSync(path.join(os.tmpdir(), 'generate-plugin-toolchain-'));
 const ORIGINAL_CWD = process.cwd();
 process.chdir(TEMP_CWD);
-const { generatePlugin } = require('../generate-plugin');
+const { generatePlugin, composerContentHash } = require('../generate-plugin');
 process.chdir(ORIGINAL_CWD);
 
 const toolchain = require('../toolchain/standard-toolchain.json');
@@ -142,6 +142,76 @@ describe('generatePlugin: composer.json', () => {
 
 		expect(composer.scripts).toEqual(toolchain.composer.scripts);
 		expect(composer['require-dev']).toEqual(toolchain.composer['require-dev']);
+	});
+});
+
+describe('standard toolchain lockfiles', () => {
+	const npmLock = require('../toolchain/standard-toolchain.package-lock.json');
+	const composerLock = JSON.parse(
+		fs.readFileSync(
+			path.join(__dirname, '../toolchain/standard-toolchain.composer.lock'),
+			'utf8'
+		)
+	);
+
+	it('lock the dependencies standard-toolchain.json lists', () => {
+		expect(npmLock.packages['']).toMatchObject({
+			dependencies: toolchain.dependencies,
+			devDependencies: toolchain.devDependencies,
+			engines: toolchain.engines,
+		});
+		const locked = composerLock['packages-dev'].map(({ name }) => name);
+		Object.keys(toolchain.composer['require-dev']).forEach((name) =>
+			expect(locked).toContain(name)
+		);
+	});
+
+	it('computes the content-hash Composer stored for ls-test', () => {
+		// ls-test's composer.json, as the generator writes it.
+		const lsTestComposer = {
+			name: 'ls_test/ls-test',
+			description:
+				'A functional-only LightSpeed test plugin with the default settings page.',
+			version: '1.0.0',
+			type: 'wordpress-plugin',
+			license: 'GPL-2.0-or-later',
+			authors: [{ name: 'LightSpeed', homepage: 'https://lightspeedwp.agency' }],
+			require: { php: '>=8.0' },
+			'require-dev': toolchain.composer['require-dev'],
+			scripts: toolchain.composer.scripts,
+			config: {
+				'allow-plugins': {
+					'dealerdirect/phpcodesniffer-composer-installer': true,
+				},
+			},
+		};
+
+		expect(composerContentHash(lsTestComposer)).toBe(composerLock['content-hash']);
+	});
+});
+
+describe('generatePlugin: lockfiles', () => {
+	it('writes package-lock.json for this plugin with the standard dependencies', () => {
+		const pkg = readJson('package.json');
+		const lock = readJson('package-lock.json');
+
+		expect(lock).toMatchObject({ name: pkg.name, version: pkg.version });
+		expect(lock.packages['']).toEqual({
+			name: pkg.name,
+			version: pkg.version,
+			license: pkg.license,
+			dependencies: pkg.dependencies,
+			devDependencies: pkg.devDependencies,
+			engines: pkg.engines,
+		});
+	});
+
+	it('writes composer.lock with the content-hash of this composer.json', () => {
+		const composer = readJson('composer.json');
+		const lock = readJson('composer.lock');
+
+		expect(lock['content-hash']).toBe(composerContentHash(composer));
+		expect(lock.platform).toEqual({ php: composer.require.php });
 	});
 });
 
