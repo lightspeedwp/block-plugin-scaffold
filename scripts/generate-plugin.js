@@ -837,7 +837,7 @@ function processFilesInPlace(targetDir, config) {
 /**
  * Move the rendered plugin-template/ files up to the repository root
  * (template mode), replacing the scaffold's own copies of shared files such as
- * eslint.config.cjs and .gitignore.
+ * eslint.config.mjs and .gitignore.
  *
  * @param {string} targetDir - Repository root being turned into the plugin
  */
@@ -861,6 +861,13 @@ function hoistPluginTemplate(targetDir) {
 			fs.rmSync(destPath, { recursive: true, force: true });
 			fs.renameSync(srcPath, destPath);
 		}
+	}
+
+	// The template ships these configs under their Gutenberg names. Remove the
+	// scaffold's own copies, which would otherwise win (phpcs.xml over
+	// phpcs.xml.dist).
+	for (const file of ['eslint.config.cjs', '.prettierrc.js', '.stylelintrc.json', 'phpcs.xml']) {
+		fs.rmSync(path.join(targetDir, file), { force: true });
 	}
 
 	moveEntries(templateDir, targetDir);
@@ -1734,12 +1741,14 @@ ${config.description}
 ## Installation
 
 1. Install dependencies:
+
    \`\`\`bash
    composer install
    npm install
    \`\`\`
 
 2. Build assets:
+
    \`\`\`bash
    npm run build
    \`\`\`
@@ -1757,7 +1766,7 @@ npm run start
 ## Checks
 
 \`\`\`bash
-npm run lint          # lint:js, lint:css and lint:pkg
+npm run lint          # JavaScript, CSS, package.json, block.json and Markdown
 npm run test:unit     # Vitest
 composer run lint     # PHPCS
 composer run phpstan  # PHPStan
@@ -1772,7 +1781,7 @@ npm run env:start
 npm run test:e2e
 \`\`\`
 
-The site runs at http://localhost:8888. See DEVELOPMENT.md for every command.
+The site runs at <http://localhost:8888>. See DEVELOPMENT.md for every command.
 
 ## Requirements
 

@@ -30,7 +30,7 @@ function makePlugin(files) {
 const base = {
 	'package.json': { name: 'one', scripts: { build: 'wp-scripts build' } },
 	'composer.json': { name: 'one/one', scripts: { lint: 'phpcs' } },
-	'eslint.config.cjs': 'module.exports = [];\n',
+	'eslint.config.mjs': 'export default [];\n',
 	'tests/js/a.test.js': 'test();\n',
 };
 
@@ -51,12 +51,12 @@ describe('compareToolchain', () => {
 		const b = makePlugin({
 			...base,
 			'package.json': { name: 'one', scripts: { build: 'other' } },
-			'eslint.config.cjs': 'module.exports = [ {} ];\n',
+			'eslint.config.mjs': 'export default [ {} ];\n',
 			'tests/js/a.test.js': 'test( 1 );\n',
 		});
 
 		expect(compareToolchain(a, b).map(({ file }) => file)).toEqual([
-			'eslint.config.cjs',
+			'eslint.config.mjs',
 			'package.json',
 			'tests/js/a.test.js',
 		]);

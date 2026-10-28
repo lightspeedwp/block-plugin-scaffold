@@ -1,0 +1,5 @@
+# Stylelint ignores node_modules/ itself.
+build
+vendor
+coverage
+playwright-report

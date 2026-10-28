@@ -71,7 +71,7 @@ The site runs at <http://localhost:8888> (admin: `admin` / `password`).
 
 ### Configuration files
 
-There is one config per tool, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.cjs`, `.stylelintrc.json`, `.prettierrc.js`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml` and `phpstan.neon`. CodeRabbit settings and community health files (code of conduct, contributing, security, support) are inherited from the LightSpeed organisation, so they are not repeated here.
+Config files use the names the Gutenberg repository uses, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.mjs` (with the plugin's own additions in `tools/eslint/`), `.stylelintrc.js` (BEM class names), `prettier.config.mjs`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml.dist` and `phpstan.neon`. `.stylelintignore`, `.jshintignore`, `.markdownlintignore`, `.markdownlint.json` and `.npmpackagejsonlintrc.json` set what each linter checks; `npm run lint:md:docs` lints the Markdown files. The code of conduct and support files are inherited from the LightSpeed organisation.
 
 ## Architecture
 
@@ -79,7 +79,7 @@ There is one config per tool, and the JS ones extend the `@wordpress/scripts` de
 
 The plugin follows WordPress block development best practices with multiple blocks:
 
-```
+```text
 src/
 ├── index.js            # Main entry point - registers all blocks
 ├── blocks/slider/     # Generic block directory
@@ -181,7 +181,7 @@ We follow WordPress coding standards strictly:
 
 ### File Organization
 
-```
+```text
 src/
 ├── blocks/
 │   ├── slider/             # Generic block: {{slug}}/slider

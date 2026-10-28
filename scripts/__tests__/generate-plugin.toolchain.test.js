@@ -148,22 +148,29 @@ describe('generatePlugin: composer.json', () => {
 describe('generatePlugin: config files', () => {
 	it('has exactly one config per tool', () => {
 		[
-			'eslint.config.cjs',
-			'.stylelintrc.json',
-			'.prettierrc.js',
+			'eslint.config.mjs',
+			'.stylelintrc.js',
+			'prettier.config.mjs',
 			'vitest.config.mjs',
 			'playwright.config.js',
-			'phpcs.xml',
+			'phpcs.xml.dist',
+			'.stylelintignore',
+			'.markdownlintignore',
+			'.npmpackagejsonlintrc.json',
+			'tools/eslint/index.mjs',
 			'phpstan.neon',
 			'.husky/pre-commit',
 		].forEach((file) => expect(exists(file)).toBe(true));
 
 		[
 			'.eslintrc.cjs',
+			'eslint.config.cjs',
 			'.eslint.config.cjs',
+			'.stylelintrc.json',
+			'.prettierrc.js',
+			'phpcs.xml',
 			'.eslintignore',
 			'.stylelint.config.cjs',
-			'.stylelintignore',
 			'.prettier.config.cjs',
 			'.prettierignore',
 			'.jest.config.cjs',
@@ -176,10 +183,10 @@ describe('generatePlugin: config files', () => {
 
 	it('uses the plugin configs from plugin-template/, not the scaffold versions', () => {
 		expect(
-			fs.readFileSync(path.join(outputDir, 'eslint.config.cjs'), 'utf8')
+			fs.readFileSync(path.join(outputDir, 'eslint.config.mjs'), 'utf8')
 		).not.toMatch(/scripts\/\*\*/);
 		expect(
-			fs.readFileSync(path.join(outputDir, 'phpcs.xml'), 'utf8')
+			fs.readFileSync(path.join(outputDir, 'phpcs.xml.dist'), 'utf8')
 		).not.toMatch(/exclude-pattern>inc\//);
 	});
 });

@@ -713,12 +713,13 @@ tour-operator/
 ├── tour-operator.php         # Main plugin file (slug-based name)
 ├── package.json              # Standard toolchain (scripts/toolchain/standard-toolchain.json)
 ├── composer.json             # PHPCS, PHPStan and PHPUnit scripts
-├── eslint.config.cjs         # One config per tool, each extending
-├── .stylelintrc.json         #   the @wordpress/scripts defaults
-├── .prettierrc.js
+├── eslint.config.mjs         # Gutenberg config names, each extending
+├── .stylelintrc.js           #   the @wordpress/scripts defaults
+├── prettier.config.mjs
+├── tools/eslint/             # The plugin's own ESLint additions
 ├── vitest.config.mjs         # Unit tests (Vitest + Testing Library)
 ├── playwright.config.js      # E2E tests against wp-env
-├── phpcs.xml / phpstan.neon
+├── phpcs.xml.dist / phpstan.neon
 ├── .husky/pre-commit         # Branch, changelog, build and lint gates
 ├── .github/workflows/ci.yml  # JS, PHP and E2E jobs
 ├── inc/                      # PHP classes

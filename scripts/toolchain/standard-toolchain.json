@@ -20,10 +20,11 @@
 		"all": {
 			"build": "wp-scripts build --experimental-modules",
 			"format": "wp-scripts format",
-			"lint": "npm run lint:js && npm run lint:css && npm run lint:pkg && npm run lint:json",
+			"lint": "npm run lint:js && npm run lint:css && npm run lint:pkg && npm run lint:json && npm run lint:md:docs",
 			"lint:css": "wp-scripts lint-style",
 			"lint:js": "wp-scripts lint-js",
 			"lint:json": "node bin/validate-json.js",
+			"lint:md:docs": "wp-scripts lint-md-docs",
 			"lint:pkg": "wp-scripts lint-pkg-json",
 			"packages-update": "wp-scripts packages-update",
 			"prepare": "husky",

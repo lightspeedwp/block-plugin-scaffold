@@ -35,18 +35,17 @@ postcss.config.cjs
 .postcss.config.cjs
 stylelint.config.cjs
 .stylelint.config.cjs
-eslint.config.cjs
-.eslint.config.cjs
+eslint.config.mjs
 vitest.config.mjs
 playwright.config.js
 jest.config.cjs
 .jest.config.cjs
 prettier.config.cjs
 .prettier.config.cjs
-.prettierrc.js
-.stylelintrc.json
+prettier.config.mjs
+.stylelintrc.js
 phpunit.xml
-phpcs.xml
+phpcs.xml.dist
 phpstan.neon
 .wp-env.json
 .browserslistrc
@@ -55,6 +54,12 @@ phpstan.neon
 .nvmrc
 
 # Linting and formatting
+.stylelintignore
+.jshintignore
+.markdownlintignore
+.markdownlint.json
+.npmpackagejsonlintrc.json
+tools/
 .eslintignore
 .prettierignore
 .eslintcache
