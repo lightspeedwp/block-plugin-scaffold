@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get a Claude Code branch guard (BPS-10, adapted from the `lightspeedwp/.github` hook): `.claude/settings.json` runs `.claude/hooks/check-branch.mjs`, which refuses edits, commits, pushes and new branches that break the branching strategy, using `bin/check-branch-name.js`.
 - Generated plugins get ten agent roles in `.agents/roles/` (BPS-10, adapted from ThisOneTimeOnAcidCom: testing, Playwright, reviewer, document reviewer, pull request, release, changelog, branches, issue and labelling) with adapters for Claude Code, Codex and Gemini CLI. `compare-toolchain.js` compares `.codex/` and `.gemini/`.
 - Generated plugins get agent skills in `.agents/skills/` (BPS-10, adapted from ThisOneTimeOnAcidCom): `test`, `validate`, `changelog` and `branch-validation`, linked into `.claude/skills/`, and `bin/check-branch-name.js`, one branch check with the organisation's rules that the pre-commit hook now calls. The generator copies symlinks as links (template mode leaves them alone), and `compare-toolchain.js` compares `.agents/`, `.claude/`, `AGENTS.md`, `CLAUDE.md` and `.gitignore`, with links compared by target.
 - Generated plugins get `AGENTS.md` and `CLAUDE.md` (BPS-10, adapted from ThisOneTimeOnAcidCom): agent instructions that defer to the LightSpeed organisation rules and add the plugin's commands, checks, standards and agent layout. `.gitignore` ignores `.claude/settings.local.json`.

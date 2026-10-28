@@ -169,6 +169,8 @@ describe('generatePlugin: config files', () => {
 			'CLAUDE.md',
 			'.agents/roles/INVENTORY.md',
 			'.claude/agents/reviewer-agent.md',
+			'.claude/settings.json',
+			'.claude/hooks/check-branch.mjs',
 			'.codex/config.toml',
 			'.codex/agents/reviewer-agent.toml',
 			'.gemini/settings.json',
