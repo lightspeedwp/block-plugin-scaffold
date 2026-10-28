@@ -15,7 +15,7 @@ This guide explains how to use the {{name}} in your WordPress site.
 
 ### From WordPress Admin
 
-1. Download the plugin ZIP file from the [releases page](https://github.com/{{author}}/{{plugin_slug}}/releases)
+1. Download the plugin ZIP file from the [releases page]({{repository_url}}/releases)
 2. In your WordPress admin, go to **Plugins > Add New**
 3. Click **Upload Plugin** and select the ZIP file
 4. Click **Install Now** and then **Activate**
@@ -198,7 +198,7 @@ The blocks are optimized for performance:
 If you encounter issues:
 
 1. **Check the FAQ** below for common solutions
-2. **Search existing issues** on [GitHub](https://github.com/{{author}}/{{slug}}/issues)
+2. **Search existing issues** on [GitHub]({{repository_url}}/issues)
 3. **Create a new issue** with detailed information
 4. **Contact support** - see [SUPPORT.md](../SUPPORT.md) for options
 
@@ -239,7 +239,7 @@ The blocks are designed for the block editor (Gutenberg). For Classic Editor sup
 
 ### Is it compatible with my theme?
 
-The blocks are designed to work with any properly coded WordPress theme. If you experience compatibility issues, please [report them](https://github.com/{{author}}/{{slug}}/issues).
+The blocks are designed to work with any properly coded WordPress theme. If you experience compatibility issues, please [report them]({{repository_url}}/issues).
 
 ### How do I update the plugin?
 
