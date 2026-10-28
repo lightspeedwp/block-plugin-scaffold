@@ -14,11 +14,11 @@ To ensure all block pattern slugs are unique, descriptive, and compatible with m
 ## Slug Format
 
 ```text
-{{slug}}/{{post_type}}-{pattern-purpose}
+{{slug}}/{post-type}-{pattern-purpose}
 ```
 
 - `{{slug}}`: The plugin namespace (e.g., `tour-operator`)
-- `{{post_type}}`: The relevant post type (e.g., `tour`, `item`, `event`)
+- `{post-type}`: The relevant post type (e.g., `tour`, `item`, `event`)
 - `{pattern-purpose}`: The pattern's function (e.g., `single`, `card`, `archive`, `meta`, `grid`, `featured`, `slider`)
 
 ### Examples

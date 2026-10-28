@@ -46,7 +46,7 @@ export default function Edit( { attributes, setAttributes, context } ) {
 	);
 
 	const blockProps = useBlockProps( {
-		className: 'wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection',
+		className: 'wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection',
 	} );
 
 	return (
@@ -119,10 +119,10 @@ export default function Edit( { attributes, setAttributes, context } ) {
 					posts.map( ( post ) => (
 						<article
 							key={ post.id }
-							className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__item"
+							className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__item"
 						>
 							{ displayFeaturedImage && post.featured_media && (
-								<div className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__image">
+								<div className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__image">
 									<img
 										src={
 											post._embedded?.[
@@ -138,22 +138,22 @@ export default function Edit( { attributes, setAttributes, context } ) {
 								</div>
 							) }
 							{ displayTitle && (
-								<h3 className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__title">
+								<h3 className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__title">
 									{ post.title?.rendered ||
 										__( 'Untitled', '{{textdomain}}' ) }
 								</h3>
 							) }
 							{ displayExcerpt && (
 								<div
-									className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__excerpt"
+									className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__excerpt"
 									dangerouslySetInnerHTML={ {
 										__html: post.excerpt?.rendered || '',
 									} }
 								/>
 							) }
 							{ displayMeta && (
-								<div className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__meta">
-									<span className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__date">
+								<div className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__meta">
+									<span className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__date">
 										{ new Date(
 											post.date
 										).toLocaleDateString() }
@@ -163,7 +163,7 @@ export default function Edit( { attributes, setAttributes, context } ) {
 						</article>
 					) )
 				) : (
-					<p className="wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection__placeholder">
+					<p className="wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection__placeholder">
 						{ __( 'No posts found.', '{{textdomain}}' ) }
 					</p>
 				) }

@@ -55,13 +55,13 @@ icons/
 
 ## Usage
 
-Icons are loaded via the `{{namespace|snakeCase}}_get_icon_svg()` helper function in `inc/helper-functions.php`.
+Icons are loaded via the `{{snakeCase.namespace}}_get_icon_svg()` helper function in `inc/helper-functions.php`.
 
 ### In PHP (render callbacks)
 
 ```php
-if ( function_exists( '{{namespace|snakeCase}}_get_icon_svg' ) ) {
-    $svg_content = {{namespace|snakeCase}}_get_icon_svg( 'solid', 'clockIcon' );
+if ( function_exists( '{{snakeCase.namespace}}_get_icon_svg' ) ) {
+    $svg_content = {{snakeCase.namespace}}_get_icon_svg( 'solid', 'clockIcon' );
     if ( ! empty( $svg_content ) ) {
         echo '<span class="icon">' . $svg_content . '</span>';
     }

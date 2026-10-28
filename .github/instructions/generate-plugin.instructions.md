@@ -108,9 +108,9 @@ These variables are automatically derived from core variables:
 
 | Variable | Derived From | Transform | Example |
 |----------|--------------|-----------|---------|
-| `{{namespace\|upper}}` | `{{namespace}}` | UPPERCASE | `TOUR_OPERATOR` |
-| `{{namespace\|pascalCase}}` | `{{namespace}}` | PascalCase | `TourOperator` |
-| `{{slug\|camelCase}}` | `{{slug}}` | camelCase | `tourOperator` |
+| `{{upper.namespace}}` | `{{namespace}}` | UPPERCASE | `TOUR_OPERATOR` |
+| `{{pascalCase.namespace}}` | `{{namespace}}` | PascalCase | `TourOperator` |
+| `{{camelCase.slug}}` | `{{slug}}` | camelCase | `tourOperator` |
 
 ### Optional Variables
 
@@ -178,15 +178,15 @@ When generating taxonomy functionality:
 
 ```php
 // Use UPPERCASE namespace
-define( '{{namespace|upper}}_VERSION', '{{version}}' );
-define( '{{namespace|upper}}_DIR', plugin_dir_path( __FILE__ ) );
+define( '{{upper.namespace}}_VERSION', '{{version}}' );
+define( '{{upper.namespace}}_DIR', plugin_dir_path( __FILE__ ) );
 ```
 
 **Classes:**
 
 ```php
 // Use PascalCase namespace
-class {{namespace|pascalCase}}_Plugin {
+class {{pascalCase.namespace}}_Plugin {
     // Class implementation
 }
 ```
@@ -422,7 +422,7 @@ When using the scaffold generator:
 
 1. **Always Validate Input**: Check all required variables are provided
 2. **Auto-Generate Derived Variables**: Create `namespace`, `textdomain` from `slug`
-3. **Apply Filters**: Use `{{namespace|upper}}`, `{{namespace|pascalCase}}` where appropriate
+3. **Apply Filters**: Use `{{upper.namespace}}`, `{{pascalCase.namespace}}` where appropriate
 4. **Consistent Replacement**: Replace ALL occurrences of mustache placeholders
 5. **Verify Output**: Ensure no `{{variable}}` syntax remains in generated files
 
@@ -564,7 +564,7 @@ Avoid interpolating values manually (e.g. `Tour Operator`) where a placeholder s
 
 1. **Find All Placeholders**: Scan for `{{variable}}` patterns
 2. **Check Coverage**: Ensure all placeholders have values
-3. **Verify Syntax**: Validate filter syntax (`{{var|filter}}`)
+3. **Verify Syntax**: Validate filter syntax (`{{filter.var}}`)
 4. **Test Replacement**: Generate sample output and verify
 
 ### Generated Plugin Validation

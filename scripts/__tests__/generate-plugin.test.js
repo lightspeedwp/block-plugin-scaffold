@@ -454,19 +454,19 @@ describe('replaceMustacheVars', () => {
 	});
 
 	it('should apply filters', () => {
-		const template = 'Namespace: {{namespace|upper}}';
+		const template = 'Namespace: {{upper.namespace}}';
 		const result = replaceMustacheVars(template, config);
 		expect(result).toBe('Namespace: TEST_PLUGIN');
 	});
 
 	it('should handle multiple filters in one template', () => {
-		const template = '{{namespace|upper}} and {{namespace|pascalCase}}';
+		const template = '{{upper.namespace}} and {{pascalCase.namespace}}';
 		const result = replaceMustacheVars(template, config);
 		expect(result).toBe('TEST_PLUGIN and TestPlugin');
 	});
 
 	it('should handle mixed variables with and without filters', () => {
-		const template = '{{slug}} - {{namespace|pascalCase}}';
+		const template = '{{slug}} - {{pascalCase.namespace}}';
 		const result = replaceMustacheVars(template, config);
 		expect(result).toBe('test-plugin - TestPlugin');
 	});
@@ -487,9 +487,9 @@ describe('replaceMustacheVars', () => {
 		const template = `/**
  * Plugin Name: {{name}}
  * Text Domain: {{slug}}
- * Namespace: {{namespace|upper}}_VERSION
+ * Namespace: {{upper.namespace}}_VERSION
  */
-class {{namespace|pascalCase}}_Plugin {}`;
+class {{pascalCase.namespace}}_Plugin {}`;
 		const result = replaceMustacheVars(template, config);
 		expect(result).toContain('Plugin Name: Test Plugin');
 		expect(result).toContain('Text Domain: test-plugin');
@@ -518,7 +518,7 @@ describe('Integration tests', () => {
 		expect(validation.valid).toBe(true);
 
 		// Replace mustache variables
-		const template = '{{namespace|upper}}_VERSION = "{{version}}"';
+		const template = '{{upper.namespace}}_VERSION = "{{version}}"';
 		const result = replaceMustacheVars(template, configWithDefaults);
 		expect(result).toBe('TOUR_OPERATOR_VERSION = "1.0.0"');
 	});

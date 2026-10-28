@@ -99,26 +99,17 @@ src/
     └── utils/          # Shared utilities
 ```
 
-### Mustache Template System
+### Naming
 
-All files use mustache-style placeholders for customization:
+The generator derived these names from the plugin slug. Keep new code consistent with them:
 
-#### Variable Transforms
-
-The build system supports these mustache transforms:
-
-- `{{slug}}` - Original kebab-case
-- `{{slug|snakeCase}}` - snake_case transformation
-- `{{slug|pascalCase}}` - PascalCase transformation
-- `{{slug|camelCase}}` - camelCase transformation
-- `{{namespace|upper}}` - UPPERCASE transformation
-
-#### File Naming
-
-Template files use placeholder syntax:
-
-- `{{slug}}.php` - Main plugin file
-- `src/blocks/<block>/` - Block directory (e.g. `src/blocks/slider/`)
+| Used for | Name |
+| --- | --- |
+| Plugin slug, block namespace and main file | `{{slug}}`, `{{slug}}.php` |
+| Text domain | `{{textdomain}}` |
+| PHP functions, hooks and options prefix | `{{namespace}}_` |
+| PHP constants prefix | `{{upper.namespace}}_` |
+| JavaScript identifiers | `{{camelCase.slug}}`, `{{pascalCase.slug}}` |
 
 ### Internationalization (i18n)
 

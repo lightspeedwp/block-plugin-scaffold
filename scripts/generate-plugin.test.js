@@ -18,6 +18,7 @@ const {
 	applyDefaults,
 	applyFilter,
 	replaceMustacheVars,
+	findUnsetTags,
 	loadConfigFile,
 	validateConfig,
 	loadSchema,
@@ -103,12 +104,37 @@ describe('generate-plugin helpers', () => {
 	test('replaceMustacheVars handles filters and missing keys', () => {
 		const config = { name: 'Example Plugin', slug: 'example-plugin' };
 		const template =
-			'{{name|upper}} renders {{slug}}, missing {{missing}} should be empty.';
+			'{{upper.name}} renders {{slug}}, missing {{missing}} should be empty.';
 		const rendered = replaceMustacheVars(template, config);
 
 		expect(rendered).toContain('EXAMPLE PLUGIN');
 		expect(rendered).toContain('example-plugin');
 		expect(rendered).not.toContain('{{missing}}');
+	});
+
+	test('replaceMustacheVars applies filters as mustache.js dotted names', () => {
+		const config = { namespace: 'tour_operator', slug: 'tour-operator' };
+
+		expect(
+			replaceMustacheVars(
+				'{{upper.namespace}} {{pascalCase.namespace}} {{camelCase.slug}}',
+				config
+			)
+		).toBe('TOUR_OPERATOR TourOperator tourOperator');
+	});
+
+	test('replaceMustacheVars does not HTML-escape values', () => {
+		expect(
+			replaceMustacheVars("'{{name}}'", { name: 'Tours & <Trips>' })
+		).toBe("'Tours & <Trips>'");
+	});
+
+	test('findUnsetTags lists tags with no value, including filtered ones', () => {
+		expect(
+			findUnsetTags('{{slug}} {{missing}} {{upper.slug}} {{upper.nope}}', {
+				slug: 'example-plugin',
+			})
+		).toEqual(['missing', 'upper.nope']);
 	});
 
 	test('loadConfigFile returns parsed fixture content', () => {

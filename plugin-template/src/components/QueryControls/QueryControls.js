@@ -21,6 +21,10 @@ import {
 import { InspectorControls } from '@wordpress/block-editor';
 import TaxonomyFilter from '../TaxonomyFilter';
 
+// The taxonomy the filter queries. Slugs can contain hyphens, so taxQuery
+// keys are always computed.
+const TAXONOMY = '{{taxonomy_slug}}';
+
 /**
  * QueryControls component.
  *
@@ -107,12 +111,12 @@ export default function QueryControls( { query, onChange } ) {
 				initialOpen={ false }
 			>
 				<TaxonomyFilter
-					taxonomy="{{taxonomy_slug}}"
-					value={ taxQuery?.[ '{{taxonomy_slug}}' ] || [] }
+					taxonomy={ TAXONOMY }
+					value={ taxQuery?.[ TAXONOMY ] || [] }
 					onChange={ ( termIds ) =>
 						updateQuery( {
 							taxQuery: termIds.length
-								? { '{{taxonomy_slug}}': termIds }
+								? { [ TAXONOMY ]: termIds }
 								: null,
 						} )
 					}

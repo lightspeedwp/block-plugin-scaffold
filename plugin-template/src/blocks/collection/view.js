@@ -1,10 +1,10 @@
 /**
- * Frontend view script for the {{cpt_slug|kebabCase}}-collection block
+ * Frontend view script for the {{kebabCase.cpt_slug}}-collection block
  * Handles DOM events and extensibility hooks.
  */
 ( function () {
 	const blockSelector =
-		'.wp-block-{{slug}}-{{cpt_slug|kebabCase}}-collection';
+		'.wp-block-{{slug}}-{{kebabCase.cpt_slug}}-collection';
 
 	function triggerEvent( element, eventName, detail = {} ) {
 		const event = new CustomEvent( eventName, { detail, bubbles: true } );

@@ -232,23 +232,29 @@ Additional placeholders for specific use cases:
 
 #### Filters (Transformations)
 
-Mustache supports filters that transform values:
+Templates are rendered with [mustache.js](https://github.com/janl/mustache.js/), with HTML escaping turned off (templates are PHP, JavaScript, JSON and Markdown). Mustache has no filter syntax, so the generator adds one object per filter to the view, and a template uses a filter as a dotted name: `{{upper.namespace}}` is the namespace in upper case.
 
-| Filter | Purpose | Example Input | Example Output |
+| Tag | Filter | Example Input | Example Output |
 |--------|---------|---------------|----------------|
-| `{{namespace\|upper}}` | UPPERCASE | `tour_operator` | `TOUR_OPERATOR` |
-| `{{namespace\|pascalCase}}` | PascalCase | `tour_operator` | `TourOperator` |
-| `{{slug\|camelCase}}` | camelCase | `tour-operator` | `tourOperator` |
+| `{{upper.namespace}}` | UPPERCASE | `tour_operator` | `TOUR_OPERATOR` |
+| `{{lower.name}}` | lowercase | `Tour Operator` | `tour operator` |
+| `{{pascalCase.namespace}}` | PascalCase | `tour_operator` | `TourOperator` |
+| `{{camelCase.slug}}` | camelCase | `tour-operator` | `tourOperator` |
+| `{{kebabCase.cpt_slug}}` | kebab-case | `tour_type` | `tour-type` |
+| `{{snakeCase.slug}}` | snake_case | `tour-operator` | `tour_operator` |
+| `{{title.cpt_singular}}` | Title Case | `tour` | `Tour` |
+
+Every tag in a template must have a value: generation fails and lists the file and tag of any that does not, rather than writing an empty string. Files in `plugin-template/.github/workflows/` are copied without rendering, because mustache.js would also read GitHub Actions `${{ ... }}` expressions as tags; workflows read plugin values such as the slug from `package.json` at run time.
 
 **Usage in code:**
 
 ```php
 // PHP constants use UPPERCASE
-define( '{{namespace|upper}}_VERSION', '{{version}}' );
+define( '{{upper.namespace}}_VERSION', '{{version}}' );
 // Output: define( 'TOUR_OPERATOR_VERSION', '1.0.0' );
 
 // PHP classes use PascalCase
-class {{namespace|pascalCase}}_Plugin {
+class {{pascalCase.namespace}}_Plugin {
 // Output: class TourOperator_Plugin {
 ```
 
@@ -269,7 +275,7 @@ Main plugin file `{{slug}}.php` uses placeholders for headers and constants:
  * Text Domain:       {{textdomain}}
  * @package {{namespace}}
  */
-define( '{{namespace|upper}}_VERSION', '{{version}}' );
+define( '{{upper.namespace}}_VERSION', '{{version}}' );
 ```
 
 #### JavaScript/React Files

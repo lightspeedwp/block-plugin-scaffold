@@ -67,8 +67,8 @@ const filesToUpdate = [
        },
        mainPluginFile && {
 	       file: mainPluginFile,
-	       pattern: /define\(\s*'\{\{namespace\|upper\}\}_VERSION',\s*'[^']+'\s*\)/,
-	       replacement: `define( '{{namespace|upper}}_VERSION', '${newVersion}' )`,
+	       pattern: /define\(\s*'\{\{upper\.namespace\}\}_VERSION',\s*'[^']+'\s*\)/,
+	       replacement: `define( '{{upper.namespace}}_VERSION', '${newVersion}' )`,
 	       mustacheSafe: true,
        },
 ].filter(Boolean);

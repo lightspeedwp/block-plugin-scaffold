@@ -9,7 +9,7 @@ namespace {{namespace}}\tests;
 
 use {{namespace}}\classes\Core;
 
-require_once {{namespace|upper}}_DIR . 'inc/class-core.php';
+require_once {{upper.namespace}}_DIR . 'inc/class-core.php';
 
 /**
  * Core class tests.

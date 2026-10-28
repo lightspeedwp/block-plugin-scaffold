@@ -25,7 +25,7 @@ const scaffoldDir = path.resolve(__dirname, '../..');
 const fixturesDir = path.join(scaffoldDir, 'tests/fixtures/generation');
 
 // Template tags; `${{ ... }}` GitHub Actions expressions start with a space.
-const TAG = /\{\{[A-Za-z][\w|-]*\}\}/g;
+const TAG = /\{\{[A-Za-z][\w.|-]*\}\}/g;
 // Values the generator must replace in every generated plugin.
 const EXAMPLE_VALUES = /example-plugin|example_plugin|Example Plugin|Example Author/g;
 

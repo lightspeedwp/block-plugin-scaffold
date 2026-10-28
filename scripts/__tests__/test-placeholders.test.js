@@ -18,7 +18,7 @@ describe('placeholders', () => {
 	});
 
 	it('applies filters the way the generator does', () => {
-		expect(getPlaceholder('namespace|upper')).toBe('EXAMPLE_PLUGIN');
+		expect(getPlaceholder('upper.namespace')).toBe('EXAMPLE_PLUGIN');
 	});
 
 	it('returns an empty string for a tag the example config does not set', () => {

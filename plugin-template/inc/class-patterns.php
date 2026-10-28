@@ -61,7 +61,7 @@ class Patterns {
 	 * @return void
 	 */
 	public function register_patterns() {
-		$patterns_dir = {{namespace|upper}}_DIR . 'patterns/';
+		$patterns_dir = {{upper.namespace}}_DIR . 'patterns/';
 
 		if ( ! is_dir( $patterns_dir ) ) {
 			return;
