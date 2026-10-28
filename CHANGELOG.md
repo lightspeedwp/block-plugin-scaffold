@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get the root files from the Gutenberg layout (BPS-10): `SECURITY.md`, `CONTRIBUTING.md`, `changelog.txt` and `.gitattributes`.
 - Generated plugins get PHPUnit unit tests in `tests/php/` (PHPUnit 11 config, `yoast/phpunit-polyfills`, Brain Monkey, starter tests), run by `composer run test` in the CI PHP job. `compare-toolchain.js` now compares `phpunit.xml`.
 - Generated plugins get a unit test coverage gate (`@vitest/coverage-v8`): `npm run test:unit` fails below 70% branches, 80% statements or 80% functions, measured over the files the tests load.
 - Generated plugins get `tests/e2e/accessibility.spec.js`: on mobile, tablet and desktop viewports the plugin's blocks fit the screen and pass an axe-core WCAG 2.2 AA scan (`@axe-core/playwright`).

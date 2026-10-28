@@ -1,0 +1,6 @@
+== Changelog ==
+
+The full history, including unreleased changes, is in CHANGELOG.md.
+
+= {{version}} =
+* Initial release.
