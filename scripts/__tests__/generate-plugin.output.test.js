@@ -221,7 +221,8 @@ describe('generatePlugin: output with post types', () => {
 			'multi-block-plugin-scaffold.code-workspace',
 			'IMPLEMENTATION-SUMMARY.md',
 			'SCF-JSON-REGISTRATION-CHANGES.md',
-			'.specify',
+			// The plugin has its own Spec Kit, not the scaffold's Copilot one.
+			'.specify/integrations/copilot.manifest.json',
 			'.todo',
 		].forEach((artefact) => {
 			expect(fs.existsSync(path.join(outputDir, artefact))).toBe(false);
