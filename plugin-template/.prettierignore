@@ -1,0 +1,18 @@
+# Files `npm run format` leaves alone. A project .prettierignore replaces the
+# one in @wordpress/scripts, so its build and vendor entries are repeated here.
+
+# Generated or installed
+build
+vendor
+node_modules
+coverage
+artifacts
+playwright-report
+test-results
+languages
+
+# Written by tools, in their own format (/*-config.json is the generator's
+# config, named after the plugin slug)
+.github/workflows/dependency-automation.yml
+.specify
+/*-config.json

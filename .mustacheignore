@@ -10,4 +10,9 @@
 
 docs/
 
+# Copied without rendering (UNRENDERED_PATHS in scripts/generate-plugin.js):
+# their {{ ... }} tags belong to Spec Kit and Gemini CLI, not the generator.
+.specify/workflows/
+.gemini/commands/
+
 # src/experimental/

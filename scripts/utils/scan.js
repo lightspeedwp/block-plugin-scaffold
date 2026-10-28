@@ -27,8 +27,28 @@ function scanDirectory(dir, basePath = '') {
 	}
 	return results;
 }
-// Regex to match mustache variables like {{variable}} or {{variable|filter}}
-const MUSTACHE_REGEX = /\{\{\s*([a-zA-Z0-9_\-|]+)\s*\}\}/g;
+// Regex to match mustache variables like {{variable}}, {{filter.variable}} or
+// the older {{variable|filter}}. GitHub Actions `${{ ... }}` expressions are
+// not template tags.
+const MUSTACHE_REGEX = /(?<!\$)\{\{\s*([a-zA-Z0-9_][a-zA-Z0-9_\-|.]*)\s*\}\}/g;
+// The generator's filters (FILTERS in scripts/generate-plugin.js), which
+// templates use as mustache.js dotted names: {{upper.namespace}}.
+const FILTERS = ['upper', 'lower', 'pascalCase', 'camelCase', 'kebabCase', 'snakeCase', 'title'];
+
+/**
+ * The variable a tag reads, without its filter.
+ *
+ * @param {string} tag Tag contents, such as `upper.namespace` or `slug|upper`.
+ * @return {string} Variable name, such as `namespace` or `slug`.
+ */
+function variableName(tag) {
+	const [name] = tag.split('|');
+	const dot = name.indexOf('.');
+	if (dot > 0 && FILTERS.includes(name.slice(0, dot))) {
+		return name.slice(dot + 1);
+	}
+	return name;
+}
 /**
  * Directory scanning helpers used across tooling in the scaffold.
  *
@@ -253,7 +273,7 @@ function buildRegistry(options = {}) {
 		summary.filesWithVariables++;
 
 		const canonicalVariables = Array.from(
-			new Set(discovered.map((name) => name.split('|')[0]))
+			new Set(discovered.map(variableName))
 		);
 
 		for (const varName of canonicalVariables) {
@@ -290,7 +310,7 @@ function buildRegistry(options = {}) {
 					let match;
 					MUSTACHE_REGEX.lastIndex = 0;
 					while ((match = MUSTACHE_REGEX.exec(line)) !== null) {
-						const foundVar = match[1].split('|')[0];
+						const foundVar = variableName(match[1]);
 						if (foundVar === varName) {
 							meta.usage.push({ file: file.path, line: idx + 1 });
 						}
@@ -395,7 +415,7 @@ function extractVariables(content) {
  * @return {string}
  */
 function categorizeVariable(varName) {
-	const cleanName = varName.split('|')[0];
+	const cleanName = variableName(varName);
 
 	if ([
 		'theme_slug',
@@ -487,12 +507,12 @@ function categorizeVariable(varName) {
  * @return {number}
  */
 function countOccurrences(content, varName) {
-	const cleaned = varName.split('|')[0];
-	const escaped = cleaned.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-	const occurrences = content.match(
-		new RegExp(`\\{\\{${escaped}(?:\\|[^}]+)?\\}\\}`, 'g')
-	);
-	return occurrences ? occurrences.length : 0;
+	// Use the discovery grammar, so filters, spaces inside the braces and
+	// GitHub Actions expressions are treated the same way.
+	const wanted = variableName(varName);
+	return Array.from(content.matchAll(MUSTACHE_REGEX)).filter(
+		(match) => variableName(match[1]) === wanted
+	).length;
 }
 
 /**
@@ -599,7 +619,7 @@ function validateConfig(configPath, results) {
 
 	const flatConfig = flattenConfig(config);
 	const configKeys = new Set(Object.keys(flatConfig));
-	const discovered = new Set(Object.keys(results.variables).map((name) => name.split('|')[0]));
+	const discovered = new Set(Object.keys(results.variables).map(variableName));
 
 	const missing = [];
 	const extra = [];
@@ -696,6 +716,7 @@ module.exports = {
 	MUSTACHE_REGEX,
 	scanDirectory,
 	extractVariables,
+	variableName,
 	categorizeVariable,
 	buildRegistry,
 	gatherTemplateFiles,
