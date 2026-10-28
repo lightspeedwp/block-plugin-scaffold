@@ -281,7 +281,9 @@ This creates optimized assets in `build/`:
 `webpack.config.js` extends `@wordpress/scripts`:
 
 - Each block is found through its `block.json`, which builds its scripts, styles and `viewScriptModule`, and copies its `render.php`.
-- The config adds the shared `index` entry (`src/index.js`) and one entry per file in `src/js/`.
+- `tools/webpack/extra-entries.js` adds the shared `index` entry (`src/index.js`) and one entry per file in `src/js/`.
+- `.browserslistrc` sets the supported browsers (the WordPress list), which Babel and Autoprefixer follow. Add PostCSS plugins in `postcss.config.mjs`; they run with the `@wordpress/scripts` preset.
+- `tsconfig.json`, `tsconfig.build.json` (the shipped `src/` only) and `jsconfig.json` give editors type information for the JavaScript. TypeScript is not a build step.
 - `--experimental-modules` (set in `build` and `start`) builds script modules for the Interactivity API.
 
 WordPress packages are not bundled: each script's `*.asset.php` lists the handles it needs, and the PHP enqueues scripts with those dependencies. See [Interactivity API and DataViews](docs/INTERACTIVITY-AND-DATAVIEWS.md) for front-end state and admin data screens.

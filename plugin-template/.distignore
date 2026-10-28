@@ -31,6 +31,7 @@ composer.lock
 webpack.config.js
 webpack.config.cjs
 .webpack.config.cjs
+postcss.config.mjs
 postcss.config.cjs
 .postcss.config.cjs
 stylelint.config.cjs
@@ -49,6 +50,9 @@ phpcs.xml.dist
 phpstan.neon
 .wp-env.json
 .browserslistrc
+jsconfig.json
+tsconfig.json
+tsconfig.build.json
 .editorconfig
 .npmrc
 .nvmrc

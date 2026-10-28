@@ -717,6 +717,9 @@ tour-operator/
 ├── .stylelintrc.js           #   the @wordpress/scripts defaults
 ├── prettier.config.mjs
 ├── tools/eslint/             # The plugin's own ESLint additions
+├── tools/webpack/            # Extra webpack entries
+├── .browserslistrc / postcss.config.mjs
+├── tsconfig.json / jsconfig.json  # Editor type information
 ├── vitest.config.mjs         # Unit tests (Vitest + Testing Library)
 ├── playwright.config.js      # E2E tests against wp-env
 ├── phpcs.xml.dist / phpstan.neon

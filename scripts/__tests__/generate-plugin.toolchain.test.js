@@ -158,6 +158,12 @@ describe('generatePlugin: config files', () => {
 			'.markdownlintignore',
 			'.npmpackagejsonlintrc.json',
 			'tools/eslint/index.mjs',
+			'.browserslistrc',
+			'postcss.config.mjs',
+			'tsconfig.json',
+			'tsconfig.build.json',
+			'jsconfig.json',
+			'tools/webpack/extra-entries.js',
 			'phpstan.neon',
 			'.husky/pre-commit',
 		].forEach((file) => expect(exists(file)).toBe(true));
@@ -177,7 +183,6 @@ describe('generatePlugin: config files', () => {
 			'jest.config.js',
 			'.npmpackagejsonlintrc.cjs',
 			'.postcss.config.cjs',
-			'.browserslistrc',
 		].forEach((file) => expect(exists(file)).toBe(false));
 	});
 

@@ -1,0 +1,2 @@
+# Supported browsers: the WordPress defaults.
+extends @wordpress/browserslist-config
