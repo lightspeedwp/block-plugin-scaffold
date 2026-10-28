@@ -1,9 +1,9 @@
 {
   "summary": {
-    "totalFiles": 715,
+    "totalFiles": 717,
     "filesWithVariables": 274,
     "uniqueVariables": 137,
-    "totalOccurrences": 3512
+    "totalOccurrences": 3519
   },
   "variables": {
     "agent_slug": {
@@ -56,11 +56,11 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 13
+          "line": 14
         },
         {
           "file": "scripts/generate-plugin.js",
-          "line": 631
+          "line": 640
         }
       ],
       "type": "string"
@@ -613,7 +613,7 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 143
+          "line": 146
         }
       ],
       "type": "string"
@@ -1107,7 +1107,7 @@
         "plugin-template/src/blocks/collection/style.scss",
         "plugin-template/src/blocks/collection/view.js"
       ],
-      "count": 141,
+      "count": 142,
       "usage": [
         {
           "file": ".github/instructions/generate-plugin.instructions.md",
@@ -1354,10 +1354,6 @@
           "line": 8
         },
         {
-          "file": "plugin-template/src/blocks/collection/block.json",
-          "line": 75
-        },
-        {
           "file": "plugin-template/src/blocks/collection/edit.js",
           "line": 37
         },
@@ -1431,11 +1427,19 @@
         },
         {
           "file": "plugin-template/src/blocks/collection/render.php",
-          "line": 13
+          "line": 14
         },
         {
           "file": "plugin-template/src/blocks/collection/render.php",
-          "line": 15
+          "line": 21
+        },
+        {
+          "file": "plugin-template/src/blocks/collection/render.php",
+          "line": 23
+        },
+        {
+          "file": "plugin-template/src/blocks/collection/render.php",
+          "line": 30
         },
         {
           "file": "plugin-template/src/blocks/collection/style.css",
@@ -2529,7 +2533,7 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 59
+          "line": 60
         },
         {
           "file": "IMPLEMENTATION-SUMMARY.md",
@@ -2725,7 +2729,7 @@
         "scripts/toolchain/__tests__/check-generation.test.js",
         "scripts/utils/__tests__/scan.test.js"
       ],
-      "count": 222,
+      "count": 228,
       "usage": [
         {
           "file": ".github/agents/generate-plugin.agent.md",
@@ -2949,7 +2953,7 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 108
+          "line": 109
         },
         {
           "file": "plugin-config.json",
@@ -3213,7 +3217,15 @@
         },
         {
           "file": "plugin-template/patterns/{{slug}}-archive.php",
+          "line": 3
+        },
+        {
+          "file": "plugin-template/patterns/{{slug}}-archive.php",
           "line": 14
+        },
+        {
+          "file": "plugin-template/patterns/{{slug}}-card.php",
+          "line": 3
         },
         {
           "file": "plugin-template/patterns/{{slug}}-card.php",
@@ -3221,7 +3233,15 @@
         },
         {
           "file": "plugin-template/patterns/{{slug}}-featured.php",
+          "line": 3
+        },
+        {
+          "file": "plugin-template/patterns/{{slug}}-featured.php",
           "line": 14
+        },
+        {
+          "file": "plugin-template/patterns/{{slug}}-grid.php",
+          "line": 3
         },
         {
           "file": "plugin-template/patterns/{{slug}}-grid.php",
@@ -3229,7 +3249,15 @@
         },
         {
           "file": "plugin-template/patterns/{{slug}}-meta.php",
+          "line": 3
+        },
+        {
+          "file": "plugin-template/patterns/{{slug}}-meta.php",
           "line": 14
+        },
+        {
+          "file": "plugin-template/patterns/{{slug}}-single.php",
+          "line": 3
         },
         {
           "file": "plugin-template/patterns/{{slug}}-single.php",
@@ -3920,7 +3948,6 @@
         "plugin-template/phpunit/bootstrap.php",
         "plugin-template/phpunit/phpstan-bootstrap.php",
         "plugin-template/readme.txt",
-        "plugin-template/src/blocks/collection/block.json",
         "plugin-template/src/blocks/collection/render.php",
         "plugin-template/src/blocks/collection/view.js",
         "plugin-template/src/blocks/field-display/editor.css",
@@ -4636,23 +4663,23 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 75
+          "line": 76
         },
         {
           "file": "CHANGELOG.md",
-          "line": 75
+          "line": 76
         },
         {
           "file": "CHANGELOG.md",
-          "line": 108
+          "line": 109
         },
         {
           "file": "CHANGELOG.md",
-          "line": 169
+          "line": 172
         },
         {
           "file": "CHANGELOG.md",
-          "line": 173
+          "line": 176
         },
         {
           "file": "plugin-template/AGENTS.md",
@@ -5171,10 +5198,6 @@
           "line": 89
         },
         {
-          "file": "plugin-template/src/blocks/collection/block.json",
-          "line": 75
-        },
-        {
           "file": "plugin-template/src/blocks/collection/render.php",
           "line": 5
         },
@@ -5184,7 +5207,11 @@
         },
         {
           "file": "plugin-template/src/blocks/collection/render.php",
-          "line": 13
+          "line": 21
+        },
+        {
+          "file": "plugin-template/src/blocks/collection/render.php",
+          "line": 30
         },
         {
           "file": "plugin-template/src/blocks/collection/view.js",
@@ -5600,7 +5627,7 @@
         },
         {
           "file": "scripts/generate-plugin.js",
-          "line": 613
+          "line": 622
         },
         {
           "file": "scripts/generate-plugin.test.js",
@@ -6514,11 +6541,11 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 126
+          "line": 129
         },
         {
           "file": "CHANGELOG.md",
-          "line": 130
+          "line": 133
         },
         {
           "file": "plugin-config.json",
@@ -6633,11 +6660,11 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 110
+          "line": 113
         },
         {
           "file": "CHANGELOG.md",
-          "line": 126
+          "line": 129
         },
         {
           "file": "plugin-template/src/components/PostSelector/PostSelector.js",
@@ -6661,7 +6688,7 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 110
+          "line": 113
         }
       ],
       "type": "string"
@@ -8570,11 +8597,11 @@
         },
         {
           "file": ".github/workflows/ci-cd.yml",
-          "line": 197
+          "line": 202
         },
         {
           "file": ".github/workflows/ci-cd.yml",
-          "line": 198
+          "line": 203
         },
         {
           "file": ".github/workflows/deploy-wporg.yml",
@@ -8650,47 +8677,47 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 18
+          "line": 19
         },
         {
           "file": "CHANGELOG.md",
-          "line": 67
+          "line": 68
         },
         {
           "file": "CHANGELOG.md",
-          "line": 67
+          "line": 68
         },
         {
           "file": "CHANGELOG.md",
-          "line": 74
+          "line": 79
         },
         {
           "file": "CHANGELOG.md",
-          "line": 78
+          "line": 83
         },
         {
           "file": "CHANGELOG.md",
-          "line": 82
+          "line": 109
         },
         {
           "file": "CHANGELOG.md",
-          "line": 156
+          "line": 159
         },
         {
           "file": "CHANGELOG.md",
-          "line": 169
+          "line": 172
         },
         {
           "file": "CHANGELOG.md",
-          "line": 184
+          "line": 187
         },
         {
           "file": "CHANGELOG.md",
-          "line": 315
+          "line": 318
         },
         {
           "file": "CHANGELOG.md",
-          "line": 316
+          "line": 319
         },
         {
           "file": "IMPLEMENTATION-SUMMARY.md",
@@ -9430,7 +9457,7 @@
         },
         {
           "file": "plugin-template/src/blocks/collection/render.php",
-          "line": 15
+          "line": 23
         },
         {
           "file": "plugin-template/src/blocks/collection/style.css",
@@ -10358,35 +10385,35 @@
         },
         {
           "file": "scripts/generate-plugin.js",
-          "line": 1136
-        },
-        {
-          "file": "scripts/generate-plugin.js",
-          "line": 1137
-        },
-        {
-          "file": "scripts/generate-plugin.js",
-          "line": 1138
-        },
-        {
-          "file": "scripts/generate-plugin.js",
-          "line": 1139
-        },
-        {
-          "file": "scripts/generate-plugin.js",
-          "line": 1140
-        },
-        {
-          "file": "scripts/generate-plugin.js",
-          "line": 1141
-        },
-        {
-          "file": "scripts/generate-plugin.js",
-          "line": 1142
-        },
-        {
-          "file": "scripts/generate-plugin.js",
           "line": 1143
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1144
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1145
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1146
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1147
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1148
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1149
+        },
+        {
+          "file": "scripts/generate-plugin.js",
+          "line": 1150
         },
         {
           "file": "scripts/generate-plugin.test.js",
@@ -13234,11 +13261,11 @@
         },
         {
           "file": ".github/workflows/ci-cd.yml",
-          "line": 197
+          "line": 202
         },
         {
           "file": ".github/workflows/ci-cd.yml",
-          "line": 198
+          "line": 203
         },
         {
           "file": ".github/workflows/deploy-wporg.yml",
@@ -13463,7 +13490,7 @@
         },
         {
           "file": "scripts/generate-plugin.js",
-          "line": 1761
+          "line": 1771
         },
         {
           "file": "scripts/utils/placeholders.js",
@@ -13869,11 +13896,11 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 110
+          "line": 113
         },
         {
           "file": "CHANGELOG.md",
-          "line": 126
+          "line": 129
         },
         {
           "file": "plugin-template/src/components/QueryControls/QueryControls.js",
@@ -14359,15 +14386,15 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 314
+          "line": 317
         },
         {
           "file": "CHANGELOG.md",
-          "line": 453
+          "line": 456
         },
         {
           "file": "CHANGELOG.md",
-          "line": 480
+          "line": 483
         },
         {
           "file": "plugin-template/.agents/roles/reviewer-agent.md",
@@ -14859,7 +14886,7 @@
         },
         {
           "file": "plugin-template/src/blocks/collection/render.php",
-          "line": 16
+          "line": 24
         },
         {
           "file": "plugin-template/src/blocks/field-display/block.json",

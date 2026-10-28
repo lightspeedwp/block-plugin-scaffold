@@ -747,16 +747,18 @@ tour-operator/
 └── scf-json/                 # SCF field groups
 ```
 
-Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, its own AI tool settings and `AGENTS.md`, Lighthouse, size-limit) is tooling and is never copied; generated plugins get their own `AGENTS.md`, `CLAUDE.md` and agent folders from `plugin-template/`. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
+Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `package-lock.json`, `composer.lock`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, its own AI tool settings and `AGENTS.md`, Lighthouse, size-limit) is tooling and is never copied; generated plugins get their own `AGENTS.md`, `CLAUDE.md` and agent folders from `plugin-template/`. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
 
 ### 2. Install Dependencies
 
 Requires Node.js 24.18+ (`nvm use`).
 
 ```bash
-npm install
+npm ci
 composer install
 ```
+
+Generated plugins ship `package-lock.json` and `composer.lock`, so every plugin installs the dependency versions proven in `lightspeedwp/ls-test`. The generator writes them from `scripts/toolchain/standard-toolchain.package-lock.json` and `scripts/toolchain/standard-toolchain.composer.lock`, with the plugin's name, version and Composer `content-hash`. After changing `scripts/toolchain/standard-toolchain.json`, run `npm run toolchain:lockfiles` in the scaffold to resolve them again, then prove them in ls-test.
 
 ### 3. Build the Plugin
 
