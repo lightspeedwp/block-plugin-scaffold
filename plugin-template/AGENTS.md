@@ -30,7 +30,7 @@ The organisation rules win where they overlap. In particular, this repository ne
 
 ## Before Every Task
 
-1. **Branch.** Work on a branch from `develop` with a type prefix from the organisation's list, such as `feat/`, `fix/`, `chore/`, `docs/` or `test/`. Never commit to `main`, `develop` or `release/*`, and never use `claude/`, `copilot/`, `openai/` or `feature/`. The pre-commit hook checks this, and so does the Claude Code hook in `.claude/hooks/`.
+1. **Branch.** Work on a branch from `develop` named `{type}/{scope}-{title}` in lowercase kebab-case, with a type from the organisation's list such as `feat`, `fix`, `chore`, `docs` or `test` (for example `feat/slider-autoplay`). Never commit to `main`, `develop` or `release/*`, and never use `claude/`, `copilot/`, `openai/` or `feature/`. `node bin/check-branch-name.js` checks a name; the pre-commit hook and the Claude Code hook in `.claude/hooks/` use it.
 2. **Changelog.** Every change to a `.php`, `.js`, `.jsx`, `.ts`, `.tsx` or `.scss` file needs a new entry under `## [Unreleased]` in `CHANGELOG.md`, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) form. The pre-commit hook and the changelog workflow check for it.
 3. **Labels.** Use only the organisation's prefixed labels (`type:*`, `status:*`, `priority:*`, `area:*`, `meta:*`).
 
