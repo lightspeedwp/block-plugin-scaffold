@@ -96,6 +96,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- Template tags that never had a value now do (BPS-10): `{{taxonomy_slug}}` and `{{post_type_slug}}` (the first taxonomy and post type, or `category` and `post`) for `QueryControls`, `TaxonomyFilter`, `PostSelector` and `useTaxonomies`, which shipped with empty defaults in content-model plugins, and `{{pot_date}}` for the `.pot` header. `TaxonomyFilter` defaulted to `<taxonomy>_category`, which is not registered. The pattern README uses a literal `{post-type}` placeholder.
 - Generated `USAGE.md` and `.pot` files link to the plugin's `repository_url` instead of a GitHub URL built from the author name, which broke when the author had a space (and failed `lint:md:docs`).
 - Generated plugins now get the template's `tests/`, `bin/` and `docs/` folders. The generator's exclude list, meant for the scaffold's own folders, also matched them in `plugin-template/`, so plugins came out without their starter tests or `bin/validate-json.js` (and `npm run lint:json` failed). The generation tests now pass again.
 - Generator exclusions matched path prefixes, so `.git` also skipped `.github/`, `.gitignore` and `.gitattributes`; exclusions now match whole paths within `plugin-template/`.

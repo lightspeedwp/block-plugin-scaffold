@@ -28,7 +28,7 @@ import { SelectControl, Spinner, FormTokenField } from '@wordpress/components';
  * @return {Element} TaxonomyFilter component.
  */
 export default function TaxonomyFilter( {
-	taxonomy = '{{taxonomy_slug}}_category',
+	taxonomy = '{{taxonomy_slug}}',
 	value = [],
 	onChange,
 	label = __( 'Filter by Category', '{{textdomain}}' ),

@@ -531,6 +531,17 @@ function applyDefaults(config) {
 		result.fields_legacy = result.fields.find(f => f.post_type === firstPostType.slug)?.field_group || [];
 	}
 
+	// Defaults for the collection components (PostSelector, TaxonomyFilter,
+	// QueryControls): the first post type and taxonomy, or the core ones.
+	result.post_type_slug = result.post_types[0]?.slug || 'post';
+	result.taxonomy_slug = result.taxonomies[0]?.slug || 'category';
+
+	// gettext date format, e.g. 2026-10-28 12:00+0000.
+	result.pot_date = new Date()
+		.toISOString()
+		.replace('T', ' ')
+		.replace(/:\d{2}\.\d{3}Z$/, '+0000');
+
 	return result;
 }
 
