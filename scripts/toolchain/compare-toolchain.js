@@ -21,6 +21,7 @@ const FILES = [
 	'eslint.config.mjs',
 	'.stylelintrc.js',
 	'prettier.config.mjs',
+	'.prettierignore',
 	'.editorconfig',
 	'.stylelintignore',
 	'.jshintignore',
