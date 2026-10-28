@@ -30,8 +30,8 @@ function makePlugin(files) {
 const base = {
 	'package.json': { name: 'one', scripts: { build: 'wp-scripts build' } },
 	'composer.json': { name: 'one/one', scripts: { lint: 'phpcs' } },
-	'eslint.config.cjs': 'module.exports = [];\n',
-	'tests/js/a.test.js': 'test();\n',
+	'eslint.config.mjs': 'export default [];\n',
+	'test/unit/a.test.js': 'test();\n',
 };
 
 describe('compareToolchain', () => {
@@ -51,23 +51,23 @@ describe('compareToolchain', () => {
 		const b = makePlugin({
 			...base,
 			'package.json': { name: 'one', scripts: { build: 'other' } },
-			'eslint.config.cjs': 'module.exports = [ {} ];\n',
-			'tests/js/a.test.js': 'test( 1 );\n',
+			'eslint.config.mjs': 'export default [ {} ];\n',
+			'test/unit/a.test.js': 'test( 1 );\n',
 		});
 
 		expect(compareToolchain(a, b).map(({ file }) => file)).toEqual([
-			'eslint.config.cjs',
+			'eslint.config.mjs',
 			'package.json',
-			'tests/js/a.test.js',
+			'test/unit/a.test.js',
 		]);
 	});
 
 	it('reports files that exist on one side only', () => {
 		const a = makePlugin(base);
-		const b = makePlugin({ ...base, 'tests/e2e/extra.spec.js': 'x' });
+		const b = makePlugin({ ...base, 'test/e2e/extra.spec.js': 'x' });
 
 		expect(compareToolchain(a, b)).toEqual([
-			{ file: 'tests/e2e/extra.spec.js', a: null, b: 'x' },
+			{ file: 'test/e2e/extra.spec.js', a: null, b: 'x' },
 		]);
 	});
 });

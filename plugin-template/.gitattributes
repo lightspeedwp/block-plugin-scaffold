@@ -1,0 +1,20 @@
+# Normalise line endings to LF for every text file, on every platform.
+* text=auto eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.mov binary
+*.mp4 binary
+*.zip binary
+*.gz binary
+
+# Lockfiles are generated; show them collapsed in diffs.
+package-lock.json linguist-generated=true -diff
+composer.lock linguist-generated=true -diff

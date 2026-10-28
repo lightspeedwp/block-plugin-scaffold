@@ -14,9 +14,9 @@ export default defineConfig( {
 	test: {
 		environment: 'jsdom',
 		globals: false,
-		include: [ 'tests/js/**/*.test.{js,jsx}' ],
+		include: [ 'test/unit/**/*.test.{js,jsx}' ],
 		restoreMocks: true,
-		setupFiles: [ './tests/js/setup.js' ],
+		setupFiles: [ './test/unit/setup.js' ],
 		// Measures the files the tests load; fails the run below the thresholds.
 		coverage: {
 			enabled: true,

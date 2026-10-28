@@ -13,7 +13,7 @@ To ensure all block pattern slugs are unique, descriptive, and compatible with m
 
 ## Slug Format
 
-```
+```text
 {{slug}}/{{post_type}}-{pattern-purpose}
 ```
 
@@ -45,4 +45,4 @@ This convention prevents slug collisions, improves discoverability, and supports
 
 ---
 
-_Last updated: 2025-12-18_
+Last updated: 2025-12-18.

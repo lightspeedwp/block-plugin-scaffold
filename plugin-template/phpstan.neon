@@ -4,7 +4,7 @@ includes:
 parameters:
 	level: 6
 	bootstrapFiles:
-		- tests/php/phpstan-bootstrap.php
+		- phpunit/phpstan-bootstrap.php
 	paths:
 		- "{{slug}}.php"
 		- uninstall.php

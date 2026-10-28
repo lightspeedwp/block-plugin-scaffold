@@ -18,12 +18,23 @@ const { execFileSync } = require('child_process');
 
 // Toolchain files compared exactly (data-model.md §6).
 const FILES = [
-	'eslint.config.cjs',
-	'.stylelintrc.json',
-	'.prettierrc.js',
+	'eslint.config.mjs',
+	'.stylelintrc.js',
+	'prettier.config.mjs',
+	'.editorconfig',
+	'.stylelintignore',
+	'.jshintignore',
+	'.markdownlintignore',
+	'.markdownlint.json',
+	'.npmpackagejsonlintrc.json',
+	'.browserslistrc',
+	'postcss.config.mjs',
+	'tsconfig.json',
+	'tsconfig.build.json',
+	'jsconfig.json',
 	'vitest.config.mjs',
 	'playwright.config.js',
-	'phpcs.xml',
+	'phpcs.xml.dist',
 	'phpstan.neon',
 	'phpunit.xml',
 	'.wp-env.json',
@@ -33,10 +44,11 @@ const FILES = [
 	'.github/workflows/changelog.yml',
 	'.github/workflows/release.yml',
 	'.distignore',
+	'.coderabbit.yml',
 	'webpack.config.js',
 ];
 // Folders whose files are all compared.
-const DIRS = ['bin', 'tests/js', 'tests/e2e', 'tests/php'];
+const DIRS = ['bin', 'tools', 'test/unit', 'test/e2e', 'phpunit'];
 // Manifest fields compared; metadata such as name and URLs is left out.
 const PACKAGE_FIELDS = [
 	'engines',

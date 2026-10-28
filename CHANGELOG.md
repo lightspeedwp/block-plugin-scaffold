@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get `{{slug}}.code-workspace` (VS Code settings, extensions and tasks), their own `.coderabbit.yml` (plugin review rules on top of the organisation settings) and `docs/`, with an index and the Interactivity API and DataViews guide that `DEVELOPMENT.md` links to (BPS-10).
+- Generated plugins get the build configuration from the Gutenberg layout (BPS-10): `.browserslistrc`, `postcss.config.mjs`, `tsconfig.json`, `tsconfig.build.json`, `jsconfig.json` and `tools/webpack/extra-entries.js`, which `webpack.config.js` uses. CSS now targets the WordPress browser list; JavaScript output is unchanged.
+- Generated plugins get the lint configuration from the Gutenberg layout (BPS-10): `.stylelintignore`, `.jshintignore`, `.markdownlintignore`, `.markdownlint.json`, `.npmpackagejsonlintrc.json` and `tools/eslint/`, plus `npm run lint:md:docs` in `npm run lint`. Stylelint requires BEM class names. `check:generation` runs `lint:md:docs`, and `compare-toolchain.js` compares the new files and `tools/`.
+- Generated plugins get the root files from the Gutenberg layout (BPS-10): `SECURITY.md`, `CONTRIBUTING.md`, `changelog.txt` and `.gitattributes`.
 - Generated plugins get PHPUnit unit tests in `tests/php/` (PHPUnit 11 config, `yoast/phpunit-polyfills`, Brain Monkey, starter tests), run by `composer run test` in the CI PHP job. `compare-toolchain.js` now compares `phpunit.xml`.
 - Generated plugins get a unit test coverage gate (`@vitest/coverage-v8`): `npm run test:unit` fails below 70% branches, 80% statements or 80% functions, measured over the files the tests load.
 - Generated plugins get `tests/e2e/accessibility.spec.js`: on mobile, tablet and desktop viewports the plugin's blocks fit the screen and pass an axe-core WCAG 2.2 AA scan (`@axe-core/playwright`).
@@ -60,6 +64,8 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- Generated plugins use the Gutenberg test layout (BPS-10): `test/unit/` (Vitest), `test/e2e/` (Playwright) and `phpunit/` (PHPUnit and the PHPStan bootstrap), with every config, `.distignore`, `compare-toolchain.js`, the generator's formatting step and the docs updated.
+- Generated plugins use the Gutenberg config names: `eslint.config.mjs`, `prettier.config.mjs`, `.stylelintrc.js` and `phpcs.xml.dist`, and an `.editorconfig` with tabs (spaces for YAML). Template mode removes the scaffold's own copies under the old names. The generated README and the template docs pass markdownlint.
 - Generated plugins: `.distignore` now leaves out `webpack.config.js` (it listed `.cjs`), `vitest.config.mjs`, `playwright.config.js`, `.prettierrc.js`, `.stylelintrc.json`, `{{slug}}-config.json` and `dist/`.
 - Generated plugins: the pre-commit hook checks the branch name (no direct commits to `main`, `develop` or `release/*`; a type prefix from the organisation's `branch-types.yml`), requires a `CHANGELOG.md` entry for code changes, runs `npm run build` when `src/` changes, then runs lint-staged. Documented in `DEVELOPMENT.md` and `docs/GENERATE_PLUGIN.md`.
 - Generated plugins: the CI PHP job runs on PHP 8.4 and 8.5, and wp-env uses PHP 8.4 (proven in `lightspeedwp/ls-test`).
@@ -90,6 +96,8 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- Generated `USAGE.md` and `.pot` files link to the plugin's `repository_url` instead of a GitHub URL built from the author name, which broke when the author had a space (and failed `lint:md:docs`).
+- Generated plugins now get the template's `tests/`, `bin/` and `docs/` folders. The generator's exclude list, meant for the scaffold's own folders, also matched them in `plugin-template/`, so plugins came out without their starter tests or `bin/validate-json.js` (and `npm run lint:json` failed). The generation tests now pass again.
 - Generator exclusions matched path prefixes, so `.git` also skipped `.github/`, `.gitignore` and `.gitattributes`; exclusions now match whole paths within `plugin-template/`.
 - Template bugs found by the new tests:
   - the slider rendered nothing in the editor (5 attributes were missing from `block.json`);

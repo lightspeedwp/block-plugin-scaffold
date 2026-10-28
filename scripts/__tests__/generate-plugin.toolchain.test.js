@@ -148,38 +148,54 @@ describe('generatePlugin: composer.json', () => {
 describe('generatePlugin: config files', () => {
 	it('has exactly one config per tool', () => {
 		[
-			'eslint.config.cjs',
-			'.stylelintrc.json',
-			'.prettierrc.js',
+			'eslint.config.mjs',
+			'.stylelintrc.js',
+			'prettier.config.mjs',
 			'vitest.config.mjs',
 			'playwright.config.js',
-			'phpcs.xml',
+			'phpcs.xml.dist',
+			'.stylelintignore',
+			'.markdownlintignore',
+			'.npmpackagejsonlintrc.json',
+			'tools/eslint/index.mjs',
+			'.browserslistrc',
+			'postcss.config.mjs',
+			'tsconfig.json',
+			'tsconfig.build.json',
+			'jsconfig.json',
+			'tools/webpack/extra-entries.js',
+			'.coderabbit.yml',
+			'toolchain-check.code-workspace',
+			'docs/README.md',
+			'docs/INTERACTIVITY-AND-DATAVIEWS.md',
 			'phpstan.neon',
 			'.husky/pre-commit',
 		].forEach((file) => expect(exists(file)).toBe(true));
 
 		[
 			'.eslintrc.cjs',
+			'eslint.config.cjs',
 			'.eslint.config.cjs',
+			'.stylelintrc.json',
+			'.prettierrc.js',
+			'phpcs.xml',
 			'.eslintignore',
 			'.stylelint.config.cjs',
-			'.stylelintignore',
 			'.prettier.config.cjs',
 			'.prettierignore',
 			'.jest.config.cjs',
 			'jest.config.js',
 			'.npmpackagejsonlintrc.cjs',
 			'.postcss.config.cjs',
-			'.browserslistrc',
 		].forEach((file) => expect(exists(file)).toBe(false));
 	});
 
 	it('uses the plugin configs from plugin-template/, not the scaffold versions', () => {
 		expect(
-			fs.readFileSync(path.join(outputDir, 'eslint.config.cjs'), 'utf8')
+			fs.readFileSync(path.join(outputDir, 'eslint.config.mjs'), 'utf8')
 		).not.toMatch(/scripts\/\*\*/);
 		expect(
-			fs.readFileSync(path.join(outputDir, 'phpcs.xml'), 'utf8')
+			fs.readFileSync(path.join(outputDir, 'phpcs.xml.dist'), 'utf8')
 		).not.toMatch(/exclude-pattern>inc\//);
 	});
 });
@@ -187,10 +203,11 @@ describe('generatePlugin: config files', () => {
 describe('generatePlugin: plugin-template files', () => {
 	it('copies the starter tests and CI workflow', () => {
 		[
-			'tests/js/setup.js',
-			'tests/js/utils/fields.test.js',
-			'tests/e2e/blocks.spec.js',
-			'tests/php/phpstan-bootstrap.php',
+			'test/unit/setup.js',
+			'bin/validate-json.js',
+			'test/unit/utils/fields.test.js',
+			'test/e2e/blocks.spec.js',
+			'phpunit/phpstan-bootstrap.php',
 			'.github/workflows/ci.yml',
 			'.gitignore',
 		].forEach((file) => expect(exists(file)).toBe(true));
@@ -224,10 +241,7 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 			'codecov.yml',
 			'VERSION',
 			'AGENTS.md',
-			'.coderabbit.yml',
 			'CODE_OF_CONDUCT.md',
-			'CONTRIBUTING.md',
-			'SECURITY.md',
 			'SUPPORT.md',
 		].forEach((file) => expect([file, exists(file)]).toEqual([file, false]));
 	});

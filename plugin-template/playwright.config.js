@@ -6,7 +6,7 @@ const baseConfig = require( '@wordpress/scripts/config/playwright.config.js' );
 
 module.exports = defineConfig( {
 	...baseConfig,
-	testDir: './tests/e2e',
+	testDir: './test/e2e',
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',

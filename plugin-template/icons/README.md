@@ -4,7 +4,7 @@ This directory contains SVG icons used throughout the plugin blocks.
 
 ## Structure
 
-```
+```text
 icons/
 ├── outline/    # 23 outline-style icons
 └── solid/      # 26 solid-style icons
@@ -13,6 +13,7 @@ icons/
 ## Available Icons
 
 ### Outline & Solid Variants
+
 - accommodation
 - accommodation-type
 - arrow-down

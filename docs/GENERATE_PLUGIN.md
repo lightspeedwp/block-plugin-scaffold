@@ -713,22 +713,29 @@ tour-operator/
 ├── tour-operator.php         # Main plugin file (slug-based name)
 ├── package.json              # Standard toolchain (scripts/toolchain/standard-toolchain.json)
 ├── composer.json             # PHPCS, PHPStan and PHPUnit scripts
-├── eslint.config.cjs         # One config per tool, each extending
-├── .stylelintrc.json         #   the @wordpress/scripts defaults
-├── .prettierrc.js
+├── eslint.config.mjs         # Gutenberg config names, each extending
+├── .stylelintrc.js           #   the @wordpress/scripts defaults
+├── prettier.config.mjs
+├── tools/eslint/             # The plugin's own ESLint additions
+├── tools/webpack/            # Extra webpack entries
+├── .browserslistrc / postcss.config.mjs
+├── tsconfig.json / jsconfig.json  # Editor type information
 ├── vitest.config.mjs         # Unit tests (Vitest + Testing Library)
 ├── playwright.config.js      # E2E tests against wp-env
-├── phpcs.xml / phpstan.neon
+├── phpcs.xml.dist / phpstan.neon
 ├── .husky/pre-commit         # Branch, changelog, build and lint gates
 ├── .github/workflows/ci.yml  # JS, PHP and E2E jobs
 ├── inc/                      # PHP classes
 ├── src/                      # Blocks, components, hooks, styles
-├── tests/                    # Starter unit (js), e2e and PHPStan files
+├── test/unit/ & test/e2e/    # Starter Vitest and Playwright tests
+├── phpunit/                  # PHPUnit tests and the PHPStan bootstrap
+├── docs/                     # Project-specific documentation
+├── tour-operator.code-workspace  # VS Code settings, extensions and tasks
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups
 ```
 
-Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) is tooling and is never copied. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. CodeRabbit settings and community health files are inherited from the LightSpeed organisation.
+Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) is tooling and is never copied. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
 
 ### 2. Install Dependencies
 

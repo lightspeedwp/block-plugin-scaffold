@@ -61,17 +61,17 @@ The site runs at <http://localhost:8888> (admin: `admin` / `password`).
 | `npm run format` | Formats JS with the WordPress Prettier config |
 | `npm run lint` | Runs `lint:js`, `lint:css`, `lint:pkg` and `lint:json` |
 | `npm run lint:json` | Validates every `block.json` against the WordPress block schema (Ajv) |
-| `npm run test:unit` | Vitest unit tests in `tests/js`, with a coverage gate |
-| `npm run test:e2e` | Playwright tests in `tests/e2e` against wp-env, including axe-core checks |
+| `npm run test:unit` | Vitest unit tests in `test/unit`, with a coverage gate |
+| `npm run test:e2e` | Playwright tests in `test/e2e` against wp-env, including axe-core checks |
 | `npm run packages-update` | Updates `@wordpress/*` packages |
 | `npm run zip` | Builds a distribution ZIP |
 | `composer run lint` / `lint:fix` | PHPCS / PHPCBF with WordPress standards |
 | `composer run phpstan` | PHPStan level 6 |
-| `composer run test` | PHPUnit unit tests in `tests/php` |
+| `composer run test` | PHPUnit unit tests in `phpunit/` |
 
 ### Configuration files
 
-There is one config per tool, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.cjs`, `.stylelintrc.json`, `.prettierrc.js`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml` and `phpstan.neon`. CodeRabbit settings and community health files (code of conduct, contributing, security, support) are inherited from the LightSpeed organisation, so they are not repeated here.
+Config files use the names the Gutenberg repository uses, and the JS ones extend the `@wordpress/scripts` defaults: `eslint.config.mjs` (with the plugin's own additions in `tools/eslint/`), `.stylelintrc.js` (BEM class names), `prettier.config.mjs`, `vitest.config.mjs`, `playwright.config.js`, `phpcs.xml.dist` and `phpstan.neon`. `.stylelintignore`, `.jshintignore`, `.markdownlintignore`, `.markdownlint.json` and `.npmpackagejsonlintrc.json` set what each linter checks; `npm run lint:md:docs` lints the Markdown files. `{{slug}}.code-workspace` opens the plugin in VS Code with these settings, the recommended extensions and tasks for each command. `.coderabbit.yml` adds the plugin's review rules to the LightSpeed organisation settings. Project-specific documentation lives in `docs/`. The code of conduct and support files are inherited from the LightSpeed organisation.
 
 ## Architecture
 
@@ -79,7 +79,7 @@ There is one config per tool, and the JS ones extend the `@wordpress/scripts` de
 
 The plugin follows WordPress block development best practices with multiple blocks:
 
-```
+```text
 src/
 ├── index.js            # Main entry point - registers all blocks
 ├── blocks/slider/     # Generic block directory
@@ -181,7 +181,7 @@ We follow WordPress coding standards strictly:
 
 ### File Organization
 
-```
+```text
 src/
 ├── blocks/
 │   ├── slider/             # Generic block: {{slug}}/slider
@@ -200,7 +200,7 @@ src/
 
 ### JavaScript Testing
 
-Unit tests use Vitest and Testing Library. They live in `tests/js` and run in jsdom:
+Unit tests use Vitest and Testing Library. They live in `test/unit` and run in jsdom:
 
 ```bash
 npm run test:unit
@@ -235,11 +235,11 @@ composer run phpstan
 composer run test
 ```
 
-PHPUnit tests live in `tests/php` and end in `Test.php`. They extend `tests/php/TestCase.php`, which uses `yoast/phpunit-polyfills` and stubs WordPress functions with Brain Monkey, so they run without a WordPress install. CI runs them on PHP 8.4 and 8.5.
+PHPUnit tests live in `phpunit/` and end in `Test.php`. They extend `phpunit/TestCase.php`, which uses `yoast/phpunit-polyfills` and stubs WordPress functions with Brain Monkey, so they run without a WordPress install. CI runs them on PHP 8.4 and 8.5.
 
 ### End-to-End Testing
 
-Playwright tests live in `tests/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. `tests/e2e/accessibility.spec.js` also checks, at mobile, tablet and desktop widths, that the blocks fit the screen and pass an axe-core WCAG 2.2 AA scan. Start wp-env first:
+Playwright tests live in `test/e2e` and use `@wordpress/e2e-test-utils-playwright`. They check that the editor loads, that every block can be inserted, and that blocks render on the front end. `test/e2e/accessibility.spec.js` also checks, at mobile, tablet and desktop widths, that the blocks fit the screen and pass an axe-core WCAG 2.2 AA scan. Start wp-env first:
 
 ```bash
 npm run env:start
@@ -281,7 +281,9 @@ This creates optimized assets in `build/`:
 `webpack.config.js` extends `@wordpress/scripts`:
 
 - Each block is found through its `block.json`, which builds its scripts, styles and `viewScriptModule`, and copies its `render.php`.
-- The config adds the shared `index` entry (`src/index.js`) and one entry per file in `src/js/`.
+- `tools/webpack/extra-entries.js` adds the shared `index` entry (`src/index.js`) and one entry per file in `src/js/`.
+- `.browserslistrc` sets the supported browsers (the WordPress list), which Babel and Autoprefixer follow. Add PostCSS plugins in `postcss.config.mjs`; they run with the `@wordpress/scripts` preset.
+- `tsconfig.json`, `tsconfig.build.json` (the shipped `src/` only) and `jsconfig.json` give editors type information for the JavaScript. TypeScript is not a build step.
 - `--experimental-modules` (set in `build` and `start`) builds script modules for the Interactivity API.
 
 WordPress packages are not bundled: each script's `*.asset.php` lists the handles it needs, and the PHP enqueues scripts with those dependencies. See [Interactivity API and DataViews](docs/INTERACTIVITY-AND-DATAVIEWS.md) for front-end state and admin data screens.
@@ -328,7 +330,7 @@ npm run build
 node bin/package-release.js
 ```
 
-This copies every file `.distignore` does not exclude into `dist/<slug>/`, which the release workflow zips. `.distignore` leaves out development files (`src/`, `tests/`, `bin/`), config files and dependencies (`node_modules/`, `vendor/`).
+This copies every file `.distignore` does not exclude into `dist/<slug>/`, which the release workflow zips. `.distignore` leaves out development files (`src/`, `test/`, `phpunit/`, `bin/`, `tools/`), config files and dependencies (`node_modules/`, `vendor/`).
 
 ## Debugging
 

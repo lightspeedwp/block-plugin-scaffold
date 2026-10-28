@@ -14,7 +14,8 @@ vendor/
 src/
 
 # Tests
-tests/
+test/
+phpunit/
 coverage/
 artifacts/
 test-results/
@@ -31,30 +32,39 @@ composer.lock
 webpack.config.js
 webpack.config.cjs
 .webpack.config.cjs
+postcss.config.mjs
 postcss.config.cjs
 .postcss.config.cjs
 stylelint.config.cjs
 .stylelint.config.cjs
-eslint.config.cjs
-.eslint.config.cjs
+eslint.config.mjs
 vitest.config.mjs
 playwright.config.js
 jest.config.cjs
 .jest.config.cjs
 prettier.config.cjs
 .prettier.config.cjs
-.prettierrc.js
-.stylelintrc.json
+prettier.config.mjs
+.stylelintrc.js
 phpunit.xml
-phpcs.xml
+phpcs.xml.dist
 phpstan.neon
 .wp-env.json
 .browserslistrc
+jsconfig.json
+tsconfig.json
+tsconfig.build.json
 .editorconfig
 .npmrc
 .nvmrc
 
 # Linting and formatting
+.stylelintignore
+.jshintignore
+.markdownlintignore
+.markdownlint.json
+.npmpackagejsonlintrc.json
+tools/
 .eslintignore
 .prettierignore
 .eslintcache
@@ -136,6 +146,9 @@ assets/
 
 # CodeRabbit config
 .coderabbit.yml
+
+# Editor workspace
+*.code-workspace
 
 # Distribution ignore file itself
 .distignore
