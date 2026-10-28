@@ -507,12 +507,12 @@ function categorizeVariable(varName) {
  * @return {number}
  */
 function countOccurrences(content, varName) {
-	const cleaned = variableName(varName);
-	const escaped = cleaned.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-	const occurrences = content.match(
-		new RegExp(`\\{\\{(?:(?:${FILTERS.join('|')})\\.)?${escaped}(?:\\|[^}]+)?\\}\\}`, 'g')
-	);
-	return occurrences ? occurrences.length : 0;
+	// Use the discovery grammar, so filters, spaces inside the braces and
+	// GitHub Actions expressions are treated the same way.
+	const wanted = variableName(varName);
+	return Array.from(content.matchAll(MUSTACHE_REGEX)).filter(
+		(match) => variableName(match[1]) === wanted
+	).length;
 }
 
 /**

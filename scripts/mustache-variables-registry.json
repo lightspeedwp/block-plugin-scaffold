@@ -1,9 +1,9 @@
 {
   "summary": {
-    "totalFiles": 719,
-    "filesWithVariables": 276,
-    "uniqueVariables": 139,
-    "totalOccurrences": 3513
+    "totalFiles": 715,
+    "filesWithVariables": 274,
+    "uniqueVariables": 137,
+    "totalOccurrences": 3512
   },
   "variables": {
     "agent_slug": {
@@ -613,7 +613,7 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 140
+          "line": 143
         }
       ],
       "type": "string"
@@ -2211,94 +2211,6 @@
       ],
       "type": "string"
     },
-    "inputs.integration": {
-      "name": "inputs.integration",
-      "category": "other",
-      "files": [
-        ".specify/workflows/speckit/workflow.yml",
-        "plugin-template/.specify/workflows/speckit/workflow.yml"
-      ],
-      "count": 0,
-      "usage": [
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 42
-        },
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 54
-        },
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 66
-        },
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 72
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 42
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 54
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 66
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 78
-        }
-      ],
-      "type": "string"
-    },
-    "inputs.spec": {
-      "name": "inputs.spec",
-      "category": "other",
-      "files": [
-        ".specify/workflows/speckit/workflow.yml",
-        "plugin-template/.specify/workflows/speckit/workflow.yml"
-      ],
-      "count": 0,
-      "usage": [
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 44
-        },
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 56
-        },
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 68
-        },
-        {
-          "file": ".specify/workflows/speckit/workflow.yml",
-          "line": 74
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 44
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 56
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 68
-        },
-        {
-          "file": "plugin-template/.specify/workflows/speckit/workflow.yml",
-          "line": 80
-        }
-      ],
-      "type": "string"
-    },
     "license": {
       "name": "license",
       "category": "license",
@@ -2716,6 +2628,7 @@
         ".github/spec/003-scaffold-toolchain-modernisation/research.md",
         ".specify/memory/constitution.md",
         ".todo/BLOCK-SCHEMA-EVOLUTION.md",
+        "CHANGELOG.md",
         "plugin-config.json",
         "plugin-template/.agents/roles/INVENTORY.md",
         "plugin-template/.agents/roles/branches-agent.md",
@@ -2812,7 +2725,7 @@
         "scripts/toolchain/__tests__/check-generation.test.js",
         "scripts/utils/__tests__/scan.test.js"
       ],
-      "count": 221,
+      "count": 222,
       "usage": [
         {
           "file": ".github/agents/generate-plugin.agent.md",
@@ -3033,6 +2946,10 @@
         {
           "file": ".todo/BLOCK-SCHEMA-EVOLUTION.md",
           "line": 331
+        },
+        {
+          "file": "CHANGELOG.md",
+          "line": 108
         },
         {
           "file": "plugin-config.json",
@@ -4055,7 +3972,7 @@
         "scripts/utils/update-version.js",
         "scripts/validate-post-types.js"
       ],
-      "count": 570,
+      "count": 567,
       "usage": [
         {
           "file": ".github/agents/generate-plugin.agent.md",
@@ -4719,19 +4636,23 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 73
+          "line": 75
         },
         {
           "file": "CHANGELOG.md",
-          "line": 73
+          "line": 75
         },
         {
           "file": "CHANGELOG.md",
-          "line": 166
+          "line": 108
         },
         {
           "file": "CHANGELOG.md",
-          "line": 170
+          "line": 169
+        },
+        {
+          "file": "CHANGELOG.md",
+          "line": 173
         },
         {
           "file": "plugin-template/AGENTS.md",
@@ -6593,11 +6514,11 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 123
+          "line": 126
         },
         {
           "file": "CHANGELOG.md",
-          "line": 127
+          "line": 130
         },
         {
           "file": "plugin-config.json",
@@ -6712,11 +6633,11 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 107
+          "line": 110
         },
         {
           "file": "CHANGELOG.md",
-          "line": 123
+          "line": 126
         },
         {
           "file": "plugin-template/src/components/PostSelector/PostSelector.js",
@@ -6740,7 +6661,7 @@
       "usage": [
         {
           "file": "CHANGELOG.md",
-          "line": 107
+          "line": 110
         }
       ],
       "type": "string"
@@ -7225,7 +7146,7 @@
         "scripts/utils/placeholders.js",
         "scripts/utils/update-version.js"
       ],
-      "count": 1537,
+      "count": 1538,
       "usage": [
         {
           "file": ".devcontainer/docker-compose.yml",
@@ -8741,31 +8662,35 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 76
+          "line": 74
         },
         {
           "file": "CHANGELOG.md",
-          "line": 80
+          "line": 78
         },
         {
           "file": "CHANGELOG.md",
-          "line": 153
+          "line": 82
         },
         {
           "file": "CHANGELOG.md",
-          "line": 166
+          "line": 156
         },
         {
           "file": "CHANGELOG.md",
-          "line": 181
+          "line": 169
         },
         {
           "file": "CHANGELOG.md",
-          "line": 312
+          "line": 184
         },
         {
           "file": "CHANGELOG.md",
-          "line": 313
+          "line": 315
+        },
+        {
+          "file": "CHANGELOG.md",
+          "line": 316
         },
         {
           "file": "IMPLEMENTATION-SUMMARY.md",
@@ -13944,11 +13869,11 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 107
+          "line": 110
         },
         {
           "file": "CHANGELOG.md",
-          "line": 123
+          "line": 126
         },
         {
           "file": "plugin-template/src/components/QueryControls/QueryControls.js",
@@ -14434,15 +14359,15 @@
         },
         {
           "file": "CHANGELOG.md",
-          "line": 311
+          "line": 314
         },
         {
           "file": "CHANGELOG.md",
-          "line": 450
+          "line": 453
         },
         {
           "file": "CHANGELOG.md",
-          "line": 477
+          "line": 480
         },
         {
           "file": "plugin-template/.agents/roles/reviewer-agent.md",
