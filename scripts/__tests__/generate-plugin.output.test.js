@@ -88,6 +88,30 @@ describe('generatePlugin: output with post types', () => {
 		});
 	});
 
+	it('names the plugin, not the scaffold example, in pattern headers', () => {
+		const patternsDir = path.join(outputDir, 'patterns');
+		fs.readdirSync(patternsDir)
+			.filter((file) => file.endsWith('.php'))
+			.forEach((file) => {
+				const pattern = fs.readFileSync(path.join(patternsDir, file), 'utf8');
+				expect(pattern).not.toContain('ExamplePlugin');
+				expect(pattern).toMatch(/^ \* Output Check Plugin .+ Pattern$/m);
+			});
+	});
+
+	it('renders the collection blocks from render.php, as block.json requires', () => {
+		CONFIG.post_types.forEach(({ slug }) => {
+			const blockDir = path.join(outputDir, 'src', 'blocks', `${slug}-collection`);
+			const blockJson = JSON.parse(
+				fs.readFileSync(path.join(blockDir, 'block.json'), 'utf8')
+			);
+			expect(blockJson.render).toBe('file:./render.php');
+			expect(fs.readFileSync(path.join(blockDir, 'render.php'), 'utf8')).toContain(
+				`echo output_check_plugin_render_${slug}_collection(`
+			);
+		});
+	});
+
 	it('ships icons outside src/blocks where the icon helper loads them', () => {
 		const blocksDir = path.join(outputDir, 'src', 'blocks');
 		fs.readdirSync(blocksDir).forEach((blockDir) => {

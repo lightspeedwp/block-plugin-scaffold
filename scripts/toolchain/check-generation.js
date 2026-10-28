@@ -4,8 +4,8 @@
  *
  * Generates a plugin from each fixture in tests/fixtures/generation/ into a
  * temporary folder, then installs it from its lockfiles, builds, lints and
- * unit-tests it, and validates its composer.lock, so a
- * scaffold change that breaks generated plugins fails before it is merged.
+ * unit-tests it, and runs its Composer checks (validate, install, PHPCS,
+ * PHPStan, PHPUnit), so a scaffold change that breaks generated plugins fails before it is merged.
  *
  * Usage: node scripts/toolchain/check-generation.js
  *          [--fixture <name>] [--keep] [--skip-install] [--e2e [--playground]]
@@ -211,6 +211,17 @@ function checkFixture(fixturePath, options) {
 						name: 'composer validate',
 						run: () => run(dir, 'composer', ['validate', '--no-check-publish']),
 					},
+					{
+						name: 'composer install',
+						run: () =>
+							run(dir, 'composer', ['install', '--no-interaction', '--no-progress']),
+					},
+					{ name: 'composer lint', run: () => run(dir, 'composer', ['run', 'lint']) },
+					{
+						name: 'composer phpstan',
+						run: () => run(dir, 'composer', ['run', 'phpstan']),
+					},
+					{ name: 'composer test', run: () => run(dir, 'composer', ['run', 'test']) },
 				]),
 		...(options.e2e
 			? [

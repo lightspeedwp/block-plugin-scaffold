@@ -232,9 +232,10 @@ describe('generatePlugin: functional-only mode', () => {
 			fs.readFileSync(path.join(travelStyle, 'block.json'), 'utf8')
 		);
 		expect(blockJson.title).toBe('Travel Style Collection');
-		expect(blockJson.render).toBe(
-			'multi_cpt_plugin_render_travel_style_collection'
-		);
+		expect(blockJson.render).toBe('file:./render.php');
+		expect(
+			fs.readFileSync(path.join(travelStyle, 'render.php'), 'utf8')
+		).toContain('echo multi_cpt_plugin_render_travel_style_collection(');
 		expect(
 			fs.readFileSync(path.join(travelStyle, 'edit.js'), 'utf8')
 		).toContain("context.postType || 'travel_style'");
