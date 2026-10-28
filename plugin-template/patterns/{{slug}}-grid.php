@@ -23,5 +23,5 @@ return array(
 	'blockTypes'  => array( 'core/group', 'core/query' ),
 	'postTypes'   => array( '{{cpt_slug}}' ),
 	'viewportWidth' => 1200,
-	'content'     => '<!-- wp:{{slug}}/{{cpt_slug|kebabCase}}-collection {"layout":"grid","columns":3,"query":{"postType":"{{cpt_slug}}","perPage":6}} /-->',
+	'content'     => '<!-- wp:{{slug}}/{{kebabCase.cpt_slug}}-collection {"layout":"grid","columns":3,"query":{"postType":"{{cpt_slug}}","perPage":6}} /-->',
 );

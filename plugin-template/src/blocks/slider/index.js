@@ -1,5 +1,5 @@
 /**
- * {{name|title}} Slider Block
+ * {{title.name}} Slider Block
  *
  * @package
  */

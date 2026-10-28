@@ -89,12 +89,12 @@ if ( ! function_exists( '{{namespace}}_render_field_display' ) ) {
 		);
 
 		// Add icon block if icon is selected.
-		if ( ! empty( $icon_name ) && function_exists( '{{namespace|snakeCase}}_get_icon_svg' ) ) {
-			$svg_content = {{namespace|snakeCase}}_get_icon_svg( $icon_type, $icon_name );
+		if ( ! empty( $icon_name ) && function_exists( '{{snakeCase.namespace}}_get_icon_svg' ) ) {
+			$svg_content = {{snakeCase.namespace}}_get_icon_svg( $icon_type, $icon_name );
 			if ( ! empty( $svg_content ) ) {
 				$output .= sprintf(
 					'<div class="wp-block-group is-layout-flex" style="flex-wrap: nowrap;">%s</div>',
-					$svg_content // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content is sanitized in {{namespace|snakeCase}}_get_icon_svg().
+					$svg_content // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG content is sanitized in {{snakeCase.namespace}}_get_icon_svg().
 				);
 			}
 		}

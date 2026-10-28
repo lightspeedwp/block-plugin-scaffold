@@ -22,16 +22,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( '{{namespace|upper}}_VERSION', '{{version}}' );
-define( '{{namespace|upper}}_DIR', plugin_dir_path( __FILE__ ) );
-define( '{{namespace|upper}}_URL', plugin_dir_url( __FILE__ ) );
-define( '{{namespace|upper}}_BASENAME', plugin_basename( __FILE__ ) );
+define( '{{upper.namespace}}_VERSION', '{{version}}' );
+define( '{{upper.namespace}}_DIR', plugin_dir_path( __FILE__ ) );
+define( '{{upper.namespace}}_URL', plugin_dir_url( __FILE__ ) );
+define( '{{upper.namespace}}_BASENAME', plugin_basename( __FILE__ ) );
 
 // Include helper functions.
-require_once {{namespace|upper}}_DIR . 'inc/helper-functions.php';
+require_once {{upper.namespace}}_DIR . 'inc/helper-functions.php';
 
 // Include the Core class.
-require_once {{namespace|upper}}_DIR . 'inc/class-core.php';
+require_once {{upper.namespace}}_DIR . 'inc/class-core.php';
 
 /**
  * Initialise the plugin and return the main instance.

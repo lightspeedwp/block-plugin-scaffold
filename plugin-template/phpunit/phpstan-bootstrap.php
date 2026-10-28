@@ -5,7 +5,7 @@
  * @package {{namespace}}
  */
 
-define( '{{namespace|upper}}_VERSION', '0.0.0' );
-define( '{{namespace|upper}}_DIR', __DIR__ . '/../' );
-define( '{{namespace|upper}}_URL', 'https://example.test/wp-content/plugins/{{slug}}/' );
-define( '{{namespace|upper}}_BASENAME', '{{slug}}/{{slug}}.php' );
+define( '{{upper.namespace}}_VERSION', '0.0.0' );
+define( '{{upper.namespace}}_DIR', __DIR__ . '/../' );
+define( '{{upper.namespace}}_URL', 'https://example.test/wp-content/plugins/{{slug}}/' );
+define( '{{upper.namespace}}_BASENAME', '{{slug}}/{{slug}}.php' );

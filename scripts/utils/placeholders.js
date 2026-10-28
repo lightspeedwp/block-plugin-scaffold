@@ -25,7 +25,7 @@ const EXAMPLE_CONFIG = applyDefaults({
  * Example value for a tag, or an empty string when the example config has no
  * value for it.
  *
- * @param {string} tag Tag with or without braces, e.g. `slug` or `{{slug|upper}}`.
+ * @param {string} tag Tag with or without braces, e.g. `slug` or `{{upper.slug}}`.
  * @return {string} Rendered example value.
  */
 function getPlaceholder(tag) {

@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $icon_name The icon name in camelCase format (e.g., 'priceIcon').
  * @return string The sanitized SVG content, or empty string if not found.
  */
-function {{namespace|snakeCase}}_get_icon_svg( $icon_type = 'outline', $icon_name = '' ) {
+function {{snakeCase.namespace}}_get_icon_svg( $icon_type = 'outline', $icon_name = '' ) {
 	if ( empty( $icon_name ) ) {
 		return '';
 	}
@@ -128,5 +128,5 @@ function {{namespace|snakeCase}}_get_icon_svg( $icon_type = 'outline', $icon_nam
 	 * @param string $icon_type   The icon type.
 	 * @param string $icon_name   The icon name.
 	 */
-	return apply_filters( '{{namespace|snakeCase}}_icon_svg', $svg_content, $icon_type, $icon_name );
+	return apply_filters( '{{snakeCase.namespace}}_icon_svg', $svg_content, $icon_type, $icon_name );
 }

@@ -57,7 +57,7 @@ class Block_Styles {
 	 * @return array<string> Absolute file paths.
 	 */
 	private function get_style_files() {
-		$directory = {{namespace|upper}}_DIR . 'styles';
+		$directory = {{upper.namespace}}_DIR . 'styles';
 
 		if ( ! is_dir( $directory ) ) {
 			return array();

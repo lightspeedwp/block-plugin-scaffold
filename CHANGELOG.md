@@ -64,6 +64,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Changed
 
+- The generator renders templates with mustache.js (BPS-10). Filters are mustache dotted names: `{{namespace|upper}}` is now `{{upper.namespace}}`, and the same for `lower`, `pascalCase`, `camelCase`, `kebabCase`, `snakeCase` and `title` (which now title-cases instead of returning the value unchanged). Values are not HTML-escaped. A tag with no value fails generation with the file and tag, instead of rendering an empty string; `author_uri` is the one optional tag. `plugin-template/.github/workflows/` is copied without rendering, and `release.yml` reads the slug from `package.json`. Template mode (`--in-place`) renders only `plugin-template/`, not the scaffold's own files. The generated `DEVELOPMENT.md` lists the plugin's names instead of the template tag syntax.
 - Generated plugins use the Gutenberg test layout (BPS-10): `test/unit/` (Vitest), `test/e2e/` (Playwright) and `phpunit/` (PHPUnit and the PHPStan bootstrap), with every config, `.distignore`, `compare-toolchain.js`, the generator's formatting step and the docs updated.
 - Generated plugins use the Gutenberg config names: `eslint.config.mjs`, `prettier.config.mjs`, `.stylelintrc.js` and `phpcs.xml.dist`, and an `.editorconfig` with tabs (spaces for YAML). Template mode removes the scaffold's own copies under the old names. The generated README and the template docs pass markdownlint.
 - Generated plugins: `.distignore` now leaves out `webpack.config.js` (it listed `.cjs`), `vitest.config.mjs`, `playwright.config.js`, `.prettierrc.js`, `.stylelintrc.json`, `{{slug}}-config.json` and `dist/`.
@@ -96,6 +97,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- `src/utils/query.js` defaulted to an empty post type, and content-model plugins with no post types rendered pattern slugs and field group locations with an empty post type. Both now use the first post type, or `post`. `QueryControls` keys `taxQuery` by a `TAXONOMY` constant, which lints and works for slugs with hyphens.
 - Template tags that never had a value now do (BPS-10): `{{taxonomy_slug}}` and `{{post_type_slug}}` (the first taxonomy and post type, or `category` and `post`) for `QueryControls`, `TaxonomyFilter`, `PostSelector` and `useTaxonomies`, which shipped with empty defaults in content-model plugins, and `{{pot_date}}` for the `.pot` header. `TaxonomyFilter` defaulted to `<taxonomy>_category`, which is not registered. The pattern README uses a literal `{post-type}` placeholder.
 - Generated `USAGE.md` and `.pot` files link to the plugin's `repository_url` instead of a GitHub URL built from the author name, which broke when the author had a space (and failed `lint:md:docs`).
 - Generated plugins now get the template's `tests/`, `bin/` and `docs/` folders. The generator's exclude list, meant for the scaffold's own folders, also matched them in `plugin-template/`, so plugins came out without their starter tests or `bin/validate-json.js` (and `npm run lint:json` failed). The generation tests now pass again.

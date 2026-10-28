@@ -48,13 +48,13 @@ class Core {
 	 */
 	public function load_classes() {
 		// Include core classes.
-		require_once {{namespace|upper}}_DIR . 'inc/class-repeater-fields.php';
-		require_once {{namespace|upper}}_DIR . 'inc/class-options.php';
-		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json-validator.php';
-		require_once {{namespace|upper}}_DIR . 'inc/class-scf-json.php';
-		require_once {{namespace|upper}}_DIR . 'inc/class-block-bindings.php';
-		require_once {{namespace|upper}}_DIR . 'inc/class-block-styles.php';
-		require_once {{namespace|upper}}_DIR . 'inc/class-patterns.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-repeater-fields.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-options.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-scf-json-validator.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-scf-json.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-block-bindings.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-block-styles.php';
+		require_once {{upper.namespace}}_DIR . 'inc/class-patterns.php';
 	}
 
 	/**
@@ -76,7 +76,7 @@ class Core {
 	 */
 	public function register_blocks() {
 		// Auto-register all blocks in build/blocks/ (filtered for flexibility).
-		$default_dir = {{namespace|upper}}_DIR . 'build/blocks/';
+		$default_dir = {{upper.namespace}}_DIR . 'build/blocks/';
 		$blocks_dir  = apply_filters( '{{namespace}}_blocks_dir', $default_dir );
 
 		if ( ! is_dir( $blocks_dir ) ) {
@@ -102,14 +102,14 @@ class Core {
 	 */
 	public function enqueue_editor_assets() {
 		// Enqueue the paragraph prefix script with its generated dependencies.
-		$asset_file = {{namespace|upper}}_DIR . 'build/js/blocks/paragraph-prefix.asset.php';
+		$asset_file = {{upper.namespace}}_DIR . 'build/js/blocks/paragraph-prefix.asset.php';
 
 		if ( file_exists( $asset_file ) ) {
 			$asset = require $asset_file;
 
 			wp_enqueue_script(
 				'{{slug}}-paragraph-prefix',
-				{{namespace|upper}}_URL . 'build/js/blocks/paragraph-prefix.js',
+				{{upper.namespace}}_URL . 'build/js/blocks/paragraph-prefix.js',
 				$asset['dependencies'],
 				$asset['version'],
 				true
@@ -147,7 +147,7 @@ class Core {
 		load_plugin_textdomain(
 			'{{textdomain}}',
 			false,
-			dirname( {{namespace|upper}}_BASENAME ) . '/languages'
+			dirname( {{upper.namespace}}_BASENAME ) . '/languages'
 		);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * {{cpt_singular|title}} Collection Block
+ * {{title.cpt_singular}} Collection Block
  *
  * @package
  */

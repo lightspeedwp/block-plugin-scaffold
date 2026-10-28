@@ -19,6 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const Ajv2020 = require('ajv/dist/2020');
+const Mustache = require('mustache');
 
 // Paths
 const scaffoldDir = path.resolve(__dirname, '..');
@@ -536,6 +537,14 @@ function applyDefaults(config) {
 	result.post_type_slug = result.post_types[0]?.slug || 'post';
 	result.taxonomy_slug = result.taxonomies[0]?.slug || 'category';
 
+	// Without a post type, the content-model files (patterns, field groups)
+	// fall back to core posts, and a functional-only plugin's example field
+	// groups in inc/class-repeater-fields.php attach to none.
+	if (result.cpt_slug === undefined) {
+		result.cpt_slug = result.isFunctionalOnly ? '' : result.post_type_slug;
+	}
+
+
 	// gettext date format, e.g. 2026-10-28 12:00+0000.
 	result.pot_date = new Date()
 		.toISOString()
@@ -594,45 +603,125 @@ function applyFilter(value, filter) {
 			value = value.replace(/([a-z])([A-Z])/g, '$1_$2');
 			// Convert spaces and hyphens to underscores
 			return value.toLowerCase().replace(/[-\s]+/g, '_');
+		case 'title':
+			return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
 		default:
 			return value;
 	}
 }
 
+// Filters, as mustache.js dotted names: {{upper.namespace}} renders the
+// namespace in upper case. mustache.js has no filter syntax, so each filter
+// is an object holding every config value with the filter applied.
+const FILTERS = [
+	'upper',
+	'lower',
+	'pascalCase',
+	'camelCase',
+	'kebabCase',
+	'snakeCase',
+	'title',
+];
+
+// Optional values, which render empty when the config leaves them out. Any
+// other tag with no value fails generation (see findUnsetTags()).
+const OPTIONAL_TAGS = { author_uri: '' };
+
+// Copied as they are: mustache.js would read GitHub Actions `${{ ... }}`
+// expressions as tags. Paths are relative to plugin-template/.
+const UNRENDERED_PATHS = ['.github/workflows'];
+
 /**
- * Replace mustache variables in content
- * @param content
- * @param config
+ * Whether a plugin-template/ path is copied without rendering.
+ *
+ * @param {string} relativePath Path relative to plugin-template/.
+ * @return {boolean} True when the file is not rendered.
+ */
+function isUnrendered(relativePath) {
+	return UNRENDERED_PATHS.some(
+		(unrendered) =>
+			relativePath === unrendered ||
+			relativePath.startsWith(`${unrendered}/`)
+	);
+}
+
+/**
+ * Build the mustache.js view: the config, plus one object per filter.
+ *
+ * @param {Object} config Configuration object.
+ * @return {Object} View for Mustache.render().
+ */
+function buildView(config) {
+	const values = { ...OPTIONAL_TAGS, ...config };
+	const scalars = Object.entries(values).filter(([, value]) =>
+		['string', 'number'].includes(typeof value)
+	);
+	const view = { ...values };
+	for (const filter of FILTERS) {
+		view[filter] = Object.fromEntries(
+			scalars.map(([key, value]) => [key, applyFilter(String(value), filter)])
+		);
+	}
+	return view;
+}
+
+/**
+ * Render template tags with mustache.js.
+ *
+ * Values are not HTML-escaped: templates are PHP, JavaScript, JSON and
+ * Markdown, not HTML. Unset tags render as empty strings, as in mustache.js;
+ * findUnsetTags() reports them.
+ *
+ * @param {string} content Template content.
+ * @param {Object} config  Configuration object.
+ * @return {string} Rendered content.
  */
 function replaceMustacheVars(content, config) {
-	let result = content;
-
-	// Replace variables with filters (e.g., EXAMPLE_PLUGIN)
-	result = result.replace(
-		/\{\{([a-z_]+)\|([a-z]+)\}\}/gi,
-		(match, varName, filter) => {
-			const value = config[varName];
-			if (value !== undefined) {
-				return applyFilter(String(value), filter);
-			}
-			return ''; // Return empty string for undefined variables
-		}
-	);
-
-	// Replace simple variables (e.g., example-plugin)
-	result = result.replace(/\{\{([a-z_]+)\}\}/gi, (match, varName) => {
-		const value = config[varName];
-		if (value === undefined) {
-			return ''; // Return empty string for undefined
-		}
-		// Handle arrays by converting to quoted, comma-separated strings for PHP
-		if (Array.isArray(value)) {
-			return value.map(item => `'${item}'`).join(', ');
-		}
-		return String(value);
+	return Mustache.render(content, buildView(config), {}, {
+		escape: (value) => String(value),
 	});
+}
 
-	return result;
+/**
+ * List the tags in a template that have no value in the config.
+ *
+ * @param {string} content Template content.
+ * @param {Object} config  Configuration object.
+ * @return {string[]} Unset tag names, such as `taxonomy_slug` or `upper.foo`.
+ */
+function findUnsetTags(content, config) {
+	const context = new Mustache.Context(buildView(config));
+	const names = new Set();
+	const collect = (tokens) =>
+		tokens.forEach(([type, name, , , children]) => {
+			if (['name', '&', '#', '^'].includes(type)) {
+				names.add(name);
+			}
+			if (children) {
+				collect(children);
+			}
+		});
+	collect(Mustache.parse(content));
+	return [...names].filter((name) => context.lookup(name) === undefined);
+}
+
+// Unset tags found while rendering, as `file: tag` lines. generatePlugin()
+// fails when any are left, rather than writing empty values into the plugin.
+let unsetTags = [];
+
+/**
+ * Render a template file's content or name, recording unset tags.
+ *
+ * @param {string} content Template content or file name.
+ * @param {Object} config  Configuration object.
+ * @param {string} file    Template path, for the error message.
+ * @return {string} Rendered content.
+ */
+function renderTemplate(content, config, file) {
+	findUnsetTags(content, config).forEach((tag) =>
+		unsetTags.push(`${file}: {{${tag}}}`)
+	);
+	return replaceMustacheVars(content, config);
 }
 
 /**
@@ -644,7 +733,10 @@ function replaceMustacheVars(content, config) {
 function copyFileWithReplacement(srcPath, destPath, config) {
 	try {
 		const content = fs.readFileSync(srcPath, 'utf8');
-		const replaced = replaceMustacheVars(content, config);
+		const file = path.relative(PLUGIN_TEMPLATE_DIR, srcPath);
+		const replaced = isUnrendered(file)
+			? content
+			: renderTemplate(content, config, file);
 
 		// Ensure destination directory exists
 		const destDir = path.dirname(destPath);
@@ -691,7 +783,7 @@ function copyDirWithReplacement(srcDir, destDir, config, excludePaths = []) {
 		}
 
 		// Replace mustache in file/dir names
-		const destName = replaceMustacheVars(entry.name, config);
+		const destName = renderTemplate(entry.name, config, relativePath);
 		const destPath = path.join(destDir, destName);
 
 		if (entry.isDirectory()) {
@@ -760,26 +852,14 @@ function stripExcludedModuleExports(outputDir, isFunctionalOnly) {
 
 /**
  * Process files in place (template mode)
- * Replaces mustache variables in files in the current directory
- * @param {string} targetDir - Directory to process
+ * Renders the template tags in plugin-template/, which hoistPluginTemplate()
+ * then moves to the repository root. The scaffold's own files are not rendered.
+ * @param {string} targetDir - plugin-template/ in the repository being converted
  * @param {Object} config    - Configuration object
  */
 function processFilesInPlace(targetDir, config) {
-	// Paths to exclude from processing
-	const excludePaths = [
-		'node_modules',
-		'vendor',
-		'build',
-		'logs',
-		'tmp',
-		'reports',
-		'.git',
-		'.github/reports',
-		'tests',
-		'scripts',
-		'bin',
-		'.dry-run-backup',
-	];
+	// Left behind by installing or building inside plugin-template/.
+	const excludePaths = ['node_modules', 'vendor', 'build'];
 
 	// Process directory recursively
 	function processDirectory(dir) {
@@ -791,7 +871,11 @@ function processFilesInPlace(targetDir, config) {
 
 			// Skip excluded paths
 			if (
-				excludePaths.some((exclude) => relativePath.startsWith(exclude))
+				excludePaths.some(
+					(exclude) =>
+						relativePath === exclude ||
+						relativePath.startsWith(`${exclude}/`)
+				)
 			) {
 				log('DEBUG', `Skipping excluded path: ${relativePath}`);
 				continue;
@@ -803,7 +887,7 @@ function processFilesInPlace(targetDir, config) {
 
 				// Rename directory if it contains mustache variables
 				if (entry.name.includes('{{')) {
-					const newName = replaceMustacheVars(entry.name, config);
+					const newName = renderTemplate(entry.name, config, relativePath);
 					const newPath = path.join(dir, newName);
 					if (fullPath !== newPath) {
 						log(
@@ -816,7 +900,9 @@ function processFilesInPlace(targetDir, config) {
 			} else {
 				// Process file content
 				const fileContent = fs.readFileSync(fullPath, 'utf8');
-				const newContent = replaceMustacheVars(fileContent, config);
+				const newContent = isUnrendered(relativePath)
+					? fileContent
+					: renderTemplate(fileContent, config, relativePath);
 
 				if (fileContent !== newContent) {
 					log(
@@ -828,7 +914,7 @@ function processFilesInPlace(targetDir, config) {
 
 				// Rename file if it contains mustache variables
 				if (entry.name.includes('{{')) {
-					const newName = replaceMustacheVars(entry.name, config);
+					const newName = renderTemplate(entry.name, config, relativePath);
 					const newPath = path.join(dir, newName);
 					if (fullPath !== newPath) {
 						log(
@@ -1046,10 +1132,11 @@ function generatePlugin(config, inPlace = false) {
 	}
 
 	// Render the plugin files with mustache replacement
+	unsetTags = [];
 	if (inPlace) {
 		log('INFO', 'Replacing mustache variables in current directory...');
 		// In template mode, process files in place
-		processFilesInPlace(outputDir, fullConfig);
+		processFilesInPlace(path.join(outputDir, 'plugin-template'), fullConfig);
 		hoistPluginTemplate(outputDir);
 	} else {
 		log('INFO', 'Copying plugin-template files to output directory...');
@@ -1076,6 +1163,14 @@ function generatePlugin(config, inPlace = false) {
 		// Generate src/index.js with dynamic block imports
 		log('INFO', 'Generating src/index.js with block imports');
 		generateSrcIndexFile(outputDir, fullConfig);
+	}
+
+	if (unsetTags.length) {
+		throw new Error(
+			`Template tags with no value in the configuration:\n  ${[
+				...new Set(unsetTags),
+			].join('\n  ')}`
+		);
 	}
 
 	// Generate package.json
@@ -2004,6 +2099,7 @@ if (typeof module !== 'undefined' && module.exports) {
 		applyDefaults,
 		applyFilter,
 		replaceMustacheVars,
+		findUnsetTags,
 		generatePlugin,
 		loadConfigFile,
 	};

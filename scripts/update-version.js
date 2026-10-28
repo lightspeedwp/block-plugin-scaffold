@@ -63,7 +63,7 @@ const filesToUpdate = [
 	{
 		file: path.join(rootDir, 'example-plugin.php'),
 		pattern:
-			/define\(\s*'\{\{namespace\|upper\}\}_VERSION',\s*'[^']+'\s*\)/,
+			/define\(\s*'\{\{upper\.namespace\}\}_VERSION',\s*'[^']+'\s*\)/,
 		replacement: `define( 'EXAMPLE_PLUGIN_VERSION', '${newVersion}' )`,
 	},
 ];

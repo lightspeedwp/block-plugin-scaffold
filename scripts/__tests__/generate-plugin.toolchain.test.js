@@ -220,10 +220,22 @@ describe('generatePlugin: plugin-template files', () => {
 				return;
 			}
 			const content = fs.readFileSync(path.join(outputDir, file), 'utf8');
-			expect([file, content.match(/\{\{[A-Za-z][\w|-]*\}\}/g)]).toEqual([
+			expect([file, content.match(/\{\{[A-Za-z][\w.|-]*\}\}/g)]).toEqual([
 				file,
 				null,
 			]);
+		});
+	});
+
+	it('copies the workflows without rendering their GitHub expressions', () => {
+		['ci.yml', 'changelog.yml', 'release.yml'].forEach((file) => {
+			const workflow = path.join('.github/workflows', file);
+			expect(fs.readFileSync(path.join(outputDir, workflow), 'utf8')).toBe(
+				fs.readFileSync(
+					path.join(__dirname, '../../plugin-template', workflow),
+					'utf8'
+				)
+			);
 		});
 	});
 });
