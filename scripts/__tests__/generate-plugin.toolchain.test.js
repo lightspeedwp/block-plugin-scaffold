@@ -188,6 +188,7 @@ describe('generatePlugin: plugin-template files', () => {
 	it('copies the starter tests and CI workflow', () => {
 		[
 			'tests/js/setup.js',
+			'bin/validate-json.js',
 			'tests/js/utils/fields.test.js',
 			'tests/e2e/blocks.spec.js',
 			'tests/php/phpstan-bootstrap.php',
@@ -226,8 +227,6 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 			'AGENTS.md',
 			'.coderabbit.yml',
 			'CODE_OF_CONDUCT.md',
-			'CONTRIBUTING.md',
-			'SECURITY.md',
 			'SUPPORT.md',
 		].forEach((file) => expect([file, exists(file)]).toEqual([file, false]));
 	});

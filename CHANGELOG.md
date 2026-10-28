@@ -91,6 +91,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- Generated plugins now get the template's `tests/`, `bin/` and `docs/` folders. The generator's exclude list, meant for the scaffold's own folders, also matched them in `plugin-template/`, so plugins came out without their starter tests or `bin/validate-json.js` (and `npm run lint:json` failed). The generation tests now pass again.
 - Generator exclusions matched path prefixes, so `.git` also skipped `.github/`, `.gitignore` and `.gitattributes`; exclusions now match whole paths within `plugin-template/`.
 - Template bugs found by the new tests:
   - the slider rendered nothing in the editor (5 attributes were missing from `block.json`);

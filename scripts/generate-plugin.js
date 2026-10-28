@@ -992,10 +992,8 @@ function generatePlugin(config, inPlace = false) {
 		'.github/reports',
 		'.github/agents',
 		'.github/prompts',
-		'tests',
-		'docs',
+		// tests/, docs/ and bin/ in plugin-template/ belong to the plugin.
 		'scripts',
-		'bin',
 		'.dry-run-backup',
 		'plugin-config.json',
 		// Scaffold lockfiles describe the scaffold's own dependency graph,
