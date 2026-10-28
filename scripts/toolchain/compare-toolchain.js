@@ -62,6 +62,7 @@ const DIRS = [
 	'.codex',
 	'.gemini',
 	'.specify',
+	'guidelines',
 ];
 // Manifest fields compared; metadata such as name and URLs is left out.
 const PACKAGE_FIELDS = [

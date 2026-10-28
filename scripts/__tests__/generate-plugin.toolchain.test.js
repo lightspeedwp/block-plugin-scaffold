@@ -170,6 +170,8 @@ describe('generatePlugin: config files', () => {
 			'.agents/roles/INVENTORY.md',
 			'.claude/agents/reviewer-agent.md',
 			'.claude/settings.json',
+			'guidelines/README.md',
+			'guidelines/css-architecture.md',
 			'.claude/hooks/check-branch.mjs',
 			'.codex/config.toml',
 			'.codex/agents/reviewer-agent.toml',

@@ -741,6 +741,7 @@ tour-operator/
 ├── .claude/                  # Claude Code skill links, agents and hooks
 ├── .codex/ / .gemini/       # Codex and Gemini CLI adapters for the shared roles
 ├── .specify/                 # Spec Kit: templates, scripts and the plugin constitution
+├── guidelines/               # CSS, accessibility, testing, prompt and report guidelines
 ├── tour-operator.code-workspace  # VS Code settings, extensions and tasks
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups

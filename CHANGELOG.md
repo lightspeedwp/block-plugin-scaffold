@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get `guidelines/` (BPS-10, adapted from ThisOneTimeOnAcidCom): CSS architecture, an accessibility checklist, the testing strategy, and prompt and report guides. `compare-toolchain.js` compares `guidelines/`.
 - Generated plugins get Spec Kit 1.0.13 (BPS-10, from ThisOneTimeOnAcidCom) with Claude Code, Codex and Gemini integrations, branch checks through `bin/check-branch-name.js`, and a constitution written for a block plugin. The generator keeps file permissions, copies `.gemini/commands/` and `.specify/workflows/` without rendering their `{{args}}` placeholders, and in template mode replaces the scaffold's own `.specify/`. `compare-toolchain.js` compares `.specify/`.
 - Generated plugins get a Claude Code branch guard (BPS-10, adapted from the `lightspeedwp/.github` hook): `.claude/settings.json` runs `.claude/hooks/check-branch.mjs`, which refuses edits, commits, pushes and new branches that break the branching strategy, using `bin/check-branch-name.js`.
 - Generated plugins get ten agent roles in `.agents/roles/` (BPS-10, adapted from ThisOneTimeOnAcidCom: testing, Playwright, reviewer, document reviewer, pull request, release, changelog, branches, issue and labelling) with adapters for Claude Code, Codex and Gemini CLI. `compare-toolchain.js` compares `.codex/` and `.gemini/`.
