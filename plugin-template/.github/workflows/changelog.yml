@@ -1,0 +1,146 @@
+name: Changelog
+
+# A trimmed copy of the require-gate in lightspeedwp/.github's
+# changelog-unified.yml: the same exemptions and labels, without the
+# organisation's validator scripts, which a plugin does not have.
+
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    # The organisation's check name, so a ruleset that requires
+    # "Validate changelog on PR" matches this job.
+    name: Validate changelog on PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # pull-requests: read for the PR files API.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Require a new CHANGELOG.md entry or the meta:no-changelog label
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map( ( label ) => label.name );
+            const has = ( name ) => labels.includes( name );
+            // Webhooks name bots "slug[bot]"; compare on the bare slug.
+            const author = pr.user.login.replace( /\[bot\]$/, '' );
+
+            if ( author === 'dependabot' ) {
+              core.info( 'Dependabot pull request: no changelog entry needed.' );
+              return;
+            }
+
+            if ( has( 'meta:needs-changelog' ) && has( 'meta:no-changelog' ) ) {
+              core.setFailed( 'Use meta:needs-changelog or meta:no-changelog, not both.' );
+              return;
+            }
+
+            const highImpact = [
+              'type:feature',
+              'type:bug',
+              'type:performance',
+              'type:security',
+              'type:release',
+              'type:hotfix',
+            ];
+            if ( has( 'meta:no-changelog' ) && labels.some( ( label ) => highImpact.includes( label ) ) ) {
+              core.setFailed( 'meta:no-changelog is not allowed with a feature, bug, performance, security, release or hotfix label.' );
+              return;
+            }
+
+            const files = await github.paginate( github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            } );
+            const changed = files.map( ( file ) => file.filename );
+
+            // CHANGELOG.md at a commit, or '' where it does not exist yet.
+            const read = async ( repo, ref ) => {
+              try {
+                const { data } = await github.rest.repos.getContent( {
+                  owner: repo.owner.login,
+                  repo: repo.name,
+                  path: 'CHANGELOG.md',
+                  ref,
+                } );
+                return Buffer.from( data.content, 'base64' ).toString( 'utf8' );
+              } catch ( error ) {
+                if ( error.status === 404 ) {
+                  return '';
+                }
+                throw error;
+              }
+            };
+
+            // The "- " entries under ## [Unreleased], and the version headings.
+            const parse = ( text ) => {
+              const entries = new Set();
+              const versions = new Set();
+              let unreleased = false;
+              let hasUnreleased = false;
+              for ( const line of text.split( /\r?\n/ ) ) {
+                if ( line.startsWith( '## [' ) ) {
+                  unreleased = line.startsWith( '## [Unreleased]' );
+                  hasUnreleased = hasUnreleased || unreleased;
+                  if ( ! unreleased ) {
+                    versions.add( line.trim() );
+                  }
+                } else if ( unreleased && /^\s*- \S/.test( line ) ) {
+                  entries.add( line.trim() );
+                }
+              }
+              return { entries, versions, hasUnreleased };
+            };
+
+            if ( changed.includes( 'CHANGELOG.md' ) ) {
+              const before = parse( await read( pr.base.repo, pr.base.sha ) );
+              const after = parse( await read( pr.head.repo, pr.head.sha ) );
+
+              // Keep a Changelog 1.1.0: entries go under an [Unreleased] heading.
+              if ( ! after.hasUnreleased ) {
+                core.setFailed( "CHANGELOG.md needs a '## [Unreleased]' section (Keep a Changelog)." );
+                return;
+              }
+
+              // A new entry, or a new version section (a release moves entries out of [Unreleased]).
+              const isNew = ( set, old ) => [ ...set ].some( ( item ) => ! old.has( item ) );
+              if ( isNew( after.entries, before.entries ) || isNew( after.versions, before.versions ) ) {
+                core.info( 'CHANGELOG.md has a new entry.' );
+                return;
+              }
+
+              core.info( 'CHANGELOG.md changed, but has no new entry under [Unreleased].' );
+            }
+
+            // Docs-only changes are exempt, but only when the API listed every file.
+            const complete = changed.length >= pr.changed_files;
+            const docsOnly =
+              complete &&
+              changed.length > 0 &&
+              changed.every( ( file ) => file.startsWith( 'docs/' ) || file.endsWith( '.md' ) );
+            if ( docsOnly ) {
+              core.info( 'Docs-only changes: no changelog entry needed.' );
+              return;
+            }
+
+            if ( has( 'meta:no-changelog' ) ) {
+              core.info( 'meta:no-changelog label: no changelog entry needed.' );
+              return;
+            }
+
+            core.setFailed( 'Add an entry under ## [Unreleased] in CHANGELOG.md, or the meta:no-changelog label.' );

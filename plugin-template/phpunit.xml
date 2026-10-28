@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 <phpunit
-	bootstrap="tests/bootstrap.php"
-	backupGlobals="false"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/php/bootstrap.php"
 	colors="true"
-	convertErrorsToExceptions="true"
-	convertNoticesToExceptions="true"
-	convertWarningsToExceptions="true"
+	failOnWarning="true"
+	failOnRisky="true"
+	cacheDirectory=".phpunit.cache"
 >
 	<testsuites>
-		<testsuite name="{{plugin_slug}} Test Suite">
-			<directory suffix=".php">./tests/php</directory>
+		<testsuite name="unit">
+			<directory suffix="Test.php">./tests/php</directory>
 		</testsuite>
 	</testsuites>
-	<coverage>
+	<source>
 		<include>
 			<directory suffix=".php">./inc</directory>
-			<file>./{{plugin_slug}}.php</file>
 		</include>
-	</coverage>
+	</source>
 </phpunit>

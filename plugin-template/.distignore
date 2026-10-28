@@ -28,6 +28,7 @@ package.json
 package-lock.json
 composer.json
 composer.lock
+webpack.config.js
 webpack.config.cjs
 .webpack.config.cjs
 postcss.config.cjs
@@ -36,10 +37,14 @@ stylelint.config.cjs
 .stylelint.config.cjs
 eslint.config.cjs
 .eslint.config.cjs
+vitest.config.mjs
+playwright.config.js
 jest.config.cjs
 .jest.config.cjs
 prettier.config.cjs
 .prettier.config.cjs
+.prettierrc.js
+.stylelintrc.json
 phpunit.xml
 phpcs.xml
 phpstan.neon
@@ -100,8 +105,12 @@ logs/
 *.pid.lock
 tmp/
 
-# Build scripts
+# Build scripts and release output
 bin/
+dist/
+
+# Generator config
+{{slug}}-config.json
 
 # Documentation and reports (dev only)
 docs/
