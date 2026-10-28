@@ -244,7 +244,7 @@ Templates are rendered with [mustache.js](https://github.com/janl/mustache.js/),
 | `{{snakeCase.slug}}` | snake_case | `tour-operator` | `tour_operator` |
 | `{{title.cpt_singular}}` | Title Case | `tour` | `Tour` |
 
-Every tag in a template must have a value: generation fails and lists the file and tag of any that does not, rather than writing an empty string. Files in `plugin-template/.github/workflows/` are copied without rendering, because mustache.js would also read GitHub Actions `${{ ... }}` expressions as tags; workflows read plugin values such as the slug from `package.json` at run time.
+Every tag in a template must have a value: generation fails and lists the file and tag of any that does not, rather than writing an empty string. Files in `plugin-template/.github/workflows/`, `.gemini/commands/` and `.specify/workflows/` are copied without rendering, and every file keeps its permissions (Spec Kit's scripts stay executable), because mustache.js would also read GitHub Actions `${{ ... }}` expressions as tags; workflows read plugin values such as the slug from `package.json` at run time.
 
 **Usage in code:**
 
@@ -740,6 +740,7 @@ tour-operator/
 ├── .agents/                  # Shared agent skills and roles
 ├── .claude/                  # Claude Code skill links, agents and hooks
 ├── .codex/ / .gemini/       # Codex and Gemini CLI adapters for the shared roles
+├── .specify/                 # Spec Kit: templates, scripts and the plugin constitution
 ├── tour-operator.code-workspace  # VS Code settings, extensions and tasks
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups

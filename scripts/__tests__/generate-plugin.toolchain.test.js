@@ -246,6 +246,27 @@ describe('generatePlugin: plugin-template files', () => {
 		});
 	});
 
+	it('keeps Spec Kit placeholders and script permissions', () => {
+		const command = '.gemini/commands/speckit.plan.toml';
+		expect(fs.readFileSync(path.join(outputDir, command), 'utf8')).toBe(
+			fs.readFileSync(
+				path.join(__dirname, '../../plugin-template', command),
+				'utf8'
+			)
+		);
+		expect(
+			fs.statSync(
+				path.join(outputDir, '.specify/scripts/bash/create-new-feature.sh')
+			).mode & 0o111
+		).not.toBe(0);
+		expect(
+			fs.readFileSync(
+				path.join(outputDir, '.specify/memory/constitution.md'),
+				'utf8'
+			)
+		).toContain('# Toolchain Check Constitution');
+	});
+
 	it('copies the workflows without rendering their GitHub expressions', () => {
 		['ci.yml', 'changelog.yml', 'release.yml'].forEach((file) => {
 			const workflow = path.join('.github/workflows', file);

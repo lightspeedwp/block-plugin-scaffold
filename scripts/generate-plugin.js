@@ -628,8 +628,13 @@ const FILTERS = [
 const OPTIONAL_TAGS = { author_uri: '' };
 
 // Copied as they are: mustache.js would read GitHub Actions `${{ ... }}`
-// expressions as tags. Paths are relative to plugin-template/.
-const UNRENDERED_PATHS = ['.github/workflows'];
+// expressions, and Spec Kit's `{{args}}` and `{{ inputs.* }}` placeholders,
+// as tags. Paths are relative to plugin-template/.
+const UNRENDERED_PATHS = [
+	'.github/workflows',
+	'.gemini/commands',
+	'.specify/workflows',
+];
 
 /**
  * Whether a plugin-template/ path is copied without rendering.
@@ -745,6 +750,8 @@ function copyFileWithReplacement(srcPath, destPath, config) {
 		}
 
 		fs.writeFileSync(destPath, replaced, 'utf8');
+		// Keep the executable bit of scripts such as .specify/scripts/bash/*.sh.
+		fs.chmodSync(destPath, fs.statSync(srcPath).mode);
 		log(
 			'DEBUG',
 			`Copied and processed: ${path.relative(scaffoldDir, srcPath)} -> ${path.relative(outputBaseDir, destPath)}`
@@ -976,6 +983,9 @@ function hoistPluginTemplate(targetDir) {
 	for (const file of ['eslint.config.cjs', '.prettierrc.js', '.stylelintrc.json', 'phpcs.xml']) {
 		fs.rmSync(path.join(targetDir, file), { force: true });
 	}
+	// The plugin's Spec Kit replaces the scaffold's own, rather than merging
+	// with it.
+	fs.rmSync(path.join(targetDir, '.specify'), { recursive: true, force: true });
 
 	moveEntries(templateDir, targetDir);
 	fs.rmSync(templateDir, { recursive: true, force: true });
