@@ -15,6 +15,7 @@
  */
 
 const { execFileSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -50,6 +51,14 @@ const PLUGIN_TEMPLATE_DIR = path.join(scaffoldDir, 'plugin-template');
 
 // Standard toolchain proven in a generated plugin (spec 003).
 const STANDARD_TOOLCHAIN = require('./toolchain/standard-toolchain.json');
+
+// Lockfiles for the standard toolchain, proven in lightspeedwp/ls-test. Every
+// generated plugin has the same dependencies, so one pair serves them all;
+// `npm run toolchain:lockfiles` refreshes them (see generateLockfiles).
+const TOOLCHAIN_LOCKFILES = {
+	npm: path.join(__dirname, 'toolchain', 'standard-toolchain.package-lock.json'),
+	composer: path.join(__dirname, 'toolchain', 'standard-toolchain.composer.lock'),
+};
 
 // Block template rendered once per post type (see generatePerCPTBlocks).
 const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
@@ -1120,10 +1129,8 @@ function generatePlugin(config, inPlace = false) {
 		'scripts',
 		'.dry-run-backup',
 		'plugin-config.json',
-		// Scaffold lockfiles describe the scaffold's own dependency graph,
-		// not the regenerated package.json/composer.json written below.
-		// Copying them would ship a stale lock, so generator-mode output
-		// starts without one and `npm install` creates a fresh lock.
+		// Scaffold lockfiles describe the scaffold's own dependency graph.
+		// generateLockfiles() writes the plugin's own lockfiles below.
 		'package-lock.json',
 		'composer.lock',
 	];
@@ -1195,11 +1202,14 @@ function generatePlugin(config, inPlace = false) {
 
 	// Generate package.json
 	log('INFO', 'Generating package.json');
-	generatePackageJson(outputDir, fullConfig);
+	const packageJson = generatePackageJson(outputDir, fullConfig);
 
 	// Generate composer.json
 	log('INFO', 'Generating composer.json');
-	generateComposerJson(outputDir, fullConfig);
+	const composerJson = generateComposerJson(outputDir, fullConfig);
+
+	// Generate package-lock.json and composer.lock
+	generateLockfiles(outputDir, packageJson, composerJson);
 
 	// Generate README.md
 	log('INFO', 'Generating README.md');
@@ -1813,6 +1823,7 @@ function generatePackageJson(outputDir, config) {
 	const packagePath = path.join(outputDir, 'package.json');
 	fs.writeFileSync(packagePath, `${JSON.stringify(packageJson, null, '\t')}\n`, 'utf8');
 	log('INFO', 'Generated package.json');
+	return packageJson;
 }
 
 /**
@@ -1852,6 +1863,93 @@ function generateComposerJson(outputDir, config) {
 		'utf8'
 	);
 	log('INFO', 'Generated composer.json');
+	return composerJson;
+}
+
+/**
+ * Composer's content-hash for a composer.json, as Locker::getContentHash()
+ * computes it: the MD5 of the relevant keys, sorted, encoded as PHP's
+ * json_encode() does by default (escaped slashes and non-ASCII characters).
+ *
+ * @param {Object} composerJson Parsed composer.json.
+ * @return {string} The hash.
+ */
+function composerContentHash(composerJson) {
+	const relevant = {};
+	for (const key of [
+		'name',
+		'version',
+		'require',
+		'require-dev',
+		'conflict',
+		'replace',
+		'provide',
+		'minimum-stability',
+		'prefer-stable',
+		'repositories',
+		'extra',
+	]) {
+		if (key in composerJson) {
+			relevant[key] = composerJson[key];
+		}
+	}
+	if (composerJson.config?.platform) {
+		relevant.config = { platform: composerJson.config.platform };
+	}
+	const sorted = Object.fromEntries(
+		Object.keys(relevant)
+			.sort()
+			.map((key) => [key, relevant[key]])
+	);
+	const encoded = JSON.stringify(sorted)
+		.replace(/\//g, '\\/')
+		.replace(
+			/[\u007f-\uffff]/g,
+			(char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`
+		);
+	return crypto.createHash('md5').update(encoded).digest('hex');
+}
+
+/**
+ * Write package-lock.json and composer.lock from the standard toolchain's
+ * lockfiles, with this plugin's name, version and content-hash, so `npm ci`
+ * and `composer install` install the versions proven in ls-test.
+ *
+ * @param {string} outputDir    Plugin directory.
+ * @param {Object} packageJson  The generated package.json.
+ * @param {Object} composerJson The generated composer.json.
+ */
+function generateLockfiles(outputDir, packageJson, composerJson) {
+	const npmLock = JSON.parse(fs.readFileSync(TOOLCHAIN_LOCKFILES.npm, 'utf8'));
+	npmLock.name = packageJson.name;
+	npmLock.version = packageJson.version;
+	Object.assign(npmLock.packages[''], {
+		name: packageJson.name,
+		version: packageJson.version,
+		license: packageJson.license,
+	});
+	fs.writeFileSync(
+		path.join(outputDir, 'package-lock.json'),
+		// npm keeps package.json's tab indentation in its lockfile.
+		`${JSON.stringify(npmLock, null, '\t')}\n`,
+		'utf8'
+	);
+
+	const composerLock = JSON.parse(
+		fs.readFileSync(TOOLCHAIN_LOCKFILES.composer, 'utf8')
+	);
+	composerLock['content-hash'] = composerContentHash(composerJson);
+	composerLock.platform = Object.fromEntries(
+		Object.entries(composerJson.require).filter(([name]) =>
+			/^(php|ext-|lib-)/.test(name)
+		)
+	);
+	fs.writeFileSync(
+		path.join(outputDir, 'composer.lock'),
+		`${JSON.stringify(composerLock, null, 4)}\n`,
+		'utf8'
+	);
+	log('INFO', 'Generated package-lock.json and composer.lock');
 }
 
 /**
@@ -2122,6 +2220,7 @@ if (typeof module !== 'undefined' && module.exports) {
 		findUnsetTags,
 		generatePlugin,
 		loadConfigFile,
+		composerContentHash,
 	};
 }
 
