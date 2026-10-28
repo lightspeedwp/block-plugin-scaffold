@@ -982,6 +982,28 @@ function generatePlugin(config, inPlace = false) {
 		// renders one {post-type}-collection block from it per post type, and
 		// is skipped entirely in functional-only mode.
 		COLLECTION_BLOCK_TEMPLATE,
+		'logs',
+		'tmp',
+		'reports',
+		'generated-plugins',
+		'output-plugin',
+		'output',
+		'.git',
+		'.github/reports',
+		'.github/agents',
+		'.github/prompts',
+		'tests',
+		'docs',
+		'scripts',
+		'bin',
+		'.dry-run-backup',
+		'plugin-config.json',
+		// Scaffold lockfiles describe the scaffold's own dependency graph,
+		// not the regenerated package.json/composer.json written below.
+		// Copying them would ship a stale lock, so generator-mode output
+		// starts without one and `npm install` creates a fresh lock.
+		'package-lock.json',
+		'composer.lock',
 	];
 
 	// Functional-only mode: exclude the static content-model files that
