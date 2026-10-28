@@ -244,7 +244,7 @@ Templates are rendered with [mustache.js](https://github.com/janl/mustache.js/),
 | `{{snakeCase.slug}}` | snake_case | `tour-operator` | `tour_operator` |
 | `{{title.cpt_singular}}` | Title Case | `tour` | `Tour` |
 
-Every tag in a template must have a value: generation fails and lists the file and tag of any that does not, rather than writing an empty string. Files in `plugin-template/.github/workflows/` are copied without rendering, because mustache.js would also read GitHub Actions `${{ ... }}` expressions as tags; workflows read plugin values such as the slug from `package.json` at run time.
+Every tag in a template must have a value: generation fails and lists the file and tag of any that does not, rather than writing an empty string. Files in `plugin-template/.github/workflows/`, `.gemini/commands/` and `.specify/workflows/` are copied without rendering, and every file keeps its permissions (Spec Kit's scripts stay executable), because mustache.js would also read GitHub Actions `${{ ... }}` expressions as tags; workflows read plugin values such as the slug from `package.json` at run time.
 
 **Usage in code:**
 
@@ -736,12 +736,18 @@ tour-operator/
 ├── test/unit/ & test/e2e/    # Starter Vitest and Playwright tests
 ├── phpunit/                  # PHPUnit tests and the PHPStan bootstrap
 ├── docs/                     # Project-specific documentation
+├── AGENTS.md / CLAUDE.md     # Agent instructions (defer to the organisation rules)
+├── .agents/                  # Shared agent skills and roles
+├── .claude/                  # Claude Code skill links, agents and hooks
+├── .codex/ / .gemini/       # Codex and Gemini CLI adapters for the shared roles
+├── .specify/                 # Spec Kit: templates, scripts and the plugin constitution
+├── guidelines/               # CSS, accessibility, testing, prompt and report guidelines
 ├── tour-operator.code-workspace  # VS Code settings, extensions and tasks
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups
 ```
 
-Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) is tooling and is never copied. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
+Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, its own AI tool settings and `AGENTS.md`, Lighthouse, size-limit) is tooling and is never copied; generated plugins get their own `AGENTS.md`, `CLAUDE.md` and agent folders from `plugin-template/`. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
 
 ### 2. Install Dependencies
 

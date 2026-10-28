@@ -165,6 +165,18 @@ describe('generatePlugin: config files', () => {
 			'jsconfig.json',
 			'tools/webpack/extra-entries.js',
 			'.coderabbit.yml',
+			'AGENTS.md',
+			'CLAUDE.md',
+			'.agents/roles/INVENTORY.md',
+			'.claude/agents/reviewer-agent.md',
+			'.claude/settings.json',
+			'guidelines/README.md',
+			'guidelines/css-architecture.md',
+			'.claude/hooks/check-branch.mjs',
+			'.codex/config.toml',
+			'.codex/agents/reviewer-agent.toml',
+			'.gemini/settings.json',
+			'.gemini/agents/reviewer-agent.md',
 			'toolchain-check.code-workspace',
 			'docs/README.md',
 			'docs/INTERACTIVITY-AND-DATAVIEWS.md',
@@ -227,6 +239,36 @@ describe('generatePlugin: plugin-template files', () => {
 		});
 	});
 
+	it('keeps the Claude skill links to the shared skills', () => {
+		['test', 'validate', 'changelog', 'branch-validation'].forEach((skill) => {
+			const link = path.join(outputDir, '.claude/skills', skill);
+			expect(fs.lstatSync(link).isSymbolicLink()).toBe(true);
+			expect(fs.readlinkSync(link)).toBe(`../../.agents/skills/${skill}`);
+			expect(fs.existsSync(path.join(link, 'SKILL.md'))).toBe(true);
+		});
+	});
+
+	it('keeps Spec Kit placeholders and script permissions', () => {
+		const command = '.gemini/commands/speckit.plan.toml';
+		expect(fs.readFileSync(path.join(outputDir, command), 'utf8')).toBe(
+			fs.readFileSync(
+				path.join(__dirname, '../../plugin-template', command),
+				'utf8'
+			)
+		);
+		expect(
+			fs.statSync(
+				path.join(outputDir, '.specify/scripts/bash/create-new-feature.sh')
+			).mode & 0o111
+		).not.toBe(0);
+		expect(
+			fs.readFileSync(
+				path.join(outputDir, '.specify/memory/constitution.md'),
+				'utf8'
+			)
+		).toContain('# Toolchain Check Constitution');
+	});
+
 	it('copies the workflows without rendering their GitHub expressions', () => {
 		['ci.yml', 'changelog.yml', 'release.yml'].forEach((file) => {
 			const workflow = path.join('.github/workflows', file);
@@ -244,7 +286,7 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 	it('does not copy them into the plugin', () => {
 		[
 			'.devcontainer',
-			'.gemini',
+			'.gemini/settings.local.json',
 			'.gpt',
 			'.qodo',
 			'.mustacheignore',
@@ -252,7 +294,6 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 			'.size-limit.json',
 			'codecov.yml',
 			'VERSION',
-			'AGENTS.md',
 			'CODE_OF_CONDUCT.md',
 			'SUPPORT.md',
 		].forEach((file) => expect([file, exists(file)]).toEqual([file, false]));

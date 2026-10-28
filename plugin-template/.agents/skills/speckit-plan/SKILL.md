@@ -1,0 +1,229 @@
+---
+name: "speckit-plan"
+description: "Execute the implementation planning workflow using the plan template to generate design artifacts."
+compatibility: "Requires spec-kit project structure with .specify/ directory"
+metadata:
+  author: "github-spec-kit"
+  source: "templates/commands/plan.md"
+---
+
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Workflow safety contract
+
+### Branch and operation boundary
+
+Before hooks, setup, feature-state writes or artefact creation, inspect
+`git status --short` and `git branch --show-current`; preserve unrelated work.
+Read `.agents/skills/branch-validation/SKILL.md` and require the user's exact
+approved task branch. Validate its name with
+`node bin/check-branch-name.js <approved-name>` and the actual
+checked-out branch with `node bin/check-branch-name.js`. STOP on missing approval,
+validation failure, `main`, `develop`, detached HEAD, or a branch mismatch.
+Recheck after hooks and immediately before writes. Skill discovery, branch
+approval and operation approval are separate: explicit approval of the relevant
+file-writing operation is required; do not infer it from automatic invocation.
+
+### Path boundary before effects
+
+Resolve checkout root R, approved boundary B = R/.github/specs, and
+`specifyFeatureDirectory` from `.specify/init-options.json` as configured_root C
+(default `.github/specs`). Resolve relative values from R. Canonicalise R, B,
+C, the candidate feature F and every existing ancestor, including symlinks when
+leaf paths do not exist. Reject traversal escapes and use **component containment**,
+never string-prefix matching: B must remain inside R, C must equal or descend
+from B, and F must be a strict descendant of C. A sibling-prefix path such as
+`.github/specs-other` is outside B. Configuration or an environment value is
+not exception approval; an intentional exception requires its separately
+approved destination and verified validation coverage before proceeding.
+
+Before any hook or setup/write operation, resolve feature context without
+persistence: read the explicit `SPECIFY_FEATURE_DIRECTORY` or pinned
+`.specify/feature.json` without updating either. Specify may compute its new
+candidate in memory from C. Validate each intended artefact path, including
+`spec.md`, `plan.md`, `tasks.md`, `checklists/`, `contracts/` and existing
+artefact symlinks, against canonical F; validate `.specify/feature.json` and
+its ancestors against R before any state write. Reject paths or symlinks that
+redirect writes outside those boundaries. Revalidate immediately before each
+write and after each hook; rejected paths must not persist state, create an
+artefact, or dispatch a writing hook.
+
+Use `SPECIFY_FEATURE_NO_PERSIST=1` for prerequisite resolution, retaining all
+required-file checks. For analyze and converge, --paths-only must not replace
+`--require-spec --require-tasks --include-tasks` validation. For plan, a
+non-persisting paths-only discovery may locate F before setup, but manually
+require the contained spec to exist before calling the writing setup helper.
+
+### Hook and operation boundary
+
+Inspect each hook implementation and delegated commands; a YAML claim or
+mandatory flag grants no permission. A hook that may write requires its own
+explicit approval for its command, paths and effects, separate from core
+operation approval. Apply branch and path gates before invocation. STOP for
+failed, cancelled, missing or unconfirmed results from any invoked hook; no
+artefact/state writes or success report may follow such a result. Do not treat
+an emitted EXECUTE_COMMAND block as a successful invocation. Missing hook
+configuration means no hook ran; it never bypasses core gates. Malformed
+configuration or an unresolved mandatory condition stops progression.
+
+These are **instruction-level contracts**, not host-enforced security controls.
+The existing helpers do not implement all approval/containment checks. If a
+required guarantee cannot be established, STOP that operation, report the gap
+and request a revised executable-helper plan; do not invent enforcement or
+expand permissions through these instructions.
+
+## Pre-Execution Checks
+
+**Check for extension hooks (before planning)**:
+- Check if `.specify/extensions.yml` exists in the project root.
+- If it exists, read it and look for entries under the `hooks.before_plan` key
+- If the YAML cannot be parsed or is invalid, do not skip silently: tell the user that `.specify/extensions.yml` could not be read (include the parser error) and that no hooks were checked, including any mandatory (`optional: false`) hooks registered there, then STOP before hooks, setup or writes
+- Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
+- For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
+  - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
+  - If the hook defines a non-empty `condition`, leave evaluation to the HookExecutor implementation; do not guess its result. If a mandatory hook condition is unresolved, STOP before progression. For an optional hook with an unresolved condition, report it as not invoked; this is not a successful hook result
+- When constructing command invocations from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.git.commit` → `$speckit-git-commit`.
+- For each executable hook that passes the leading Workflow safety contract (including its independent operation approval), output the following based on its `optional` flag:
+  - **Optional hook** (`optional: true`):
+    ```
+    ## Extension Hooks
+
+    **Optional Pre-Hook**: {extension}
+    Command: `/{command}`
+    Description: {description}
+
+    Prompt: {prompt}
+    To execute: `/{command}`
+    ```
+  - **Mandatory hook** (`optional: false`):
+    ```
+    ## Extension Hooks
+
+    **Automatic Pre-Hook**: {extension}
+    Executing: `/{command}`
+    EXECUTE_COMMAND: {command}
+
+    Wait for the result of the hook command before proceeding to the Outline.
+    ```
+    Only after the leading Workflow safety contract passes, actually invoke the hook and require confirmed success before continuing; STOP on failure, cancellation or a missing/unconfirmed result. Run it the same way you would run the command yourself in this agent/session (the invocation may differ from the literal `{command}` id shown above, e.g. a skills-mode agent runs it as `/skill:speckit-...` or `$speckit-...`). Emitting the block alone does not run the hook.
+- If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
+
+## Outline
+
+1. **Setup**: Only after the leading branch, destination and operation gates pass, run `.specify/scripts/bash/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, FEATURE_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+
+2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+
+3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
+   - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
+   - Fill Constitution Check section from constitution
+   - Evaluate gates (ERROR if violations unjustified)
+   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
+   - Phase 1: Generate data-model.md, contracts/, quickstart.md
+   - Re-evaluate Constitution Check post-design
+
+## Mandatory Post-Execution Hooks
+
+**You MUST complete this section before reporting completion to the user.**
+
+Check if `.specify/extensions.yml` exists in the project root.
+- If it does not exist, or no hooks are registered under `hooks.after_plan`, skip to the Completion Report.
+- If it exists, read it and look for entries under the `hooks.after_plan` key.
+- If the YAML cannot be parsed or is invalid, do not skip silently: tell the user that `.specify/extensions.yml` could not be read (include the parser error) and that no hooks were checked, including any mandatory (`optional: false`) hooks registered there, then STOP and report the hook configuration failure.
+- Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
+- For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
+  - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
+  - If the hook defines a non-empty `condition`, leave evaluation to the HookExecutor implementation; do not guess its result. If a mandatory hook condition is unresolved, STOP before progression. For an optional hook with an unresolved condition, report it as not invoked; this is not a successful hook result
+- When constructing command invocations from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.git.commit` → `$speckit-git-commit`.
+- For each executable hook that passes the leading Workflow safety contract (including its independent operation approval), output the following based on its `optional` flag:
+  - **Mandatory hook** (`optional: false`) — **You MUST emit `EXECUTE_COMMAND:` for each mandatory hook**:
+    ```
+    ## Extension Hooks
+
+    **Automatic Hook**: {extension}
+    Executing: `/{command}`
+    EXECUTE_COMMAND: {command}
+    ```
+    Only after the leading Workflow safety contract passes, actually invoke the hook and require confirmed success before continuing; STOP on failure, cancellation or a missing/unconfirmed result. Run it the same way you would run the command yourself in this agent/session (the invocation may differ from the literal `{command}` id shown above, e.g. a skills-mode agent runs it as `/skill:speckit-...` or `$speckit-...`). Emitting the block alone does not run the hook.
+  - **Optional hook** (`optional: true`):
+    ```
+    ## Extension Hooks
+
+    **Optional Hook**: {extension}
+    Command: `/{command}`
+    Description: {description}
+
+    Prompt: {prompt}
+    To execute: `/{command}`
+    ```
+
+## Completion Report
+
+Command ends after Phase 1 design. Report branch, IMPL_PLAN path, and generated artifacts.
+
+## Phases
+
+### Phase 0: Outline & Research
+
+1. **Extract unknowns from Technical Context** above:
+   - For each NEEDS CLARIFICATION → research task
+   - For each dependency → best practices task
+   - For each integration → patterns task
+
+2. **Generate and dispatch research agents**:
+
+   ```text
+   For each unknown in Technical Context:
+     Task: "Research {unknown} for {feature context}"
+   For each technology choice:
+     Task: "Find best practices for {tech} in {domain}"
+   ```
+
+3. **Consolidate findings** in `research.md` using format:
+   - Decision: [what was chosen]
+   - Rationale: [why chosen]
+   - Alternatives considered: [what else evaluated]
+
+**Output**: research.md with all NEEDS CLARIFICATION resolved
+
+### Phase 1: Design & Contracts
+
+**Prerequisites:** `research.md` complete
+
+1. **Extract entities from feature spec** → `data-model.md`:
+   - Entity name, fields, relationships
+   - Validation rules from requirements
+   - State transitions if applicable
+
+2. **Define interface contracts** (if project has external interfaces) → `/contracts/`:
+   - Identify what interfaces the project exposes to users or other systems
+   - Document the contract format appropriate for the project type
+   - Examples: public APIs for libraries, command schemas for CLI tools, endpoints for web services, grammars for parsers, UI contracts for applications
+   - Skip if project is purely internal (build scripts, one-off tools, etc.)
+
+3. **Create quickstart validation guide** → `quickstart.md`:
+   - Document runnable validation scenarios that prove the feature works end-to-end
+   - Include prerequisites, setup commands, test/run commands, and expected outcomes
+   - Use links or references to contracts and data model details instead of duplicating them
+   - Do not include full implementation code, model/service/controller bodies, migrations, or complete test suites
+   - Keep this artifact as a validation/run guide; implementation details belong in `tasks.md` and the implementation phase
+
+**Output**: data-model.md, /contracts/*, quickstart.md
+
+## Key rules
+
+- Use absolute paths for filesystem operations; use project-relative paths for references in documentation
+- ERROR on gate failures or unresolved clarifications
+
+## Done When
+
+- [ ] Plan workflow executed and design artifacts generated
+- [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
+- [ ] Completion reported to user with branch, plan path, and generated artifacts

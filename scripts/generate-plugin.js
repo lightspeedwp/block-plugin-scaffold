@@ -628,8 +628,13 @@ const FILTERS = [
 const OPTIONAL_TAGS = { author_uri: '' };
 
 // Copied as they are: mustache.js would read GitHub Actions `${{ ... }}`
-// expressions as tags. Paths are relative to plugin-template/.
-const UNRENDERED_PATHS = ['.github/workflows'];
+// expressions, and Spec Kit's `{{args}}` and `{{ inputs.* }}` placeholders,
+// as tags. Paths are relative to plugin-template/.
+const UNRENDERED_PATHS = [
+	'.github/workflows',
+	'.gemini/commands',
+	'.specify/workflows',
+];
 
 /**
  * Whether a plugin-template/ path is copied without rendering.
@@ -745,6 +750,8 @@ function copyFileWithReplacement(srcPath, destPath, config) {
 		}
 
 		fs.writeFileSync(destPath, replaced, 'utf8');
+		// Keep the executable bit of scripts such as .specify/scripts/bash/*.sh.
+		fs.chmodSync(destPath, fs.statSync(srcPath).mode);
 		log(
 			'DEBUG',
 			`Copied and processed: ${path.relative(scaffoldDir, srcPath)} -> ${path.relative(outputBaseDir, destPath)}`
@@ -785,6 +792,14 @@ function copyDirWithReplacement(srcDir, destDir, config, excludePaths = []) {
 		// Replace mustache in file/dir names
 		const destName = renderTemplate(entry.name, config, relativePath);
 		const destPath = path.join(destDir, destName);
+
+		// Links such as .claude/skills/test -> ../../.agents/skills/test stay
+		// links, with the same relative target.
+		if (entry.isSymbolicLink()) {
+			fs.rmSync(destPath, { force: true });
+			fs.symlinkSync(fs.readlinkSync(srcPath), destPath);
+			continue;
+		}
 
 		if (entry.isDirectory()) {
 			if (!fs.existsSync(destPath)) {
@@ -869,8 +884,10 @@ function processFilesInPlace(targetDir, config) {
 			const fullPath = path.join(dir, entry.name);
 			const relativePath = path.relative(targetDir, fullPath);
 
-			// Skip excluded paths
+			// Skip excluded paths, and links: their targets are rendered
+			// where they live.
 			if (
+				entry.isSymbolicLink() ||
 				excludePaths.some(
 					(exclude) =>
 						relativePath === exclude ||
@@ -966,6 +983,9 @@ function hoistPluginTemplate(targetDir) {
 	for (const file of ['eslint.config.cjs', '.prettierrc.js', '.stylelintrc.json', 'phpcs.xml']) {
 		fs.rmSync(path.join(targetDir, file), { force: true });
 	}
+	// The plugin's Spec Kit replaces the scaffold's own, rather than merging
+	// with it.
+	fs.rmSync(path.join(targetDir, '.specify'), { recursive: true, force: true });
 
 	moveEntries(templateDir, targetDir);
 	fs.rmSync(templateDir, { recursive: true, force: true });
