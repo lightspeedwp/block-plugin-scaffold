@@ -165,6 +165,8 @@ describe('generatePlugin: config files', () => {
 			'jsconfig.json',
 			'tools/webpack/extra-entries.js',
 			'.coderabbit.yml',
+			'AGENTS.md',
+			'CLAUDE.md',
 			'toolchain-check.code-workspace',
 			'docs/README.md',
 			'docs/INTERACTIVITY-AND-DATAVIEWS.md',
@@ -252,7 +254,6 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 			'.size-limit.json',
 			'codecov.yml',
 			'VERSION',
-			'AGENTS.md',
 			'CODE_OF_CONDUCT.md',
 			'SUPPORT.md',
 		].forEach((file) => expect([file, exists(file)]).toEqual([file, false]));

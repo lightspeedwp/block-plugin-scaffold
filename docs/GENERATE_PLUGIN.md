@@ -741,7 +741,7 @@ tour-operator/
 └── scf-json/                 # SCF field groups
 ```
 
-Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, AI tool settings, Lighthouse, size-limit, the scaffold's `AGENTS.md`) is tooling and is never copied. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
+Every file in a generated plugin comes from `plugin-template/`, apart from `package.json`, `composer.json`, `README.md` and `CHANGELOG.md`, which the generator writes, and the per-post-type collection blocks, which it renders from `plugin-template/src/blocks/collection/`. Everything else in the scaffold (the generator, its tests, its own AI tool settings and `AGENTS.md`, Lighthouse, size-limit) is tooling and is never copied; generated plugins get their own `AGENTS.md`, `CLAUDE.md` and agent folders from `plugin-template/`. In template mode (`--in-place`), the rendered `plugin-template/` files are moved up to the repository root. Generated plugins get their own `.coderabbit.yml` (which inherits the LightSpeed organisation settings), `SECURITY.md` and `CONTRIBUTING.md`; the code of conduct and support files are inherited from the organisation.
 
 ### 2. Install Dependencies
 

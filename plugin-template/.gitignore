@@ -30,3 +30,6 @@ Thumbs.db
 
 # Playwright artifacts
 artifacts/
+
+# Claude Code machine-specific settings
+.claude/settings.local.json
