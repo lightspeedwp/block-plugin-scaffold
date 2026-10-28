@@ -51,7 +51,15 @@ const FILES = [
 	'webpack.config.js',
 ];
 // Folders whose files are all compared.
-const DIRS = ['bin', 'tools', 'test/unit', 'test/e2e', 'phpunit'];
+const DIRS = [
+	'bin',
+	'tools',
+	'test/unit',
+	'test/e2e',
+	'phpunit',
+	'.agents',
+	'.claude',
+];
 // Manifest fields compared; metadata such as name and URLs is left out.
 const PACKAGE_FIELDS = [
 	'engines',
@@ -93,6 +101,10 @@ function readComparable(root, file) {
 	const full = path.join(root, file);
 	if (!fs.existsSync(full)) {
 		return null;
+	}
+	// Compare a link by its target, not by the folder it points to.
+	if (fs.lstatSync(full).isSymbolicLink()) {
+		return `symlink -> ${fs.readlinkSync(full)}\n`;
 	}
 	const content = fs.readFileSync(full, 'utf8');
 	const fields = { 'package.json': PACKAGE_FIELDS, 'composer.json': COMPOSER_FIELDS }[file];

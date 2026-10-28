@@ -155,3 +155,11 @@ assets/
 
 # Other config files
 CODEOWNERS
+
+# AI agent instructions, skills, roles and Spec Kit
+.agents/
+.claude/
+.codex/
+.gemini/
+.specify/
+guidelines/

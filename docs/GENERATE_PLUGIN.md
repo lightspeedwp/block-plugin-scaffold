@@ -736,6 +736,9 @@ tour-operator/
 ├── test/unit/ & test/e2e/    # Starter Vitest and Playwright tests
 ├── phpunit/                  # PHPUnit tests and the PHPStan bootstrap
 ├── docs/                     # Project-specific documentation
+├── AGENTS.md / CLAUDE.md     # Agent instructions (defer to the organisation rules)
+├── .agents/                  # Shared agent skills and roles
+├── .claude/                  # Claude Code skill links, agents and hooks
 ├── tour-operator.code-workspace  # VS Code settings, extensions and tasks
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups

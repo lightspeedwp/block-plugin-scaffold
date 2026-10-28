@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Generated plugins get agent skills in `.agents/skills/` (BPS-10, adapted from ThisOneTimeOnAcidCom): `test`, `validate`, `changelog` and `branch-validation`, linked into `.claude/skills/`, and `bin/check-branch-name.js`, one branch check with the organisation's rules that the pre-commit hook now calls. The generator copies symlinks as links (template mode leaves them alone), and `compare-toolchain.js` compares `.agents/`, `.claude/`, `AGENTS.md`, `CLAUDE.md` and `.gitignore`, with links compared by target.
 - Generated plugins get `AGENTS.md` and `CLAUDE.md` (BPS-10, adapted from ThisOneTimeOnAcidCom): agent instructions that defer to the LightSpeed organisation rules and add the plugin's commands, checks, standards and agent layout. `.gitignore` ignores `.claude/settings.local.json`.
 - Generated plugins get `{{slug}}.code-workspace` (VS Code settings, extensions and tasks), their own `.coderabbit.yml` (plugin review rules on top of the organisation settings) and `docs/`, with an index and the Interactivity API and DataViews guide that `DEVELOPMENT.md` links to (BPS-10).
 - Generated plugins get the build configuration from the Gutenberg layout (BPS-10): `.browserslistrc`, `postcss.config.mjs`, `tsconfig.json`, `tsconfig.build.json`, `jsconfig.json` and `tools/webpack/extra-entries.js`, which `webpack.config.js` uses. CSS now targets the WordPress browser list; JavaScript output is unchanged.

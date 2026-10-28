@@ -786,6 +786,14 @@ function copyDirWithReplacement(srcDir, destDir, config, excludePaths = []) {
 		const destName = renderTemplate(entry.name, config, relativePath);
 		const destPath = path.join(destDir, destName);
 
+		// Links such as .claude/skills/test -> ../../.agents/skills/test stay
+		// links, with the same relative target.
+		if (entry.isSymbolicLink()) {
+			fs.rmSync(destPath, { force: true });
+			fs.symlinkSync(fs.readlinkSync(srcPath), destPath);
+			continue;
+		}
+
 		if (entry.isDirectory()) {
 			if (!fs.existsSync(destPath)) {
 				fs.mkdirSync(destPath, { recursive: true });
@@ -869,8 +877,10 @@ function processFilesInPlace(targetDir, config) {
 			const fullPath = path.join(dir, entry.name);
 			const relativePath = path.relative(targetDir, fullPath);
 
-			// Skip excluded paths
+			// Skip excluded paths, and links: their targets are rendered
+			// where they live.
 			if (
+				entry.isSymbolicLink() ||
 				excludePaths.some(
 					(exclude) =>
 						relativePath === exclude ||

@@ -229,6 +229,15 @@ describe('generatePlugin: plugin-template files', () => {
 		});
 	});
 
+	it('keeps the Claude skill links to the shared skills', () => {
+		['test', 'validate', 'changelog', 'branch-validation'].forEach((skill) => {
+			const link = path.join(outputDir, '.claude/skills', skill);
+			expect(fs.lstatSync(link).isSymbolicLink()).toBe(true);
+			expect(fs.readlinkSync(link)).toBe(`../../.agents/skills/${skill}`);
+			expect(fs.existsSync(path.join(link, 'SKILL.md'))).toBe(true);
+		});
+	});
+
 	it('copies the workflows without rendering their GitHub expressions', () => {
 		['ci.yml', 'changelog.yml', 'release.yml'].forEach((file) => {
 			const workflow = path.join('.github/workflows', file);
