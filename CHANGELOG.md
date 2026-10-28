@@ -105,6 +105,7 @@ All components use mustache placeholders and follow WordPress accessibility and 
 
 ### Fixed
 
+- The tag scanner (`scripts/utils/scan.js`) reads mustache dotted filter tags such as `{{upper.namespace}}` as the variable they filter, and skips GitHub Actions `${{ ... }}` expressions. `scripts/mustache-variables-registry.json` is regenerated: it lists the tags templates use now, without the old `{{name|filter}}` forms or the theme tags no file uses.
 - `src/utils/query.js` defaulted to an empty post type, and content-model plugins with no post types rendered pattern slugs and field group locations with an empty post type. Both now use the first post type, or `post`. `QueryControls` keys `taxQuery` by a `TAXONOMY` constant, which lints and works for slugs with hyphens.
 - Template tags that never had a value now do (BPS-10): `{{taxonomy_slug}}` and `{{post_type_slug}}` (the first taxonomy and post type, or `category` and `post`) for `QueryControls`, `TaxonomyFilter`, `PostSelector` and `useTaxonomies`, which shipped with empty defaults in content-model plugins, and `{{pot_date}}` for the `.pot` header. `TaxonomyFilter` defaulted to `<taxonomy>_category`, which is not registered. The pattern README uses a literal `{post-type}` placeholder.
 - Generated `USAGE.md` and `.pot` files link to the plugin's `repository_url` instead of a GitHub URL built from the author name, which broke when the author had a space (and failed `lint:md:docs`).

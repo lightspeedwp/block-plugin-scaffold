@@ -10,6 +10,7 @@ const path = require('path');
 const {
 	scanDirectory,
 	extractVariables,
+	variableName,
 	SCAN_DIRS,
 } = require('../utils/scan');
 
@@ -56,7 +57,7 @@ function gatherTemplateFiles() {
  * @return {Array<string>}
  */
 function collectVariableNames(content) {
-	return extractVariables(content).map((entry) => entry.split('|')[0]);
+	return extractVariables(content).map(variableName);
 }
 
 /**
