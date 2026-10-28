@@ -4,3 +4,6 @@
 coverage/**
 playwright-report/**
 test-results/**
+# Agent adapters: front matter for each tool, not documents.
+.claude/agents/**
+.gemini/agents/**

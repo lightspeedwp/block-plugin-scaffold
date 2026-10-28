@@ -59,6 +59,8 @@ const DIRS = [
 	'phpunit',
 	'.agents',
 	'.claude',
+	'.codex',
+	'.gemini',
 ];
 // Manifest fields compared; metadata such as name and URLs is left out.
 const PACKAGE_FIELDS = [

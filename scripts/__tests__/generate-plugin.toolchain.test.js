@@ -167,6 +167,12 @@ describe('generatePlugin: config files', () => {
 			'.coderabbit.yml',
 			'AGENTS.md',
 			'CLAUDE.md',
+			'.agents/roles/INVENTORY.md',
+			'.claude/agents/reviewer-agent.md',
+			'.codex/config.toml',
+			'.codex/agents/reviewer-agent.toml',
+			'.gemini/settings.json',
+			'.gemini/agents/reviewer-agent.md',
 			'toolchain-check.code-workspace',
 			'docs/README.md',
 			'docs/INTERACTIVITY-AND-DATAVIEWS.md',
@@ -255,7 +261,7 @@ describe('generatePlugin: scaffold-only and organisation-provided files', () => 
 	it('does not copy them into the plugin', () => {
 		[
 			'.devcontainer',
-			'.gemini',
+			'.gemini/settings.local.json',
 			'.gpt',
 			'.qodo',
 			'.mustacheignore',

@@ -739,6 +739,7 @@ tour-operator/
 ├── AGENTS.md / CLAUDE.md     # Agent instructions (defer to the organisation rules)
 ├── .agents/                  # Shared agent skills and roles
 ├── .claude/                  # Claude Code skill links, agents and hooks
+├── .codex/ / .gemini/       # Codex and Gemini CLI adapters for the shared roles
 ├── tour-operator.code-workspace  # VS Code settings, extensions and tasks
 ├── patterns/                 # Block patterns
 └── scf-json/                 # SCF field groups

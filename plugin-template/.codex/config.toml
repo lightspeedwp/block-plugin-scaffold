@@ -1,0 +1,10 @@
+# Codex project configuration for {{name}}.
+# Instructions: ../AGENTS.md. Shared skills: ../.agents/skills/ (found natively).
+# The adapters in agents/ load the shared roles in ../.agents/roles/.
+# https://developers.openai.com/codex/config-reference
+
+# Room for AGENTS.md and any nested AGENTS.md files.
+project_doc_max_bytes = 65536
+
+# Model, approvals, sandbox and MCP settings come from the user or managed
+# environment. Keep credentials and machine-specific paths out of Git.
