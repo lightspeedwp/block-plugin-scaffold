@@ -11,6 +11,9 @@ const defaultConfig = require( '@wordpress/scripts/config/eslint.config.cjs' );
 module.exports = [
 	{
 		ignores: [
+			// Vendored upstream skills (scripts/agent-skills.json); not ours to lint.
+			'.agents/skills/**',
+			'plugin-template/.agents/skills/**',
 			'.github/**',
 			'.lighthouserc.js',
 			'bin/**',
