@@ -639,10 +639,15 @@ const OPTIONAL_TAGS = { author_uri: '' };
 // Copied as they are: mustache.js would read GitHub Actions `${{ ... }}`
 // expressions, and Spec Kit's `{{args}}` and `{{ inputs.* }}` placeholders,
 // as tags. Paths are relative to plugin-template/.
+// The WordPress skills vendored by scripts/sync-agent-skills.ts are unmodified
+// upstream copies, so they are never rendered either.
 const UNRENDERED_PATHS = [
 	'.github/workflows',
 	'.gemini/commands',
 	'.specify/workflows',
+	...require('./agent-skills.json').skills.map(
+		(skill) => `.agents/skills/${skill}`
+	),
 ];
 
 /**
