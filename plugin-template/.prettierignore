@@ -16,3 +16,6 @@ languages
 .github/workflows/dependency-automation.yml
 .specify
 /*-config.json
+
+# Skills vendored unmodified from WordPress/agent-skills
+.agents/skills
