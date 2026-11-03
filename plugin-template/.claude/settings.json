@@ -13,5 +13,16 @@
 				]
 			}
 		]
+	},
+	"extraKnownMarketplaces": {
+		"lightspeedwp": {
+			"source": {
+				"source": "github",
+				"repo": "lightspeedwp/ls-claude-agents-router"
+			}
+		}
+	},
+	"enabledPlugins": {
+		"ls-claude-agents-router@lightspeedwp": true
 	}
 }
