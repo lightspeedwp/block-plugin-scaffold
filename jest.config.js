@@ -21,6 +21,8 @@ module.exports = {
 		'**/tests/js/**/*.test.js',
 		'**/tests/**/*.test.js',
 		'**/?(*.)+(spec|test).js',
+		// TypeScript agent tooling (scripts/*.ts), tested beside the script.
+		'**/scripts/__tests__/**/*.test.ts',
 	],
 
 	// Files to ignore

@@ -65,3 +65,6 @@ multi-block-plugin-scaffold.code-workspace
 multi-block-plugin-scaffold.code-workspace
 multi-block-plugin-scaffold.code-workspace
 ls-test-config.json
+
+# Claude Code: personal settings stay local
+.claude/settings.local.json
