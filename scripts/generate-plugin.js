@@ -1927,7 +1927,8 @@ function generateComposerJson(outputDir, config) {
 		authors: [
 			{
 				name: config.author,
-				homepage: config.author_uri || '',
+				// Composer rejects an empty homepage, so omit it when unset.
+				...(config.author_uri && { homepage: config.author_uri }),
 			},
 		],
 		require: {
