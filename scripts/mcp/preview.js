@@ -442,6 +442,7 @@ function sweepExpired( now ) {
  * @param {Object}   request.config              Plugin configuration.
  * @param {string}   [request.destination]       Final folder; defaults to generated-plugins/<slug>.
  * @param {string}   [request.previousPreviewId] Earlier preview to compare the configuration with.
+ * @param {string}   [request.detail]            "summary" (default) or "full" file list.
  * @param {Object}   [options]
  * @param {Function} [options.now]               Clock returning a Date.
  * @param {string}   [options.scaffoldDir]       Scaffold checkout.
@@ -455,7 +456,7 @@ function createPreview( request, options = {} ) {
 	const startedAt = now();
 	sweepExpired( startedAt );
 
-	const { config, destination, previousPreviewId } = request || {};
+	const { config, destination, previousPreviewId, detail } = request || {};
 	const validation = validateConfiguration( config );
 	if ( ! validation.valid ) {
 		throw new GenerationError(
@@ -488,7 +489,8 @@ function createPreview( request, options = {} ) {
 	const logFile = path.join(
 		scaffoldDir,
 		'logs',
-		`mcp-${ slug }-${ stamp }.log`
+		// The preview ID keeps names unique for previews in the same millisecond.
+		`mcp-${ slug }-${ stamp }-${ previewId.slice( 0, 8 ) }.log`
 	);
 
 	try {
@@ -551,7 +553,53 @@ function createPreview( request, options = {} ) {
 		warnings: validation.warnings,
 		configurationChanges,
 		preserved,
+		detail,
 	} );
+}
+
+/**
+ * The file list for the client. "summary" (the default) lists every
+ * overwrite and conflict, and counts new and unchanged paths by top-level
+ * folder, so the result stays small enough for a client to read in full.
+ * "full" lists every path.
+ *
+ * @param {Object[]} files  Planned files.
+ * @param {string}   detail "summary" or "full".
+ * @return {Object} files, and for summary, createByFolder and unchangedByFolder.
+ */
+function listFiles( files, detail ) {
+	const toClient = ( { path: file, type, action, reason } ) => ( {
+		path: file,
+		type,
+		action,
+		...( reason && { reason } ),
+	} );
+	if ( detail === 'full' ) {
+		return { files: files.map( toClient ) };
+	}
+	const byFolder = ( action ) => {
+		const counts = {};
+		for ( const file of files ) {
+			if ( file.action === action && file.type !== 'dir' ) {
+				const top = file.path.includes( '/' )
+					? `${ file.path.split( '/' )[ 0 ] }/`
+					: '(top level)';
+				counts[ top ] = ( counts[ top ] || 0 ) + 1;
+			}
+		}
+		return counts;
+	};
+	return {
+		files: files
+			.filter(
+				( file ) =>
+					file.action === 'overwrite' || file.action === 'conflict'
+			)
+			.map( toClient ),
+		createByFolder: byFolder( 'create' ),
+		unchangedByFolder: byFolder( 'unchanged' ),
+		detail: 'summary: files lists every overwrite and conflict; preview again with detail "full" for every path.',
+	};
 }
 
 /**
@@ -582,14 +630,7 @@ function publicPreview( preview, extra ) {
 			unchanged: count( 'unchanged' ),
 			conflict: count( 'conflict' ),
 		},
-		files: preview.files.map(
-			( { path: file, type, action, reason } ) => ( {
-				path: file,
-				type,
-				action,
-				...( reason && { reason } ),
-			} )
-		),
+		...listFiles( preview.files, extra.detail ),
 		preserved: extra.preserved,
 		processEffects: {
 			stagingFolder: preview.stagingDir,

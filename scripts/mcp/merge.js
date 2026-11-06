@@ -149,7 +149,12 @@ function applyPreview( preview, options = {} ) {
 						...file.path.split( '/' )
 					);
 					fs.mkdirSync( path.dirname( backup ), { recursive: true } );
-					fs.copyFileSync( target, backup );
+					// Never replace an existing backup.
+					fs.copyFileSync(
+						target,
+						backup,
+						fs.constants.COPYFILE_EXCL
+					);
 					backedUp.push( file.path );
 					record( journal, {
 						op: 'backup',

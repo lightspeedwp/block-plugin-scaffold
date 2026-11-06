@@ -25,6 +25,16 @@ const DERIVED = new Set( [
 	'repository_url',
 ] );
 
+// How each derived value is worked out, for discover.
+const DERIVED_FROM = {
+	textdomain: 'the slug',
+	namespace: 'the slug, with hyphens replaced by underscores',
+	license_uri: 'the licence',
+	tested_up_to: 'requires_wp',
+	contributors: 'the author, lowercased, letters and numbers only',
+	repository_url: 'https://github.com/lightspeedwp/<slug>',
+};
+
 // Legacy single-post-type fields the generator still accepts.
 const LEGACY = new Set( [
 	'cpt_slug',
@@ -140,4 +150,78 @@ function diffValues( before, after ) {
 		} ) );
 }
 
-module.exports = { validateConfiguration, diffValues };
+/**
+ * Describe the configuration the generator accepts, for discover.
+ *
+ * Defaults are the generator's own (applyDefaults), not the schema's
+ * `default` values, which differ for blocks, author and author_uri.
+ *
+ * @return {Object} Description.
+ */
+function describeConfiguration() {
+	const schema = loadSchema();
+	const required = new Set( schema.required || [] );
+	// Apply defaults to a minimal configuration to read the generator's own.
+	const sample = { slug: 'example-plugin', name: 'Example', author: 'A' };
+	const defaults = applyDefaults( sample );
+
+	const fields = {};
+	for ( const [ key, property ] of Object.entries( schema.properties ) ) {
+		if ( key === '_comment' ) {
+			continue;
+		}
+		const field = {
+			type: property.type,
+			required: required.has( key ),
+			description: property.description,
+		};
+		for ( const rule of [
+			'pattern',
+			'enum',
+			'minLength',
+			'maxLength',
+			'examples',
+			'items',
+		] ) {
+			if ( property[ rule ] !== undefined ) {
+				field[ rule ] = property[ rule ];
+			}
+		}
+		if ( required.has( key ) ) {
+			field.default = null;
+		} else if ( DERIVED_FROM[ key ] ) {
+			field.default = { derived: DERIVED_FROM[ key ] };
+		} else if ( key === 'content_model' ) {
+			// The generator treats an absent content_model as "custom".
+			field.default = 'custom';
+		} else if (
+			defaults[ key ] !== undefined &&
+			! Object.hasOwn( sample, key )
+		) {
+			field.default = defaults[ key ];
+		} else {
+			field.default = null;
+		}
+		fields[ key ] = field;
+	}
+
+	return {
+		fields,
+		combinations: [
+			'content_model "custom" (the default): post_types, taxonomies and fields are allowed; each post type gets its own collection block.',
+			'content_model "none": a functional-only plugin. post_types, taxonomies, fields and the legacy cpt_slug and name_singular must be empty or absent.',
+			'Each taxonomy lists the post_types it attaches to; each fields entry is a field group for one post type.',
+		],
+		limits: [
+			'slug: 3 to 50 characters, lowercase letters, numbers and hyphens.',
+			'Post type slugs: up to 20 characters (the WordPress limit).',
+			'Taxonomy slugs: up to 32 characters (the WordPress limit).',
+			'blocks: only "collection" is accepted.',
+		],
+		destination:
+			'The final folder for the plugin. Defaults to generated-plugins/<slug> in the scaffold checkout. See the contract for refused folders.',
+		contract: 'docs/MCP-PLUGIN-GENERATION.md',
+	};
+}
+
+module.exports = { validateConfiguration, diffValues, describeConfiguration };

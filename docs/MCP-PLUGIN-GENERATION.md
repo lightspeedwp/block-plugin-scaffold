@@ -7,9 +7,9 @@ audience: Developers
 date: 2026-11-06
 ---
 
-This document defines how an AI client generates a plugin from this scaffold through a local [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server (BPS-12). It is the contract the later phases implement and verify against.
+This document defines how an AI client generates a plugin from this scaffold through a local [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server (BPS-12), and records how it was verified.
 
-**Status:** in progress. The generator can be called repeatedly from one process. Preview, approval and the safe merge into the destination are implemented in `scripts/mcp/` (`config.js`, `preview.js`, `merge.js`, `errors.js`). The MCP server itself is not built yet. Until they ship, generate plugins with the CLI described in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md).
+**Status:** implemented in `scripts/mcp/` (`server.js`, `config.js`, `preview.js`, `merge.js`, `errors.js`). Verified with Claude Code on macOS; Claude Desktop is not yet verified (see [Verification record](#verification-record)). The CLI in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md) works as before.
 
 ## Responsibilities
 
@@ -27,12 +27,12 @@ Approval always comes from the person using the client. The adapter checks that 
 - **Standard output is reserved for protocol messages.** The engine and adapter write diagnostics to standard error and to the per-request log file only. One stray `console.log` breaks the connection, so the engine must not print to standard output when called by the adapter.
 - **SDK:** the official [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk) (1.32.x at the time of writing).
 - **Runtime:** Node `>=24.18.0`, the same as the scaffold.
-- **Entry point:** a script in this repository, run from a checkout. There is no npm package or Claude Desktop extension (`.mcpb`) in this scope.
+- **Entry point:** `scripts/mcp/server.js` (also `npm run mcp:server`), run from a checkout after `npm install`. There is no npm package or Claude Desktop extension (`.mcpb`) in this scope.
 - **Platform:** macOS. Other platforms are not verified.
 
 ## Client setup
 
-Both clients start the same server script. Use absolute paths: Claude Desktop does not read your shell profile, so it will not find a `node` installed by a version manager unless the path is absolute.
+Both clients start the same server script. Install the scaffold's dependencies first (`npm install` in the checkout). Use absolute paths: Claude Desktop does not read your shell profile, so it will not find a `node` installed by a version manager unless the path is absolute.
 
 Find the values on your Mac:
 
@@ -65,7 +65,9 @@ claude mcp add --scope user block-plugin-scaffold -- /absolute/path/to/node /abs
 }
 ```
 
-Keep any other `mcpServers` entries already in the file. The server script path is provisional until phase 4.
+Keep any other `mcpServers` entries already in the file. To check the setup, ask the client to call `discover`; it should list the configuration fields.
+
+To try the server in Claude Code without changing its configuration, put the same `mcpServers` JSON in a file and run `claude --mcp-config <file> --strict-mcp-config`.
 
 ## Destination
 
@@ -112,12 +114,13 @@ Checks a configuration without generating anything.
 
 Generates the plugin into a private staging folder and reports exactly what `generate` would do to the destination.
 
-- **Input:** `config`; optional `destination`; optional `previousPreviewId` (to show what changed since an earlier preview).
+- **Input:** `config`; optional `destination`; optional `previousPreviewId` (to show what changed since an earlier preview); optional `detail`, `summary` (the default) or `full`.
 - **Output:**
     - `previewId` and `approvalHash`;
     - `destination` (the resolved absolute path) and whether it exists;
     - `configuration`: the normalised configuration, and the differences from `previousPreviewId` when given;
-    - `files`: every path the plugin contains, each marked `create`, `overwrite` (contents differ), `unchanged` (identical) or `conflict`;
+    - `summary`: how many paths are `create`, `overwrite` (contents differ), `unchanged` (identical) and `conflict`;
+    - `files`: with `detail: "summary"`, every `overwrite` and `conflict` path, plus `createByFolder` and `unchangedByFolder` counts by top-level folder, which keeps the result small enough for a client to read in full; with `detail: "full"`, every path the plugin contains;
     - `preserved`: a count of destination files the plugin does not contain, which `generate` leaves untouched, and whether a `.git` folder or file is present;
     - `processEffects`: the staging folder path and the processes run (Node, Prettier);
     - `expiresAt`.
@@ -174,12 +177,12 @@ A preview with any `conflict` cannot be generated. The person resolves the confl
 ## Recovery
 
 - **Failures in `discover`, `validate_config` or `preview`** never change the destination.
-- **Backups:** before overwriting a file, `generate` copies the original to `<scaffold>/logs/mcp-<slug>-<timestamp>-backup/`, at the same relative path. Backups are kept after a successful `generate` too; delete them when you no longer need them.
-- **Journal:** `generate` records each step (folder created, backup taken, file written, failure) in `<scaffold>/logs/mcp-<slug>-<timestamp>.journal.jsonl`, one JSON object per line, as it goes.
+- **Backups:** before overwriting a file, `generate` copies the original to `<scaffold>/logs/mcp-<slug>-<timestamp>-<id>-backup/`, at the same relative path. Backups are kept after a successful `generate` too; delete them when you no longer need them.
+- **Journal:** `generate` records each step (folder created, backup taken, file written, failure) in `<scaffold>/logs/mcp-<slug>-<timestamp>-<id>.journal.jsonl`, one JSON object per line, as it goes.
 - **`PARTIAL_WRITE`:** the error lists the path where writing stopped, the files written, the files not yet written, the backup folder and the journal. Fix the cause (for example a read-only folder), then preview and generate again: files already written show as `unchanged`, so only the rest are written. To undo instead, copy the originals back from the backup folder; files that were created new can be removed by hand, because `generate` never removes anything.
 - **The server stops during `generate`:** the backup folder and journal remain. Every file is either its old or its new version, never partial, and no temporary files are left behind.
 - **Modes:** a written file gets the generated file's permissions. An existing read-only file at a planned path is still overwritten (it is a matching file), and becomes writable.
-- **Logs:** one log file per preview in `<scaffold>/logs/`, named `mcp-<slug>-<timestamp>.log`.
+- **Logs:** one log file per preview in `<scaffold>/logs/`, named `mcp-<slug>-<timestamp>-<id>.log`.
 
 ## Supported configuration
 
@@ -226,6 +229,15 @@ Fixing the schema and the standalone validator is outside this contract; the iss
 - Template mode (`--in-place`) through MCP.
 - Platforms other than macOS.
 
+## Limitations
+
+- **Secure Custom Fields is required.** Generated plugins declare `Requires Plugins: secure-custom-fields`, so WordPress refuses to activate them on a site that runs ACF or ACF Pro without SCF. Changing that dependency is a template change, outside this contract.
+- **Claude Desktop is not yet verified.**
+- **macOS only.** Other platforms are not verified.
+- **Backups accumulate** in `<scaffold>/logs/` until you delete them.
+- **One preview per destination.** A newer preview for the same destination replaces the older one.
+- **Template mode** (`--in-place`) is not available through MCP.
+
 ## Verification
 
 Each phase is verified by generating plugins and checking the generated output, not by running the scaffold's own test suite:
@@ -235,3 +247,19 @@ Each phase is verified by generating plugins and checking the generated output, 
 - **Generated plugin checks:** the generated plugin's own install, lint and test commands pass.
 - **Clients:** discovery, validation, preview and generation are each run once from Claude Desktop and once from Claude Code on macOS, with the evidence recorded separately.
 - **Optional:** a generated plugin is activated on a local WordPress site to confirm its blocks register.
+
+## Verification record
+
+Recorded on 6 November 2026 on macOS with Node 24.21.0, `@modelcontextprotocol/sdk` 1.32.2 and fixtures from `tests/fixtures/generation/`. Branches: `feat/bps-12-engine-boundary`, `feat/bps-12-safe-output` and `feat/bps-12-mcp-adapter`.
+
+| Check                     | Evidence                                                                                                                                                                               | Result                                                                                                                                                                |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI unchanged             | Both fixtures generated before and after the engine change; `diff -r`                                                                                                                  | Identical apart from the `.pot` creation date                                                                                                                         |
+| Library parity            | Two library runs with a fixed clock; MCP `generate` into a new folder against a direct library run                                                                                     | Identical                                                                                                                                                             |
+| Engine boundary           | Import probe (no writes, no process handlers); standard output captured across two generations and a preview; per-run logs                                                             | 62 scripted checks pass                                                                                                                                               |
+| Preservation and recovery | New folder, regeneration, Git repository with nested `.git`, links, read-only folder, simulated crash, file edited mid-write                                                           | 34 scripted checks pass                                                                                                                                               |
+| Protocol                  | SDK client over stdio, server started from `/`: tool list and annotations, all four tools, refusals, replay, two generations in one server                                             | 17 scripted checks pass                                                                                                                                               |
+| Generated plugin checks   | `check:generation` for both fixtures (npm ci, build, all lints, unit tests, Composer, PHPCS, PHPStan, PHPUnit); merged plugin's npm ci, build, `lint:js`, `test:unit`, `composer test` | Pass                                                                                                                                                                  |
+| Claude Code 2.1.220       | `claude -p` with `--mcp-config` and `--strict-mcp-config`: `discover`, `validate_config`, `preview`, `generate`                                                                        | Pass; 551 files written; no tool errors                                                                                                                               |
+| Claude Desktop            | Not run                                                                                                                                                                                | **Gap:** needs a person to add the configuration and restart Claude Desktop                                                                                           |
+| Local WordPress site      | Generated `bps12-mcp-check` through MCP into a WordPress Studio site's plugins folder and built it                                                                                     | Generation and build pass; activation refused because the site runs ACF Pro, not Secure Custom Fields (see [Limitations](#limitations)); the plugin was left inactive |

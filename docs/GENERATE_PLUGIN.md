@@ -456,7 +456,7 @@ my-awesome-plugin/              ← Same repo, transformed
 
 ## Generation Methods
 
-Generation through a local MCP server for Claude Desktop and Claude Code is planned. Its contract is in [MCP-PLUGIN-GENERATION.md](MCP-PLUGIN-GENERATION.md); until it ships, use one of the methods below.
+Claude Desktop and Claude Code can also generate plugins through a local MCP server (`npm run mcp:server`), with a preview and your approval before any file is written. Setup, the rules it follows and its limits are in [MCP-PLUGIN-GENERATION.md](MCP-PLUGIN-GENERATION.md).
 
 ### Method 1: Template Mode (In-Place Processing)
 
