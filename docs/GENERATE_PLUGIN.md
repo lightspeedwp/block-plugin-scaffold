@@ -456,6 +456,8 @@ my-awesome-plugin/              ← Same repo, transformed
 
 ## Generation Methods
 
+Generation through a local MCP server for Claude Desktop and Claude Code is planned. Its contract is in [MCP-PLUGIN-GENERATION.md](MCP-PLUGIN-GENERATION.md); until it ships, use one of the methods below.
+
 ### Method 1: Template Mode (In-Place Processing)
 
 Use the scaffold as a GitHub template and process it directly:

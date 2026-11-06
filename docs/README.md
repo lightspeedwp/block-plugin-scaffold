@@ -24,6 +24,7 @@ This directory contains all documentation for the multi-block plugin scaffold. U
 ### Plugin Generation
 
 - **[GENERATE_PLUGIN.md](GENERATE_PLUGIN.md)** - Comprehensive plugin generation guide
+- **[MCP-PLUGIN-GENERATION.md](MCP-PLUGIN-GENERATION.md)** - Contract for generating plugins through a local MCP server (planned)
 - **[../.github/projects/plans/2025-12-11-wordpress-standards-compliance-comprehensive-review.md](../.github/projects/plans/2025-12-11-wordpress-standards-compliance-comprehensive-review.md)** - WordPress standards compliance plan
 - **[../.github/projects/plans/PART-2-multi-cpt-wizard-schema-expansion.md](../.github/projects/plans/PART-2-multi-cpt-wizard-schema-expansion.md)** - Multi-CPT schema expansion plan
 
