@@ -9,7 +9,7 @@ date: 2026-11-06
 
 This document defines how an AI client generates a plugin from this scaffold through a local [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server (BPS-12), and records how it was verified.
 
-**Status:** implemented in `scripts/mcp/` (`server.js`, `config.js`, `preview.js`, `merge.js`, `errors.js`). Verified with Claude Code on macOS; Claude Desktop is not yet verified (see [Verification record](#verification-record)). The CLI in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md) works as before.
+**Status:** implemented in `scripts/mcp/` (`server.js`, `config.js`, `preview.js`, `merge.js`, `errors.js`). Verified with Claude Code and Claude Desktop on macOS (see [Verification record](#verification-record)). The CLI in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md) works as before.
 
 ## Responsibilities
 
@@ -232,7 +232,6 @@ Fixing the schema and the standalone validator is outside this contract; the iss
 ## Limitations
 
 - **Secure Custom Fields is required.** Generated plugins declare `Requires Plugins: secure-custom-fields`, so WordPress refuses to activate them on a site that runs ACF or ACF Pro without SCF. Changing that dependency is a template change, outside this contract.
-- **Claude Desktop is not yet verified.**
 - **macOS only.** Other platforms are not verified.
 - **Backups accumulate** in `<scaffold>/logs/` until you delete them.
 - **One preview per destination.** A newer preview for the same destination replaces the older one.
@@ -261,5 +260,5 @@ Recorded on 6 November 2026 on macOS with Node 24.21.0, `@modelcontextprotocol/s
 | Protocol                  | SDK client over stdio, server started from `/`: tool list and annotations, all four tools, refusals, replay, two generations in one server                                             | 17 scripted checks pass                                                                                                                                               |
 | Generated plugin checks   | `check:generation` for both fixtures (npm ci, build, all lints, unit tests, Composer, PHPCS, PHPStan, PHPUnit); merged plugin's npm ci, build, `lint:js`, `test:unit`, `composer test` | Pass                                                                                                                                                                  |
 | Claude Code 2.1.220       | `claude -p` with `--mcp-config` and `--strict-mcp-config`: `discover`, `validate_config`, `preview`, `generate`                                                                        | Pass; 551 files written; no tool errors                                                                                                                               |
-| Claude Desktop            | Not run                                                                                                                                                                                | **Gap:** needs a person to add the configuration and restart Claude Desktop                                                                                           |
+| Claude Desktop            | Run by Warwick in the Claude Desktop chat window on macOS, 6 November 2026, with the configuration in [Client setup](#client-setup)                                                    | Pass: `discover` listed the fields, and a test plugin was previewed, approved and generated. `validate_config` was not separately confirmed                           |
 | Local WordPress site      | Generated `bps12-mcp-check` through MCP into a WordPress Studio site's plugins folder and built it                                                                                     | Generation and build pass; activation refused because the site runs ACF Pro, not Secure Custom Fields (see [Limitations](#limitations)); the plugin was left inactive |
