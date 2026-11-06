@@ -8,7 +8,9 @@
  * Requires PHP:      {{requires_php}}
  * Requires Plugins:  secure-custom-fields
  * Author:            {{author}}
+{{#author_uri}}
  * Author URI:        {{author_uri}}
+{{/author_uri}}
  * License:           {{license}}
  * License URI:       {{license_uri}}
  * Text Domain:       {{textdomain}}

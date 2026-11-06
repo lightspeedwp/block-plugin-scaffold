@@ -119,4 +119,45 @@ engine.generatePlugin({ ...cfg, slug: 'probe-two' }, { outputDir: ${ JSON.string
 		);
 		expect( differences ).toEqual( [] );
 	} );
+
+	it( 'keeps the author URI when it is set', () => {
+		const dir = generatePlugin( fixture( { slug: 'with-author-uri' } ), {
+			outputDir: path.join( work, 'with-author-uri' ),
+			now: fixedNow,
+			output: false,
+			logFile: path.join( work, 'with-author-uri.log' ),
+		} );
+		const uri = fixture().author_uri as string;
+		expect(
+			fs.readFileSync( path.join( dir, 'with-author-uri.php' ), 'utf8' )
+		).toContain( ` * Author URI:        ${ uri }\n * License:` );
+		expect(
+			JSON.parse(
+				fs.readFileSync( path.join( dir, 'composer.json' ), 'utf8' )
+			).authors[ 0 ].homepage
+		).toBe( uri );
+	} );
+
+	it( 'leaves the author URI out of composer.json and the header when it is not set', () => {
+		const config = fixture( { slug: 'no-author-uri' } );
+		delete config.author_uri;
+		const dir = generatePlugin( config, {
+			outputDir: path.join( work, 'no-author-uri' ),
+			now: fixedNow,
+			output: false,
+			logFile: path.join( work, 'no-author-uri.log' ),
+		} );
+		const composer = JSON.parse(
+			fs.readFileSync( path.join( dir, 'composer.json' ), 'utf8' )
+		);
+		// Composer rejects an empty homepage URL, so it is left out.
+		expect( composer.authors ).toEqual( [ { name: config.author } ] );
+		// No empty "Author URI:" header line, which PHPCS flags.
+		const header = fs.readFileSync(
+			path.join( dir, 'no-author-uri.php' ),
+			'utf8'
+		);
+		expect( header ).not.toContain( 'Author URI' );
+		expect( header ).not.toMatch( /[ \t]$/m );
+	} );
 } );
