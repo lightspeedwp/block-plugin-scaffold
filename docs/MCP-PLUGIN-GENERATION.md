@@ -9,7 +9,7 @@ date: 2026-11-06
 
 This document defines how an AI client generates a plugin from this scaffold through a local [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server (BPS-12). It is the contract the later phases implement and verify against.
 
-**Status:** contract only. The server does not exist yet. Until it ships, generate plugins with the CLI described in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md).
+**Status:** in progress. The generator can be called repeatedly from one process, and preview and approval are implemented in `scripts/mcp/` (`config.js`, `preview.js`, `errors.js`). Safe merging into the destination and the MCP server itself are not built yet. Until they ship, generate plugins with the CLI described in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md).
 
 ## Responsibilities
 
@@ -75,11 +75,15 @@ When `destination` is omitted, the default is `<scaffold>/generated-plugins/<slu
 
 The adapter resolves the destination to an absolute real path and refuses it (`UNSAFE_DESTINATION`) when it:
 
-- is relative after resolution, or contains a `..` segment in the supplied value;
-- is the filesystem root, your home folder itself, or a system folder (`/System`, `/Library`, `/usr`, `/bin`, `/etc`, `/private`, `/Applications`);
-- is, or is inside, this scaffold checkout, other than under `generated-plugins/`;
+- is not an absolute path (a leading `~/` is expanded to your home folder first), or contains a `..` segment;
+- is the filesystem root or your home folder itself;
+- is in a system folder: `/System`, `/Library`, `/Applications`, `/usr`, `/bin`, `/sbin`, `/etc`, `/dev`, `/cores`, `/private/etc` or `/private/var/db` (your own `~/Library` is not one of these);
+- is, or is inside, this scaffold checkout, other than a folder inside `generated-plugins/`;
 - is itself a symbolic link;
-- exists and is not a folder.
+- exists and is not a folder;
+- does not exist and its parent folder does not exist either.
+
+Symbolic links above the destination are resolved, so `/tmp/plugin` is checked as `/private/tmp/plugin`.
 
 The destination may already exist and may be a Git repository. If it does not exist, `generate` creates it (and only it; its parent must exist).
 
@@ -172,7 +176,7 @@ A preview with any `conflict` cannot be generated. The person resolves the confl
 - **Failures in `discover`, `validate_config` or `preview`** never change the destination.
 - **`PARTIAL_WRITE`:** before overwriting a file, `generate` copies the original into a backup folder beside the log. The error lists the files written, the files not yet written and the backup folder. Restore an original by copying it back from the backup, or fix the cause (for example permissions) and preview and generate again. Files created new can be removed by hand; `generate` does not remove them.
 - **The server stops during `generate`:** the same backup and log remain. Every file is either its old or its new version, never partial.
-- **Logs:** one log file per request in `<scaffold>/logs/`, named with the plugin slug and a timestamp.
+- **Logs:** one log file per preview in `<scaffold>/logs/`, named `mcp-<slug>-<timestamp>.log`.
 
 ## Supported configuration
 

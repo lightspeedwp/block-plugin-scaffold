@@ -28,15 +28,6 @@ const schemaPath = path.join(
 	scaffoldDir,
 	'.github/schemas/plugin-config.schema.json'
 );
-// Output base: --output-dir <path>, or generated-plugins/ in the current folder.
-const outputDirArgIndex = process.argv.indexOf('--output-dir');
-const outputBaseDir = path.resolve(
-	process.cwd(),
-	outputDirArgIndex !== -1 && process.argv[outputDirArgIndex + 1]
-		? process.argv[outputDirArgIndex + 1]
-		: 'generated-plugins'
-);
-
 // License URIs for the schema's supported license identifiers.
 const LICENSE_URIS = {
 	'GPL-2.0-or-later': 'https://www.gnu.org/licenses/gpl-2.0.html',
@@ -63,47 +54,113 @@ const TOOLCHAIN_LOCKFILES = {
 // Block template rendered once per post type (see generatePerCPTBlocks).
 const COLLECTION_BLOCK_TEMPLATE = 'src/blocks/collection';
 
-// Template mode flag
-const isTemplateMode =
-	process.argv.includes('--in-place') || process.argv.includes('--template');
-
-// Create logs directory
+// Log files. The folder is created when a run first writes a log, never on
+// import, so loading this module has no side effects.
 const logsDir = path.join(scaffoldDir, 'logs');
-if (!fs.existsSync(logsDir)) {
-	fs.mkdirSync(logsDir, { recursive: true });
-}
-
-// Global log state
-let logStream = null;
-let logFile = null;
-let logEntries = [];
 
 /**
- * Initialize logging for a specific plugin slug
- * @param {string} slug - Plugin slug for log file name
+ * Write diagnostics to standard error. Standard output is left free: an MCP
+ * server uses it for protocol messages (BPS-12). The CLI replaces this with
+ * consoleOutput.
+ *
+ * @param {string} level   Log level.
+ * @param {string} message Formatted message.
  */
-function initializeLogging(slug) {
-	if (logStream) {
-		return; // Already initialized
+function stderrOutput(level, message) {
+	process.stderr.write(`${message}\n`);
+}
+
+/**
+ * The CLI's console output: errors and warnings to standard error, the rest
+ * to standard output.
+ *
+ * @param {string} level   Log level.
+ * @param {string} message Formatted message.
+ */
+function consoleOutput(level, message) {
+	if (level === 'ERROR') {
+		console.error(message);
+	} else if (level === 'WARN') {
+		console.warn(message);
+	} else {
+		console.log(message);
 	}
+}
 
-	logFile = path.join(logsDir, `generate-plugin-${slug}.log`);
+// Output for messages logged outside a run. The CLI sets consoleOutput.
+let defaultOutput = stderrOutput;
 
-	// Load existing log entries if file exists
-	if (fs.existsSync(logFile)) {
+/**
+ * Set the output for messages logged outside a run, and the default for runs.
+ *
+ * @param {Function|false} output Diagnostic output, or false for none.
+ */
+function setDefaultOutput(output) {
+	defaultOutput = output;
+}
+
+// One run per generatePlugin() call. A run holds its own log entries, log
+// file, clock and output, so repeated calls in one process never share them.
+// Messages logged outside a run are shown but not stored.
+let currentRun = null;
+
+/**
+ * Start a run's logging.
+ *
+ * @param {Object}          options
+ * @param {string}          options.slug    Plugin slug.
+ * @param {string}          [options.logFile] Log file path; defaults to
+ *                                            logs/generate-plugin-<slug>.log, appended to.
+ * @param {Function}        options.now     Clock returning a Date.
+ * @param {Function|false}  options.output  Diagnostic output, or false for none.
+ * @return {Object} The run.
+ */
+function startRun({ slug, logFile, now, output }) {
+	if (currentRun) {
+		finishRun();
+	}
+	const file =
+		logFile || path.join(logsDir, `generate-plugin-${slug}.log`);
+	let entries = [];
+	// The default file is shared by every run for the slug, so append to it.
+	if (!logFile && fs.existsSync(file)) {
 		try {
-			const existingContent = fs.readFileSync(logFile, 'utf8');
+			const existingContent = fs.readFileSync(file, 'utf8');
 			if (existingContent.trim()) {
-				logEntries = JSON.parse(existingContent);
+				entries = JSON.parse(existingContent);
 			}
 		} catch (error) {
 			// If file exists but is not valid JSON, start fresh
-			logEntries = [];
+			entries = [];
 		}
 	}
+	currentRun = { file, entries, now, output, outputDir: null };
+	return currentRun;
+}
 
-	// Stream not needed - we'll write synchronously on close
-	logStream = true; // Flag to indicate logging is initialized
+/**
+ * Write the current run's log file and end the run.
+ */
+function finishRun() {
+	writeRunLog(currentRun);
+	currentRun = null;
+}
+
+/**
+ * Write a run's log entries to its log file.
+ *
+ * @param {Object|null} run Run to write.
+ */
+function writeRunLog(run) {
+	if (!run || !run.entries.length) {
+		return;
+	}
+	try {
+		fs.mkdirSync(path.dirname(run.file), { recursive: true });
+		fs.writeFileSync(run.file, JSON.stringify(run.entries, null, 2), 'utf8');
+	} catch (error) {
+		process.stderr.write(`Failed to write log file: ${error.message}\n`);
+	}
 }
 
 /**
@@ -113,55 +170,32 @@ function initializeLogging(slug) {
  * @param {Object} data    - Optional additional data
  */
 function log(level, message, data = null) {
+	const run = currentRun;
+	const now = run ? run.now() : new Date();
 	const entry = {
-		timestamp: new Date().toISOString(),
+		timestamp: now.toISOString(),
 		level,
 		message,
 		...(data && { data }),
 	};
 
-	logEntries.push(entry);
+	if (run) {
+		run.entries.push(entry);
+	}
 
-	// Console output for immediate feedback
-	const consoleMessage = `[${entry.timestamp}] [${level}] ${message}`;
-	if (level === 'ERROR') {
-		console.error(consoleMessage);
-	} else if (level === 'WARN') {
-		console.warn(consoleMessage);
-	} else {
-		console.log(consoleMessage);
+	const output = run ? run.output : defaultOutput;
+	if (output) {
+		output(level, `[${entry.timestamp}] [${level}] ${message}`);
 	}
 }
 
 /**
- * Close log stream and finalize log file
+ * Write the log of a run that has not finished, for example when the CLI is
+ * interrupted.
  */
 function closeLogging() {
-	if (logFile && logEntries.length > 0) {
-		try {
-			// Write synchronously to ensure log persists
-			fs.writeFileSync(
-				logFile,
-				JSON.stringify(logEntries, null, 2),
-				'utf8'
-			);
-		} catch (error) {
-			console.error('Failed to write log file:', error.message);
-		}
-	}
-	logStream = null;
+	writeRunLog(currentRun);
 }
-
-// Cleanup on exit
-process.on('exit', () => {
-	closeLogging();
-});
-
-process.on('SIGINT', () => {
-	log('WARN', 'Generator interrupted by user');
-	closeLogging();
-	process.exit(1);
-});
 
 /**
  * Sanitize user input to prevent security vulnerabilities
@@ -342,10 +376,24 @@ function validateConfig(config) {
 }
 
 /**
- * Apply defaults and derive computed values
- * @param config
+ * A generated file's path for logs, relative to the folder that holds the
+ * plugin (so it starts with the plugin's folder name).
+ *
+ * @param {string} destPath Absolute path in the output.
+ * @return {string} Path to show.
  */
-function applyDefaults(config) {
+function outputPath(destPath) {
+	return currentRun && currentRun.outputDir
+		? path.relative(path.dirname(currentRun.outputDir), destPath)
+		: destPath;
+}
+
+/**
+ * Apply defaults and derive computed values
+ * @param        config
+ * @param {Date} [now] Clock for date values such as the .pot creation date.
+ */
+function applyDefaults(config, now = new Date()) {
 	const result = { ...config };
 
 	// Derive functional-only mode from the content_model flag. When true,
@@ -555,7 +603,7 @@ function applyDefaults(config) {
 
 
 	// gettext date format, e.g. 2026-10-28 12:00+0000.
-	result.pot_date = new Date()
+	result.pot_date = now
 		.toISOString()
 		.replace('T', ' ')
 		.replace(/:\d{2}\.\d{3}Z$/, '+0000');
@@ -768,7 +816,7 @@ function copyFileWithReplacement(srcPath, destPath, config) {
 		fs.chmodSync(destPath, fs.statSync(srcPath).mode);
 		log(
 			'DEBUG',
-			`Copied and processed: ${path.relative(scaffoldDir, srcPath)} -> ${path.relative(outputBaseDir, destPath)}`
+			`Copied and processed: ${path.relative(scaffoldDir, srcPath)} -> ${outputPath(destPath)}`
 		);
 	} catch (error) {
 		log('ERROR', `Failed to copy ${srcPath}: ${error.message}`);
@@ -1028,13 +1076,51 @@ function promptConfirmation(message) {
 }
 
 /**
- * Generate plugin from configuration
- * @param           config
- * @param {boolean} inPlace - If true, generates in current directory (template mode)
+ * Generate plugin from configuration.
+ *
+ * Reads nothing from process.argv and never exits the process, so a
+ * long-running caller such as the MCP server can call it repeatedly (BPS-12).
+ *
+ * @param {Object}          config
+ * @param {boolean|Object}  [options]                Options, or `true` for template mode (legacy form).
+ * @param {boolean}         [options.inPlace]        Template mode: render the current folder in place.
+ * @param {string}          [options.outputDir]      Final folder for the plugin. Must not exist unless `force`.
+ * @param {string}          [options.outputBaseDir]  Parent folder; the plugin goes in <outputBaseDir>/<slug>.
+ *                                                    Defaults to generated-plugins/ in the current folder.
+ * @param {boolean}         [options.force]          Delete an existing output folder first (CLI --force).
+ * @param {Function}        [options.now]            Clock returning a Date, for logs and dates in the output.
+ * @param {string}          [options.logFile]        Log file for this run; defaults to logs/generate-plugin-<slug>.log.
+ * @param {Function|false}  [options.output]         Diagnostic output; defaults to standard error.
+ * @return {string} The output folder.
  */
-function generatePlugin(config, inPlace = false) {
-	// Initialize logging with plugin slug
-	initializeLogging(config.slug || 'unknown');
+function generatePlugin(config, options = {}) {
+	const opts = typeof options === 'boolean' ? { inPlace: options } : options;
+	const now = opts.now || (() => new Date());
+	startRun({
+		slug: (config && config.slug) || 'unknown',
+		logFile: opts.logFile,
+		now,
+		output: opts.output === undefined ? defaultOutput : opts.output,
+	});
+	try {
+		return runGeneration(config, { ...opts, now });
+	} catch (error) {
+		log('ERROR', `Generation failed: ${error.stack}`);
+		throw error;
+	} finally {
+		finishRun();
+	}
+}
+
+/**
+ * The body of generatePlugin(), run inside a logging run.
+ *
+ * @param {Object} config
+ * @param {Object} options See generatePlugin().
+ * @return {string} The output folder.
+ */
+function runGeneration(config, options) {
+	const { inPlace = false, force = false, now } = options;
 
 	log('INFO', 'Plugin generator starting', {
 		nodeVersion: process.version,
@@ -1045,7 +1131,7 @@ function generatePlugin(config, inPlace = false) {
 	log('INFO', `Starting plugin generation: ${config.name} (${config.slug})`);
 
 	// Apply defaults and validation
-	const fullConfig = applyDefaults(config);
+	const fullConfig = applyDefaults(config, now());
 
 	log('INFO', 'Validating configuration', { slug: fullConfig.slug });
 	const validation = validateConfig(fullConfig);
@@ -1086,15 +1172,21 @@ function generatePlugin(config, inPlace = false) {
 		log('INFO', `Template mode: Generating in-place at ${outputDir}`);
 	} else {
 		// Generator mode: create output folder
-		outputDir = path.join(outputBaseDir, fullConfig.slug);
+		outputDir = options.outputDir
+			? path.resolve(options.outputDir)
+			: path.join(
+					path.resolve(options.outputBaseDir || 'generated-plugins'),
+					fullConfig.slug
+			  );
 		log('INFO', `Generator mode: Creating output at ${outputDir}`);
 	}
+	currentRun.outputDir = outputDir;
 
 	if (!inPlace) {
 		// Generator mode: check if output directory exists
 		if (fs.existsSync(outputDir)) {
 			log('WARN', `Output directory exists: ${outputDir}`);
-			if (!process.argv.includes('--force')) {
+			if (!force) {
 				throw new Error(
 					'Output directory already exists. Use --force to overwrite.'
 				);
@@ -1262,17 +1354,6 @@ function generatePlugin(config, inPlace = false) {
 		name: fullConfig.name,
 		version: fullConfig.version,
 	});
-
-	// Output next steps
-	console.log('\n✅ Plugin generated successfully!\n');
-	console.log('📦 Next steps:\n');
-	if (!inPlace) {
-		console.log(`  cd ${outputDir}`);
-	}
-	console.log('  composer install');
-	console.log('  npm install');
-	console.log('  npm run build\n');
-	console.log(`📝 Log file: ${logFile}\n`);
 
 	return outputDir;
 }
@@ -2120,6 +2201,27 @@ Configuration:
 }
 
 /**
+ * Print the steps after a successful CLI generation.
+ *
+ * @param {string}  outputDir Output folder.
+ * @param {boolean} inPlace   Template mode.
+ * @param {string}  slug      Plugin slug.
+ */
+function printNextSteps(outputDir, inPlace, slug) {
+	console.log('\n✅ Plugin generated successfully!\n');
+	console.log('📦 Next steps:\n');
+	if (!inPlace) {
+		console.log(`  cd ${outputDir}`);
+	}
+	console.log('  composer install');
+	console.log('  npm install');
+	console.log('  npm run build\n');
+	console.log(
+		`📝 Log file: ${path.join(logsDir, `generate-plugin-${slug}.log`)}\n`
+	);
+}
+
+/**
  * Main execution
  */
 async function main() {
@@ -2170,7 +2272,8 @@ async function main() {
 
 		try {
 			const config = loadConfigFile(configFile);
-			const inPlace = isTemplateMode;
+			const inPlace =
+				args.includes('--in-place') || args.includes('--template');
 
 			// Prompt confirmation for template mode
 			if (inPlace) {
@@ -2193,11 +2296,24 @@ async function main() {
 				}
 			}
 
-			generatePlugin(config, inPlace);
+			// Output base: --output-dir <path>, or generated-plugins/ in the
+			// current folder.
+			const outputDirIndex = args.indexOf('--output-dir');
+			const outputDir = generatePlugin(config, {
+				inPlace,
+				outputBaseDir: path.resolve(
+					process.cwd(),
+					outputDirIndex !== -1 && args[outputDirIndex + 1]
+						? args[outputDirIndex + 1]
+						: 'generated-plugins'
+				),
+				force: args.includes('--force'),
+			});
+			printNextSteps(outputDir, inPlace, config.slug);
 			process.exit(0);
 		} catch (error) {
+			// generatePlugin() has already logged the stack to its log file.
 			console.error(`❌ Error: ${error.message}`);
-			log('ERROR', `Generation failed: ${error.stack}`);
 			process.exit(1);
 		}
 	}
@@ -2229,8 +2345,18 @@ if (typeof module !== 'undefined' && module.exports) {
 	};
 }
 
-// Run if executed directly
+// Run if executed directly. Only the CLI prints to the console, writes the
+// log of an interrupted run on exit, and exits on Ctrl+C.
 if (require.main === module) {
+	setDefaultOutput(consoleOutput);
+	process.on('exit', () => {
+		closeLogging();
+	});
+	process.on('SIGINT', () => {
+		log('WARN', 'Generator interrupted by user');
+		closeLogging();
+		process.exit(1);
+	});
 	main().catch((error) => {
 		console.error(`❌ Fatal error: ${error.message}`);
 		log('ERROR', `Fatal error: ${error.stack}`);

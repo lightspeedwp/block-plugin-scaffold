@@ -59,7 +59,11 @@ function validateConfig(config) {
  * @param {FileLogger} logger  The logger instance.
  */
 function runGenerator(config, inPlace, logger) {
-	const outputDir = generatePlugin(config, inPlace);
+	// --force is read here: generatePlugin() no longer reads process.argv.
+	const outputDir = generatePlugin(config, {
+		inPlace,
+		force: process.argv.includes('--force'),
+	});
 	logger.info(`✓ Plugin generated at: ${outputDir}`);
 }
 
