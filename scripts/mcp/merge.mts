@@ -17,9 +17,11 @@ import {
 	describePath,
 	discardPreview,
 	getApprovedPreview,
+	sameState,
 	type Action,
 	type ApprovalRequest,
 	type Clock,
+	type PathState,
 	type PlannedFile,
 	type StoredPreview,
 } from './preview.mts';
@@ -71,10 +73,30 @@ function assertUnchangedSincePreview(
 		}
 	}
 	const current = describePath( path.join( destRoot, ...parts ) );
-	const expected =
+	const expected: PathState =
 		file.action === 'create' ? { type: 'missing', hash: null } : file.state;
-	if ( current.type !== expected.type || current.hash !== expected.hash ) {
+	if ( ! sameState( current, expected ) ) {
 		throw new Error( `${ file.path } changed after the preview` );
+	}
+}
+
+/**
+ * Create the scaffold's generated-plugins/ folder for the default destination.
+ * Only that one folder is created; if something appeared there since the
+ * preview, it must be a real folder.
+ *
+ * @param folder generated-plugins/ path.
+ */
+function createGeneratedPluginsFolder( folder: string ): void {
+	try {
+		fs.mkdirSync( folder );
+	} catch ( error ) {
+		if ( ( error as NodeJS.ErrnoException ).code !== 'EEXIST' ) {
+			throw error;
+		}
+	}
+	if ( ! fs.lstatSync( folder ).isDirectory() ) {
+		throw new Error( `${ folder } is not a folder` );
 	}
 }
 
@@ -140,6 +162,11 @@ export function applyPreview(
 	let current: string | null = null;
 
 	try {
+		if ( preview.createParent ) {
+			current = '..';
+			createGeneratedPluginsFolder( path.dirname( destRoot ) );
+			record( journal, { op: 'mkdir', path: '..' } );
+		}
 		if ( ! preview.destinationExisted ) {
 			current = '.';
 			// Not recursive: only the destination itself is created.

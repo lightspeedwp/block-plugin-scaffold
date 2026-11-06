@@ -332,6 +332,49 @@ describe( 'links and failures', () => {
 		expect( fs.readdirSync( outside ) ).toEqual( [] );
 	} );
 
+	it( 'restores an executable bit when the contents are unchanged', () => {
+		const dest = path.join( work, 'modes' );
+		const first = preview( dest );
+		generateFromPreview( approve( first ), { now } );
+		const script = first.files.find(
+			( f: Preview ) => f.type === 'file' && f.executable
+		);
+		expect( script ).toBeDefined();
+		const target = path.join( dest, script.path );
+		fs.chmodSync( target, 0o644 );
+
+		const again = preview( dest );
+		const planned = again.files.find(
+			( f: Preview ) => f.path === script.path
+		);
+		expect( planned.action ).toBe( 'overwrite' );
+		expect( again.summary.overwrite ).toBe( 1 );
+		generateFromPreview( approve( again ), { now } );
+		expect( fs.statSync( target ).mode & 0o111 ).not.toBe( 0 );
+		expect( diffTrees( reference, dest ) ).toEqual( [] );
+	} );
+
+	it( 'creates generated-plugins/ for the default destination on a fresh checkout', () => {
+		const fresh = path.join( work, 'fresh-checkout' );
+		fs.mkdirSync( fresh );
+		const p = createPreview(
+			{ config: cfg, detail: 'full' },
+			{ now, scaffoldDir: fresh }
+		);
+		const dest = path.join( fresh, 'generated-plugins', 'tsp-merge' );
+		expect( p.destination ).toEqual( {
+			path: dest,
+			exists: false,
+			createsParentFolder: true,
+		} );
+		expect( fs.existsSync( path.dirname( dest ) ) ).toBe( false );
+		const result = generateFromPreview( approve( p ), { now } );
+		expect( diffTrees( reference, dest ) ).toEqual( [] );
+		expect( fs.readFileSync( result.journal, 'utf8' ) ).toContain(
+			'"path":".."'
+		);
+	} );
+
 	it( 'is stale when the destination appears after the preview', () => {
 		const dest = path.join( work, 'appears' );
 		const p = preview( dest );

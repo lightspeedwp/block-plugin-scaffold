@@ -73,7 +73,7 @@ To try the server in Claude Code without changing its configuration, put the sam
 
 `destination` is the **final folder** the plugin's files go into. The adapter does not add the slug to it. (The CLI's `--output-dir` differs: it treats the folder as a parent and adds `<slug>/`.)
 
-When `destination` is omitted, the default is `<scaffold>/generated-plugins/<slug>`, resolved from the scaffold's own location, never from the process's working folder.
+When `destination` is omitted, the default is `<scaffold>/generated-plugins/<slug>`, resolved from the scaffold's own location, never from the process's working folder. Git ignores `generated-plugins/`, so a fresh checkout does not have it: for the default destination only, `preview` reports `createsParentFolder: true` and `generate` creates that one folder too.
 
 The adapter resolves the destination to an absolute real path and refuses it (`UNSAFE_DESTINATION`) when it:
 
@@ -83,11 +83,11 @@ The adapter resolves the destination to an absolute real path and refuses it (`U
 - is, or is inside, this scaffold checkout, other than a folder inside `generated-plugins/`;
 - is itself a symbolic link;
 - exists and is not a folder;
-- does not exist and its parent folder does not exist either.
+- does not exist and its parent folder does not exist either (except `generated-plugins/` for the default destination, above).
 
 Symbolic links above the destination are resolved, so `/tmp/plugin` is checked as `/private/tmp/plugin`.
 
-The destination may already exist and may be a Git repository. If it does not exist, `generate` creates it (and only it; its parent must exist).
+The destination may already exist and may be a Git repository. If it does not exist, `generate` creates it (and only it; its parent must exist, except for the default destination).
 
 ## Operations
 
@@ -117,10 +117,10 @@ Generates the plugin into a private staging folder and reports exactly what `gen
 - **Input:** `config`; optional `destination`; optional `previousPreviewId` (to show what changed since an earlier preview); optional `detail`, `summary` (the default) or `full`.
 - **Output:**
     - `previewId` and `approvalHash`;
-    - `destination` (the resolved absolute path) and whether it exists;
+    - `destination` (the resolved absolute path), whether it exists, and `createsParentFolder: true` when `generate` will also create `generated-plugins/`;
     - `configuration`: the normalised configuration, and the differences from `previousPreviewId` when given;
-    - `summary`: how many paths are `create`, `overwrite` (contents differ), `unchanged` (identical) and `conflict`;
-    - `files`: with `detail: "summary"`, every `overwrite` and `conflict` path, plus `createByFolder` and `unchangedByFolder` counts by top-level folder, which keeps the result small enough for a client to read in full; with `detail: "full"`, every path the plugin contains;
+    - `summary`: how many paths are `create`, `overwrite` (contents differ, or a file's executable bit differs), `unchanged` (identical contents and executable bit) and `conflict`;
+    - `files`: with `detail: "summary"`, every `overwrite` and `conflict` path, plus `createByFolder` and `unchangedByFolder` counts by top-level folder, which keeps the result small enough for a client to read in full; with `detail: "full"`, every path the plugin contains. Executable files are marked `executable: true`;
     - `preserved`: a count of destination files the plugin does not contain, which `generate` leaves untouched, and whether a `.git` folder or file is present;
     - `processEffects`: the staging folder path and the processes run (Node, Prettier);
     - `expiresAt`.
@@ -132,7 +132,7 @@ Generates the plugin into a private staging folder and reports exactly what `gen
 Copies the staged files into the destination.
 
 - **Input:** `previewId`, `approvalHash`, `approved: true`.
-- **Before writing,** the adapter re-checks the destination. If anything the preview relied on has changed (the destination's real path, the type or contents of any planned path, or a new file at a planned path), it returns `STALE_PREVIEW` and writes nothing. Preview again and ask again.
+- **Before writing,** the adapter re-checks the destination. If anything the preview relied on has changed (the destination's real path, the type, contents or executable bit of any planned path, or a new file at a planned path), it returns `STALE_PREVIEW` and writes nothing. Preview again and ask again.
 - **Side effects:** writes only the paths listed in the preview's `files` (`create` and `overwrite`). Creates the destination folder if needed. Deletes the staging folder on success.
 - **Output:** the files written, the files left unchanged, and the location of the log.
 
@@ -142,7 +142,7 @@ Copies the staged files into the destination.
 
 - the normalised configuration;
 - the destination's resolved real path;
-- the file manifest: each planned path, its action, and the SHA-256 of its staged contents.
+- the file manifest: each planned path, its action, the SHA-256 of its staged contents and, for files, whether it is executable.
 
 `generate` recomputes the hash from the stored preview and refuses a mismatch (`APPROVAL_MISMATCH`). A different configuration or destination needs a new preview and a new approval.
 
@@ -151,10 +151,10 @@ Copies the staged files into the destination.
 These rules implement "overwrite matching files; preserve everything else":
 
 1. **Never delete.** `generate` never removes a file or folder from the destination, and never removes the destination.
-2. **Overwrite matching paths.** A planned file whose path already exists as a regular file is overwritten without stopping, because the person approved it in the preview.
+2. **Overwrite matching paths.** A planned file whose path already exists as a regular file is overwritten without stopping, because the person approved it in the preview. It is written with the staged file's permissions, so a script that lost its executable bit gets it back.
 3. **Leave everything else alone.** Files in the destination that the plugin does not contain are not read for formatting, rewritten or moved.
 4. **Protect Git.** Any path with a `.git` segment, file or folder, is never written. If the plugin would write one, the preview marks it `conflict`.
-5. **Do not write through links.** If any part of a planned path in the destination is a symbolic link, the path is a `conflict`. Writes never follow a link.
+5. **Do not write through links.** If a folder on the way to a planned path is a symbolic link in the destination, the path is a `conflict`. Writes never follow a link. A planned link (such as `.claude/skills/<name>`) that already exists in the destination as a link to the same target is `unchanged`, so regenerating a plugin does not stop on its own links; the target is compared as text, without following it. A link with a different target is a `conflict`.
 6. **Type clashes block.** A planned file where the destination has a folder, or a planned folder or link where it has a file, is a `conflict`: resolving it would need a delete.
 7. **Write each file safely.** Each file is written to a temporary name beside its target and renamed into place, so no file is left half-written.
 
@@ -188,20 +188,20 @@ A preview with any `conflict` cannot be generated. The person resolves the confl
 
 The schema (`.github/schemas/plugin-config.schema.json`), the generator's defaults and the standalone validator (`scripts/validation/validate-plugin-config.js`) disagree in places. Checked at `2e2acfa`, `discover` and `validate_config` resolve them as follows:
 
-| Field or rule                      | Schema                                                                                                        | Generator                                        | Standalone validator                                                                  | Contract                                                                                            |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `blocks` default                   | `["collection", "slider"]`, but the allowed values are only `collection`, so the default fails its own schema | `[]`                                             | Warns when empty                                                                      | Default `[]`; allowed value `collection`                                                            |
-| `fields` entries                   | Field groups: `{ post_type, field_group: [ fields ] }`                                                        | Field groups                                     | Checks each entry as if it were a single field, so it rejects every valid field group | Schema rules; the validator's field check is not used                                               |
-| Taxonomy slug length               | Up to 32 characters (the WordPress limit)                                                                     | —                                                | Up to 20                                                                              | Up to 32                                                                                            |
-| `author`                           | Required, but also has a placeholder default                                                                  | Required                                         | —                                                                                     | Required; no default offered                                                                        |
-| `author_uri`                       | Default `https://example.com`                                                                                 | Optional, empty when unset                       | —                                                                                     | Optional; no default                                                                                |
-| `description`                      | Optional                                                                                                      | Default `A WordPress multi-block plugin.`        | —                                                                                     | Optional; generator default reported                                                                |
-| `repository_url`                   | Optional                                                                                                      | Default `https://github.com/lightspeedwp/<slug>` | —                                                                                     | Optional; default reported, and flagged as a warning, because client plugins usually live elsewhere |
-| `textdomain`, `namespace`          | Optional                                                                                                      | Derived from `slug`                              | —                                                                                     | Derived; reported as `derived`                                                                      |
-| `requires_wp`, `requires_php`      | Defaults `6.5`, `8.0`                                                                                         | Same                                             | —                                                                                     | Same                                                                                                |
-| Legacy `cpt_slug`, `name_singular` | Allowed (extra properties are allowed)                                                                        | Converted to a post type                         | Rejected with `content_model: "none"`                                                 | Accepted with a warning; not advertised by `discover`                                               |
-| "No templates defined"             | No `templates` field                                                                                          | —                                                | Warns                                                                                 | Not reported                                                                                        |
-| Schema dialect                     | Draft 2020-12                                                                                                 | Ajv 2020                                         | Ajv default with formats                                                              | Draft 2020-12, as the generator                                                                     |
+| Field or rule                      | Schema                                                                                                        | Generator                                        | Standalone validator                                                                  | Contract                                                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `blocks` default                   | `["collection", "slider"]`, but the allowed values are only `collection`, so the default fails its own schema | `[]`                                             | Warns when empty                                                                      | Default `[]`; allowed value `collection`                                                               |
+| `fields` entries                   | Field groups: `{ post_type, field_group: [ fields ] }`                                                        | Field groups                                     | Checks each entry as if it were a single field, so it rejects every valid field group | Schema rules; the validator's field check is not used                                                  |
+| Taxonomy slug length               | Up to 32 characters (the WordPress limit)                                                                     | —                                                | Up to 20                                                                              | Up to 32                                                                                               |
+| `author`                           | Required, but also has a placeholder default                                                                  | Required                                         | —                                                                                     | Required; no default offered                                                                           |
+| `author_uri`                       | Default `https://example.com`                                                                                 | Optional, empty when unset                       | —                                                                                     | Optional; no default                                                                                   |
+| `description`                      | Optional                                                                                                      | Default `A WordPress multi-block plugin.`        | —                                                                                     | Optional; generator default reported                                                                   |
+| `repository_url`                   | Optional                                                                                                      | Default `https://github.com/lightspeedwp/<slug>` | —                                                                                     | Optional; default reported, and flagged as a warning, because client plugins usually live elsewhere    |
+| `textdomain`, `namespace`          | Optional                                                                                                      | Derived from `slug`                              | —                                                                                     | Derived; reported as `derived`                                                                         |
+| `requires_wp`, `requires_php`      | Defaults `6.5`, `8.0`                                                                                         | Same                                             | —                                                                                     | Same                                                                                                   |
+| Legacy `cpt_slug`, `name_singular` | Allowed (extra properties are allowed)                                                                        | Converted to a post type                         | Rejected with `content_model: "none"`                                                 | Rejected with `content_model: "none"`; otherwise accepted with a warning; not advertised by `discover` |
+| "No templates defined"             | No `templates` field                                                                                          | —                                                | Warns                                                                                 | Not reported                                                                                           |
+| Schema dialect                     | Draft 2020-12                                                                                                 | Ajv 2020                                         | Ajv default with formats                                                              | Draft 2020-12, as the generator                                                                        |
 
 Fixing the schema and the standalone validator is outside this contract; the issue proposes no schema change.
 

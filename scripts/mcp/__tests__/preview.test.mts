@@ -385,4 +385,31 @@ describe( 'destination rules', () => {
 			expected
 		);
 	} );
+	it( 'creates generated-plugins/ for the default on a fresh checkout only', () => {
+		const fresh = path.join( work, 'fresh-checkout' );
+		fs.mkdirSync( fresh );
+		const resolved = resolveDestination( undefined, 'tsp', {
+			scaffoldDir: fresh,
+		} );
+		expect( resolved ).toEqual( {
+			path: path.join( fresh, 'generated-plugins', 'tsp' ),
+			exists: false,
+			createParent: true,
+		} );
+		expect( fs.existsSync( path.join( fresh, 'generated-plugins' ) ) ).toBe(
+			false
+		);
+		expect(
+			thrown( () =>
+				resolveDestination(
+					path.join( fresh, 'generated-plugins', 'tsp' ),
+					'tsp',
+					{ scaffoldDir: fresh }
+				)
+			).code
+		).toBe( 'UNSAFE_DESTINATION' );
+		expect( resolveDestination( undefined, 'tsp' ).createParent ).toBe(
+			false
+		);
+	} );
 } );

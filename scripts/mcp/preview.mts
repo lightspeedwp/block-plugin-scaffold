@@ -49,6 +49,8 @@ export type Detail = 'summary' | 'full';
 export interface PathState {
 	type: PathType;
 	hash: string | null;
+	/** Files only: whether any execute bit is set. */
+	executable?: boolean;
 }
 
 export interface StagedEntry extends PathState {
@@ -65,6 +67,8 @@ export interface PlannedFile extends StagedEntry {
 export interface Destination {
 	path: string;
 	exists: boolean;
+	/** The default destination's generated-plugins/ folder must be created too. */
+	createParent: boolean;
 }
 
 export interface Clock {
@@ -96,6 +100,7 @@ export interface StoredPreview {
 	approvalHash: string;
 	destination: string;
 	destinationExisted: boolean;
+	createParent: boolean;
 	values: Record< string, unknown >;
 	files: PlannedFile[];
 	stagingDir: string;
@@ -166,10 +171,10 @@ export function resolveDestination(
 	const scaffoldDir = options.scaffoldDir || SCAFFOLD_DIR;
 	const homeDir = options.homeDir || os.homedir();
 
-	let raw =
-		destination === undefined || destination === null
-			? path.join( scaffoldDir, 'generated-plugins', slug )
-			: destination;
+	const isDefault = destination === undefined || destination === null;
+	let raw = isDefault
+		? path.join( scaffoldDir, 'generated-plugins', slug )
+		: destination;
 	if ( typeof raw !== 'string' || ! raw.trim() ) {
 		refuse( String( raw ), 'it must be a non-empty path' );
 	}
@@ -196,6 +201,7 @@ export function resolveDestination(
 	}
 
 	let real: string;
+	let createParent = false;
 	if ( stat ) {
 		if ( stat.isSymbolicLink() ) {
 			refuse( absolute, 'it is a symbolic link' );
@@ -206,19 +212,39 @@ export function resolveDestination(
 		real = fs.realpathSync( absolute );
 	} else {
 		const parent = path.dirname( absolute );
-		let parentStat: fs.Stats;
+		let parentStat: fs.Stats | null = null;
 		try {
-			parentStat = fs.statSync( parent );
-		} catch {
-			refuse( absolute, 'its parent folder does not exist' );
+			parentStat = fs.lstatSync( parent );
+		} catch ( error ) {
+			const code = errorCode( error );
+			if ( code !== 'ENOENT' && code !== 'ENOTDIR' ) {
+				throw error;
+			}
 		}
-		if ( ! parentStat.isDirectory() ) {
-			refuse( absolute, 'its parent is not a folder' );
+		if ( ! parentStat && isDefault ) {
+			// A fresh checkout has no generated-plugins/ (Git ignores it), so
+			// generate creates it for the default destination only.
+			createParent = true;
+			real = path.join(
+				fs.realpathSync( scaffoldDir ),
+				'generated-plugins',
+				path.basename( absolute )
+			);
+		} else {
+			if ( ! parentStat ) {
+				refuse( absolute, 'its parent folder does not exist' );
+			}
+			if ( parentStat.isSymbolicLink() ) {
+				parentStat = fs.statSync( parent );
+			}
+			if ( ! parentStat.isDirectory() ) {
+				refuse( absolute, 'its parent is not a folder' );
+			}
+			real = path.join(
+				fs.realpathSync( parent ),
+				path.basename( absolute )
+			);
 		}
-		real = path.join(
-			fs.realpathSync( parent ),
-			path.basename( absolute )
-		);
 	}
 
 	const realHome = fs.realpathSync( homeDir );
@@ -248,7 +274,7 @@ export function resolveDestination(
 		);
 	}
 
-	return { path: real, exists: Boolean( stat ) };
+	return { path: real, exists: Boolean( stat ), createParent };
 }
 
 /**
@@ -313,9 +339,29 @@ export function describePath( fullPath: string ): PathState {
 		return { type: 'dir', hash: null };
 	}
 	if ( stat.isFile() ) {
-		return { type: 'file', hash: sha256( fs.readFileSync( fullPath ) ) };
+		return {
+			type: 'file',
+			hash: sha256( fs.readFileSync( fullPath ) ),
+			executable: ( stat.mode & 0o111 ) !== 0,
+		};
 	}
 	return { type: 'other', hash: null };
+}
+
+/**
+ * Whether two path states are the same: type, contents and, for files,
+ * whether they are executable.
+ *
+ * @param a First state.
+ * @param b Second state.
+ * @return True when equal.
+ */
+export function sameState( a: PathState, b: PathState ): boolean {
+	return (
+		a.type === b.type &&
+		a.hash === b.hash &&
+		Boolean( a.executable ) === Boolean( b.executable )
+	);
 }
 
 /**
@@ -395,7 +441,8 @@ function classify(
 	if ( entry.type === 'file' ) {
 		if ( state.type === 'file' ) {
 			return {
-				action: state.hash === entry.hash ? 'unchanged' : 'overwrite',
+				// An executable bit that differs is restored, like contents.
+				action: sameState( state, entry ) ? 'unchanged' : 'overwrite',
 				state,
 			};
 		}
@@ -500,12 +547,17 @@ function approvalHashFor(
 		canonicalJson( {
 			config: values,
 			destination,
-			manifest: files.map( ( { path: file, type, action, hash } ) => ( {
-				path: file,
-				type,
-				action,
-				hash,
-			} ) ),
+			manifest: files.map(
+				( { path: file, type, action, hash, executable } ) => ( {
+					path: file,
+					type,
+					action,
+					hash,
+					...( type === 'file' && {
+						executable: Boolean( executable ),
+					} ),
+				} )
+			),
 		} )
 	);
 }
@@ -640,6 +692,7 @@ export function createPreview(
 		approvalHash: approvalHashFor( validation.values, dest.path, files ),
 		destination: dest.path,
 		destinationExisted: dest.exists,
+		createParent: dest.createParent,
 		values: validation.values,
 		files,
 		stagingDir,
@@ -679,10 +732,12 @@ function listFiles(
 		type,
 		action,
 		reason,
+		executable,
 	}: PlannedFile ) => ( {
 		path: file,
 		type,
 		action,
+		...( executable && { executable } ),
 		...( reason && { reason } ),
 	} );
 	if ( detail === 'full' ) {
@@ -738,6 +793,8 @@ function publicPreview(
 		destination: {
 			path: preview.destination,
 			exists: preview.destinationExisted,
+			// Shown only when generate also creates generated-plugins/.
+			...( preview.createParent && { createsParentFolder: true } ),
 		},
 		configuration: {
 			normalised: extra.normalised,
@@ -834,7 +891,9 @@ export function assertPreviewCurrent( preview: StoredPreview ): void {
 	let dest: Destination;
 	try {
 		dest = resolveDestination(
-			preview.destination,
+			// Resolve the default again as the default, so it may still
+			// create generated-plugins/.
+			preview.createParent ? undefined : preview.destination,
 			String( preview.values.slug ),
 			{
 				scaffoldDir: preview.scaffoldDir,
@@ -859,8 +918,7 @@ export function assertPreviewCurrent( preview: StoredPreview ): void {
 		const current = classify( dest.path, file );
 		if (
 			current.action !== file.action ||
-			current.state.type !== file.state.type ||
-			current.state.hash !== file.state.hash
+			! sameState( current.state, file.state )
 		) {
 			changed.push( file.path );
 		}
