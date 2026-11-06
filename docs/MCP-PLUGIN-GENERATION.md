@@ -9,7 +9,7 @@ date: 2026-11-06
 
 This document defines how an AI client generates a plugin from this scaffold through a local [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server (BPS-12). It is the contract the later phases implement and verify against.
 
-**Status:** in progress. The generator can be called repeatedly from one process, and preview and approval are implemented in `scripts/mcp/` (`config.js`, `preview.js`, `errors.js`). Safe merging into the destination and the MCP server itself are not built yet. Until they ship, generate plugins with the CLI described in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md).
+**Status:** in progress. The generator can be called repeatedly from one process. Preview, approval and the safe merge into the destination are implemented in `scripts/mcp/` (`config.js`, `preview.js`, `merge.js`, `errors.js`). The MCP server itself is not built yet. Until they ship, generate plugins with the CLI described in [GENERATE_PLUGIN.md](GENERATE_PLUGIN.md).
 
 ## Responsibilities
 
@@ -174,8 +174,11 @@ A preview with any `conflict` cannot be generated. The person resolves the confl
 ## Recovery
 
 - **Failures in `discover`, `validate_config` or `preview`** never change the destination.
-- **`PARTIAL_WRITE`:** before overwriting a file, `generate` copies the original into a backup folder beside the log. The error lists the files written, the files not yet written and the backup folder. Restore an original by copying it back from the backup, or fix the cause (for example permissions) and preview and generate again. Files created new can be removed by hand; `generate` does not remove them.
-- **The server stops during `generate`:** the same backup and log remain. Every file is either its old or its new version, never partial.
+- **Backups:** before overwriting a file, `generate` copies the original to `<scaffold>/logs/mcp-<slug>-<timestamp>-backup/`, at the same relative path. Backups are kept after a successful `generate` too; delete them when you no longer need them.
+- **Journal:** `generate` records each step (folder created, backup taken, file written, failure) in `<scaffold>/logs/mcp-<slug>-<timestamp>.journal.jsonl`, one JSON object per line, as it goes.
+- **`PARTIAL_WRITE`:** the error lists the path where writing stopped, the files written, the files not yet written, the backup folder and the journal. Fix the cause (for example a read-only folder), then preview and generate again: files already written show as `unchanged`, so only the rest are written. To undo instead, copy the originals back from the backup folder; files that were created new can be removed by hand, because `generate` never removes anything.
+- **The server stops during `generate`:** the backup folder and journal remain. Every file is either its old or its new version, never partial, and no temporary files are left behind.
+- **Modes:** a written file gets the generated file's permissions. An existing read-only file at a planned path is still overwritten (it is a matching file), and becomes writable.
 - **Logs:** one log file per preview in `<scaffold>/logs/`, named `mcp-<slug>-<timestamp>.log`.
 
 ## Supported configuration

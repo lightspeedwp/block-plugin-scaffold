@@ -717,4 +717,5 @@ module.exports = {
 	assertPreviewCurrent,
 	discardPreview,
 	canonicalJson,
+	describePath,
 };
