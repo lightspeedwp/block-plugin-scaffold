@@ -5,15 +5,35 @@
  * Uses the generator's own defaults and validation, not the standalone
  * validator, whose field and taxonomy checks contradict the schema (see
  * "Supported configuration" in docs/MCP-PLUGIN-GENERATION.md).
- *
- * @package
  */
 
-const {
+import {
 	applyDefaults,
 	loadSchema,
 	validateConfig,
-} = require( '../generate-plugin' );
+	type PluginConfig,
+} from './generator.mts';
+
+export type ValueSource = 'supplied' | 'derived' | 'default';
+
+export interface Issue {
+	path: string;
+	message: string;
+}
+
+export interface ValidationResult {
+	valid: boolean;
+	errors: Issue[];
+	warnings: Issue[];
+	normalised: Record< string, { value: unknown; source: ValueSource } >;
+	values: Record< string, unknown >;
+}
+
+export interface ValueChange {
+	field: string;
+	before: unknown;
+	after: unknown;
+}
 
 // Values the generator works out from other values rather than defaulting.
 const DERIVED = new Set( [
@@ -26,7 +46,7 @@ const DERIVED = new Set( [
 ] );
 
 // How each derived value is worked out, for discover.
-const DERIVED_FROM = {
+const DERIVED_FROM: Record< string, string > = {
 	textdomain: 'the slug',
 	namespace: 'the slug, with hyphens replaced by underscores',
 	license_uri: 'the licence',
@@ -46,16 +66,10 @@ const LEGACY = new Set( [
 /**
  * Validate a configuration and describe where each value comes from.
  *
- * @param {*} config Configuration from the client.
- * @return {{
- *   valid: boolean,
- *   errors: {path: string, message: string}[],
- *   warnings: {path: string, message: string}[],
- *   normalised: Object<string, {value: *, source: string}>,
- *   values: Object<string, *>
- * }} Result.
+ * @param config Configuration from the client.
+ * @return Result.
  */
-function validateConfiguration( config ) {
+export function validateConfiguration( config: unknown ): ValidationResult {
 	if ( ! config || typeof config !== 'object' || Array.isArray( config ) ) {
 		return {
 			valid: false,
@@ -65,23 +79,24 @@ function validateConfiguration( config ) {
 			values: {},
 		};
 	}
+	const input = config as PluginConfig;
 
 	const schema = loadSchema();
-	const full = applyDefaults( config );
+	const full = applyDefaults( input );
 	const validation = validateConfig( full );
 	const errors = ( validation.errors || [] ).map( ( error ) => ( {
 		path: error.instancePath || '',
-		message: error.message,
+		message: error.message || 'invalid',
 	} ) );
 
-	const supplied = ( key ) => Object.hasOwn( config, key );
-	const normalised = {};
-	const values = {};
+	const supplied = ( key: string ) => Object.hasOwn( input, key );
+	const normalised: ValidationResult[ 'normalised' ] = {};
+	const values: ValidationResult[ 'values' ] = {};
 	for ( const key of Object.keys( schema.properties ) ) {
 		if ( key === '_comment' || full[ key ] === undefined ) {
 			continue;
 		}
-		let source = 'default';
+		let source: ValueSource = 'default';
 		if ( supplied( key ) ) {
 			source = 'supplied';
 		} else if ( DERIVED.has( key ) ) {
@@ -91,22 +106,24 @@ function validateConfiguration( config ) {
 		values[ key ] = full[ key ];
 	}
 
-	const warnings = [];
+	const warnings: Issue[] = [];
 	if ( ! supplied( 'repository_url' ) ) {
 		warnings.push( {
 			path: '/repository_url',
-			message: `Not supplied, so it defaults to ${ full.repository_url }. Set it if the plugin lives elsewhere.`,
+			message: `Not supplied, so it defaults to ${ String(
+				full.repository_url
+			) }. Set it if the plugin lives elsewhere.`,
 		} );
 	}
-	for ( const key of Object.keys( config ) ) {
+	for ( const key of Object.keys( input ) ) {
 		if ( LEGACY.has( key ) ) {
 			warnings.push( {
 				path: `/${ key }`,
 				message:
 					'Legacy single-post-type field; use post_types instead.',
 			} );
-			normalised[ key ] = { value: config[ key ], source: 'supplied' };
-			values[ key ] = config[ key ];
+			normalised[ key ] = { value: input[ key ], source: 'supplied' };
+			values[ key ] = input[ key ];
 		} else if ( ! Object.hasOwn( schema.properties, key ) ) {
 			warnings.push( {
 				path: `/${ key }`,
@@ -127,11 +144,14 @@ function validateConfiguration( config ) {
 /**
  * List the configuration values that differ between two previews.
  *
- * @param {Object} before Values from the earlier preview.
- * @param {Object} after  Values from this preview.
- * @return {{field: string, before: *, after: *}[]} Changes.
+ * @param before Values from the earlier preview.
+ * @param after  Values from this preview.
+ * @return Changes.
  */
-function diffValues( before, after ) {
+export function diffValues(
+	before: Record< string, unknown >,
+	after: Record< string, unknown >
+): ValueChange[] {
 	const keys = new Set( [
 		...Object.keys( before ),
 		...Object.keys( after ),
@@ -156,21 +176,21 @@ function diffValues( before, after ) {
  * Defaults are the generator's own (applyDefaults), not the schema's
  * `default` values, which differ for blocks, author and author_uri.
  *
- * @return {Object} Description.
+ * @return Description.
  */
-function describeConfiguration() {
+export function describeConfiguration(): Record< string, unknown > {
 	const schema = loadSchema();
 	const required = new Set( schema.required || [] );
 	// Apply defaults to a minimal configuration to read the generator's own.
 	const sample = { slug: 'example-plugin', name: 'Example', author: 'A' };
 	const defaults = applyDefaults( sample );
 
-	const fields = {};
+	const fields: Record< string, Record< string, unknown > > = {};
 	for ( const [ key, property ] of Object.entries( schema.properties ) ) {
 		if ( key === '_comment' ) {
 			continue;
 		}
-		const field = {
+		const field: Record< string, unknown > = {
 			type: property.type,
 			required: required.has( key ),
 			description: property.description,
@@ -223,5 +243,3 @@ function describeConfiguration() {
 		contract: 'docs/MCP-PLUGIN-GENERATION.md',
 	};
 }
-
-module.exports = { validateConfiguration, diffValues, describeConfiguration };

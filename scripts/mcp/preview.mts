@@ -3,24 +3,28 @@
  *
  * A preview generates the plugin into a private staging folder, compares every
  * staged path with the destination, and binds an approval hash to the
- * configuration, the destination and the staged files. generate (phase 3)
- * copies from the stored preview only after its approval and freshness checks
- * pass. The rules are in docs/MCP-PLUGIN-GENERATION.md.
- *
- * @package
+ * configuration, the destination and the staged files. generate copies from
+ * the stored preview only after its approval and freshness checks pass. The
+ * rules are in docs/MCP-PLUGIN-GENERATION.md.
  */
 
-const crypto = require( 'crypto' );
-const fs = require( 'fs' );
-const os = require( 'os' );
-const path = require( 'path' );
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
-const { generatePlugin } = require( '../generate-plugin' );
-const { validateConfiguration, diffValues } = require( './config' );
-const { CODES, GenerationError } = require( './errors' );
+import {
+	diffValues,
+	validateConfiguration,
+	type Issue,
+	type ValidationResult,
+	type ValueChange,
+} from './config.mts';
+import { CODES, GenerationError } from './errors.mts';
+import { generatePlugin } from './generator.mts';
 
-const SCAFFOLD_DIR = path.resolve( __dirname, '../..' );
-const PREVIEW_TTL_MS = 30 * 60 * 1000;
+export const SCAFFOLD_DIR = path.resolve( import.meta.dirname, '../..' );
+export const PREVIEW_TTL_MS = 30 * 60 * 1000;
 const PRESERVED_COUNT_LIMIT = 50000;
 
 // Destinations refused outright, with everything inside them.
@@ -38,16 +42,86 @@ const SYSTEM_DIRS = [
 	'/private/var/db',
 ];
 
+export type PathType = 'missing' | 'file' | 'symlink' | 'dir' | 'other' | 'n/a';
+export type Action = 'create' | 'overwrite' | 'unchanged' | 'conflict';
+export type Detail = 'summary' | 'full';
+
+export interface PathState {
+	type: PathType;
+	hash: string | null;
+}
+
+export interface StagedEntry extends PathState {
+	path: string;
+}
+
+export interface PlannedFile extends StagedEntry {
+	action: Action;
+	reason?: string;
+	/** The destination state the action relied on. */
+	state: PathState;
+}
+
+export interface Destination {
+	path: string;
+	exists: boolean;
+}
+
+export interface Clock {
+	now?: () => Date;
+}
+
+export interface PreviewOptions extends Clock {
+	scaffoldDir?: string;
+	homeDir?: string;
+	tmpDir?: string;
+}
+
+export interface PreviewRequest {
+	config: unknown;
+	destination?: string;
+	previousPreviewId?: string;
+	detail?: Detail;
+}
+
+export interface ApprovalRequest {
+	previewId: string;
+	approvalHash: string;
+	approved: boolean;
+}
+
+/** A preview as stored in memory. */
+export interface StoredPreview {
+	previewId: string;
+	approvalHash: string;
+	destination: string;
+	destinationExisted: boolean;
+	values: Record< string, unknown >;
+	files: PlannedFile[];
+	stagingDir: string;
+	stagedPlugin: string;
+	logFile: string;
+	expiresAt: number;
+	scaffoldDir: string;
+	homeDir?: string;
+}
+
+export interface PreservedSummary {
+	count: number;
+	capped: boolean;
+	hasGit: boolean;
+}
+
 // Previews by ID. A preview lives in memory and in its staging folder only.
-const previews = new Map();
+const previews = new Map< string, StoredPreview >();
 
 /**
  * Throw UNSAFE_DESTINATION.
  *
- * @param {string} destination Path as supplied or resolved.
- * @param {string} reason      Why it is refused.
+ * @param destination Path as supplied or resolved.
+ * @param reason      Why it is refused.
  */
-function refuse( destination, reason ) {
+function refuse( destination: string, reason: string ): never {
 	throw new GenerationError(
 		CODES.UNSAFE_DESTINATION,
 		`Destination refused: ${ reason }`,
@@ -58,25 +132,37 @@ function refuse( destination, reason ) {
 /**
  * Whether a path is a folder or inside it.
  *
- * @param {string} child  Absolute path.
- * @param {string} parent Absolute folder.
- * @return {boolean} Inside or equal.
+ * @param child  Absolute path.
+ * @param parent Absolute folder.
+ * @return Inside or equal.
  */
-function isWithin( child, parent ) {
+function isWithin( child: string, parent: string ): boolean {
 	return child === parent || child.startsWith( `${ parent }${ path.sep }` );
+}
+
+/**
+ * The error code of a failed filesystem call.
+ *
+ * @param error Caught value.
+ * @return Code, if any.
+ */
+function errorCode( error: unknown ): string | undefined {
+	return ( error as NodeJS.ErrnoException )?.code;
 }
 
 /**
  * Resolve and check a destination folder.
  *
- * @param {string|undefined} destination Folder from the client, or undefined for the default.
- * @param {string}           slug        Plugin slug, for the default.
- * @param {Object}           [options]
- * @param {string}           [options.scaffoldDir] Scaffold checkout.
- * @param {string}           [options.homeDir]     Home folder.
- * @return {{path: string, exists: boolean}} Real absolute path, and whether it exists.
+ * @param destination Folder from the client, or undefined for the default.
+ * @param slug        Plugin slug, for the default.
+ * @param options     Scaffold and home folders.
+ * @return Real absolute path, and whether it exists.
  */
-function resolveDestination( destination, slug, options = {} ) {
+export function resolveDestination(
+	destination: unknown,
+	slug: string,
+	options: { scaffoldDir?: string; homeDir?: string } = {}
+): Destination {
 	const scaffoldDir = options.scaffoldDir || SCAFFOLD_DIR;
 	const homeDir = options.homeDir || os.homedir();
 
@@ -98,16 +184,18 @@ function resolveDestination( destination, slug, options = {} ) {
 	}
 
 	const absolute = path.resolve( raw );
-	let stat = null;
+	let stat: fs.Stats | null = null;
 	try {
 		stat = fs.lstatSync( absolute );
 	} catch ( error ) {
-		if ( error.code !== 'ENOENT' ) {
+		// ENOTDIR: something on the way is a file; the parent check refuses it.
+		const code = errorCode( error );
+		if ( code !== 'ENOENT' && code !== 'ENOTDIR' ) {
 			throw error;
 		}
 	}
 
-	let real;
+	let real: string;
 	if ( stat ) {
 		if ( stat.isSymbolicLink() ) {
 			refuse( absolute, 'it is a symbolic link' );
@@ -118,10 +206,10 @@ function resolveDestination( destination, slug, options = {} ) {
 		real = fs.realpathSync( absolute );
 	} else {
 		const parent = path.dirname( absolute );
-		let parentStat;
+		let parentStat: fs.Stats;
 		try {
 			parentStat = fs.statSync( parent );
-		} catch ( error ) {
+		} catch {
 			refuse( absolute, 'its parent folder does not exist' );
 		}
 		if ( ! parentStat.isDirectory() ) {
@@ -166,29 +254,32 @@ function resolveDestination( destination, slug, options = {} ) {
 /**
  * SHA-256 of a string or buffer, as hex.
  *
- * @param {string|Buffer} value Value.
- * @return {string} Hash.
+ * @param value Value.
+ * @return Hash.
  */
-function sha256( value ) {
+function sha256( value: string | Buffer ): string {
 	return crypto.createHash( 'sha256' ).update( value ).digest( 'hex' );
 }
 
 /**
  * JSON with object keys sorted at every level, so equal values hash equally.
  *
- * @param {*} value Value.
- * @return {string} Canonical JSON.
+ * @param value Value.
+ * @return Canonical JSON.
  */
-function canonicalJson( value ) {
+export function canonicalJson( value: unknown ): string {
 	if ( Array.isArray( value ) ) {
 		return `[${ value.map( canonicalJson ).join( ',' ) }]`;
 	}
 	if ( value && typeof value === 'object' ) {
-		return `{${ Object.keys( value )
+		const record = value as Record< string, unknown >;
+		return `{${ Object.keys( record )
 			.sort()
 			.map(
 				( key ) =>
-					`${ JSON.stringify( key ) }:${ canonicalJson( value[ key ] ) }`
+					`${ JSON.stringify( key ) }:${ canonicalJson(
+						record[ key ]
+					) }`
 			)
 			.join( ',' ) }}`;
 	}
@@ -198,15 +289,16 @@ function canonicalJson( value ) {
 /**
  * Describe a path on disk without following links.
  *
- * @param {string} fullPath Absolute path.
- * @return {{type: string, hash: string|null}} 'missing', 'file', 'symlink', 'dir' or 'other'.
+ * @param fullPath Absolute path.
+ * @return Its type, and a hash for files and links.
  */
-function describePath( fullPath ) {
-	let stat;
+export function describePath( fullPath: string ): PathState {
+	let stat: fs.Stats;
 	try {
 		stat = fs.lstatSync( fullPath );
 	} catch ( error ) {
-		if ( error.code === 'ENOENT' || error.code === 'ENOTDIR' ) {
+		const code = errorCode( error );
+		if ( code === 'ENOENT' || code === 'ENOTDIR' ) {
 			return { type: 'missing', hash: null };
 		}
 		throw error;
@@ -229,12 +321,12 @@ function describePath( fullPath ) {
 /**
  * List every file, link and folder in the staged plugin.
  *
- * @param {string} root Staged plugin folder.
- * @return {{path: string, type: string, hash: string|null}[]} Entries, sorted, with POSIX paths.
+ * @param root Staged plugin folder.
+ * @return Entries, sorted, with POSIX paths.
  */
-function listStaged( root ) {
-	const entries = [];
-	const walk = ( dir ) => {
+function listStaged( root: string ): StagedEntry[] {
+	const entries: StagedEntry[] = [];
+	const walk = ( dir: string ) => {
 		for ( const name of fs.readdirSync( dir ).sort() ) {
 			const full = path.join( dir, name );
 			const rel = path
@@ -255,11 +347,14 @@ function listStaged( root ) {
 /**
  * Decide what generate would do with one staged entry.
  *
- * @param {string} destRoot Destination folder (real path).
- * @param {Object} entry    Staged entry.
- * @return {{action: string, reason?: string, state: Object}} Action, any conflict reason, and the destination state it relied on.
+ * @param destRoot Destination folder (real path).
+ * @param entry    Staged entry.
+ * @return Action, any conflict reason, and the destination state it relied on.
  */
-function classify( destRoot, entry ) {
+function classify(
+	destRoot: string,
+	entry: StagedEntry
+): { action: Action; reason?: string; state: PathState } {
 	const parts = entry.path.split( '/' );
 	if ( parts.includes( '.git' ) ) {
 		return {
@@ -340,17 +435,24 @@ function classify( destRoot, entry ) {
 /**
  * Count destination files the plugin does not contain, and look for Git.
  *
- * @param {string}      destRoot Destination folder.
- * @param {Set<string>} planned  Planned paths.
- * @return {{count: number, capped: boolean, hasGit: boolean}} Summary.
+ * @param destRoot Destination folder.
+ * @param planned  Planned paths.
+ * @return Summary.
  */
-function summarisePreserved( destRoot, planned ) {
-	const summary = { count: 0, capped: false, hasGit: false };
-	const walk = ( dir ) => {
-		let names;
+function summarisePreserved(
+	destRoot: string,
+	planned: Set< string >
+): PreservedSummary {
+	const summary: PreservedSummary = {
+		count: 0,
+		capped: false,
+		hasGit: false,
+	};
+	const walk = ( dir: string ) => {
+		let names: string[];
 		try {
 			names = fs.readdirSync( dir );
-		} catch ( error ) {
+		} catch {
 			return;
 		}
 		for ( const name of names ) {
@@ -384,12 +486,16 @@ function summarisePreserved( destRoot, planned ) {
 /**
  * The approval hash for a preview.
  *
- * @param {Object}   values      Normalised configuration values.
- * @param {string}   destination Destination real path.
- * @param {Object[]} files       Planned files.
- * @return {string} SHA-256 hex.
+ * @param values      Normalised configuration values.
+ * @param destination Destination real path.
+ * @param files       Planned files.
+ * @return SHA-256 hex.
  */
-function approvalHashFor( values, destination, files ) {
+function approvalHashFor(
+	values: Record< string, unknown >,
+	destination: string,
+	files: PlannedFile[]
+): string {
 	return sha256(
 		canonicalJson( {
 			config: values,
@@ -407,9 +513,9 @@ function approvalHashFor( values, destination, files ) {
 /**
  * Delete a preview and its staging folder.
  *
- * @param {string} previewId Preview ID.
+ * @param previewId Preview ID.
  */
-function discardPreview( previewId ) {
+export function discardPreview( previewId: string ): void {
 	const preview = previews.get( previewId );
 	if ( ! preview ) {
 		return;
@@ -421,9 +527,9 @@ function discardPreview( previewId ) {
 /**
  * Delete expired previews.
  *
- * @param {Date} now Current time.
+ * @param now Current time.
  */
-function sweepExpired( now ) {
+function sweepExpired( now: Date ): void {
 	for ( const [ id, preview ] of previews ) {
 		if ( preview.expiresAt <= now.getTime() ) {
 			discardPreview( id );
@@ -438,25 +544,21 @@ function sweepExpired( now ) {
  * runs Prettier there, and writes a log file in <scaffold>/logs/. Reads, but
  * never writes, the destination.
  *
- * @param {Object}   request
- * @param {Object}   request.config              Plugin configuration.
- * @param {string}   [request.destination]       Final folder; defaults to generated-plugins/<slug>.
- * @param {string}   [request.previousPreviewId] Earlier preview to compare the configuration with.
- * @param {string}   [request.detail]            "summary" (default) or "full" file list.
- * @param {Object}   [options]
- * @param {Function} [options.now]               Clock returning a Date.
- * @param {string}   [options.scaffoldDir]       Scaffold checkout.
- * @param {string}   [options.homeDir]           Home folder.
- * @param {string}   [options.tmpDir]            Parent of staging folders.
- * @return {Object} The preview as reported to the client.
+ * @param request Configuration, destination, previous preview and detail.
+ * @param options Clock, scaffold, home and temporary folders.
+ * @return The preview as reported to the client.
  */
-function createPreview( request, options = {} ) {
+export function createPreview(
+	request: PreviewRequest,
+	options: PreviewOptions = {}
+): Record< string, unknown > {
 	const now = options.now || ( () => new Date() );
 	const scaffoldDir = options.scaffoldDir || SCAFFOLD_DIR;
 	const startedAt = now();
 	sweepExpired( startedAt );
 
-	const { config, destination, previousPreviewId, detail } = request || {};
+	const { config, destination, previousPreviewId, detail } =
+		request || ( {} as PreviewRequest );
 	const validation = validateConfiguration( config );
 	if ( ! validation.valid ) {
 		throw new GenerationError(
@@ -465,14 +567,14 @@ function createPreview( request, options = {} ) {
 			{ errors: validation.errors, warnings: validation.warnings }
 		);
 	}
-	const slug = validation.values.slug;
+	const slug = String( validation.values.slug );
 	const dest = resolveDestination( destination, slug, {
 		scaffoldDir,
 		homeDir: options.homeDir,
 	} );
 
 	const previewId = crypto.randomUUID();
-	let stagingDir;
+	let stagingDir: string;
 	try {
 		stagingDir = fs.mkdtempSync(
 			path.join( options.tmpDir || os.tmpdir(), 'bps-preview-' )
@@ -480,7 +582,9 @@ function createPreview( request, options = {} ) {
 	} catch ( error ) {
 		throw new GenerationError(
 			CODES.STAGING_FAILED,
-			`Creating the staging folder failed: ${ error.message }`,
+			`Creating the staging folder failed: ${
+				( error as Error ).message
+			}`,
 			{}
 		);
 	}
@@ -494,7 +598,7 @@ function createPreview( request, options = {} ) {
 	);
 
 	try {
-		generatePlugin( config, {
+		generatePlugin( config as Record< string, unknown >, {
 			outputDir: stagedPlugin,
 			now,
 			logFile,
@@ -504,19 +608,19 @@ function createPreview( request, options = {} ) {
 		fs.rmSync( stagingDir, { recursive: true, force: true } );
 		throw new GenerationError(
 			CODES.STAGING_FAILED,
-			`Generating into staging failed: ${ error.message }`,
+			`Generating into staging failed: ${ ( error as Error ).message }`,
 			{ logFile }
 		);
 	}
 
-	const files = listStaged( stagedPlugin ).map( ( entry ) => {
+	const files: PlannedFile[] = listStaged( stagedPlugin ).map( ( entry ) => {
 		const { action, reason, state } = classify( dest.path, entry );
 		return { ...entry, action, ...( reason && { reason } ), state };
 	} );
 	const planned = new Set( files.map( ( file ) => file.path ) );
 	const preserved = summarisePreserved( dest.path, planned );
 
-	let configurationChanges = null;
+	let configurationChanges: ValueChange[] | null = null;
 	if ( previousPreviewId ) {
 		const previous = previews.get( previousPreviewId );
 		configurationChanges = previous
@@ -531,11 +635,9 @@ function createPreview( request, options = {} ) {
 		}
 	}
 
-	const approvalHash = approvalHashFor( validation.values, dest.path, files );
-	const expiresAt = startedAt.getTime() + PREVIEW_TTL_MS;
-	previews.set( previewId, {
+	const stored: StoredPreview = {
 		previewId,
-		approvalHash,
+		approvalHash: approvalHashFor( validation.values, dest.path, files ),
 		destination: dest.path,
 		destinationExisted: dest.exists,
 		values: validation.values,
@@ -543,12 +645,13 @@ function createPreview( request, options = {} ) {
 		stagingDir,
 		stagedPlugin,
 		logFile,
-		expiresAt,
+		expiresAt: startedAt.getTime() + PREVIEW_TTL_MS,
 		scaffoldDir,
 		homeDir: options.homeDir,
-	} );
+	};
+	previews.set( previewId, stored );
 
-	return publicPreview( previews.get( previewId ), {
+	return publicPreview( stored, {
 		normalised: validation.normalised,
 		warnings: validation.warnings,
 		configurationChanges,
@@ -563,12 +666,20 @@ function createPreview( request, options = {} ) {
  * folder, so the result stays small enough for a client to read in full.
  * "full" lists every path.
  *
- * @param {Object[]} files  Planned files.
- * @param {string}   detail "summary" or "full".
- * @return {Object} files, and for summary, createByFolder and unchangedByFolder.
+ * @param files  Planned files.
+ * @param detail "summary" or "full".
+ * @return files, and for summary, createByFolder and unchangedByFolder.
  */
-function listFiles( files, detail ) {
-	const toClient = ( { path: file, type, action, reason } ) => ( {
+function listFiles(
+	files: PlannedFile[],
+	detail: Detail | undefined
+): Record< string, unknown > {
+	const toClient = ( {
+		path: file,
+		type,
+		action,
+		reason,
+	}: PlannedFile ) => ( {
 		path: file,
 		type,
 		action,
@@ -577,8 +688,8 @@ function listFiles( files, detail ) {
 	if ( detail === 'full' ) {
 		return { files: files.map( toClient ) };
 	}
-	const byFolder = ( action ) => {
-		const counts = {};
+	const byFolder = ( action: Action ) => {
+		const counts: Record< string, number > = {};
 		for ( const file of files ) {
 			if ( file.action === action && file.type !== 'dir' ) {
 				const top = file.path.includes( '/' )
@@ -605,12 +716,21 @@ function listFiles( files, detail ) {
 /**
  * The client's view of a stored preview.
  *
- * @param {Object} preview Stored preview.
- * @param {Object} extra   Values only known when the preview was made.
- * @return {Object} Preview for the client.
+ * @param preview Stored preview.
+ * @param extra   Values only known when the preview was made.
+ * @return Preview for the client.
  */
-function publicPreview( preview, extra ) {
-	const count = ( action ) =>
+function publicPreview(
+	preview: StoredPreview,
+	extra: {
+		normalised: ValidationResult[ 'normalised' ];
+		warnings: Issue[];
+		configurationChanges: ValueChange[] | null;
+		preserved: PreservedSummary;
+		detail: Detail | undefined;
+	}
+): Record< string, unknown > {
+	const count = ( action: Action ) =>
 		preview.files.filter( ( file ) => file.action === action ).length;
 	return {
 		previewId: preview.previewId,
@@ -647,18 +767,18 @@ function publicPreview( preview, extra ) {
 /**
  * Return a preview if the approval matches it exactly.
  *
- * @param {Object}  request
- * @param {string}  request.previewId    Preview ID.
- * @param {string}  request.approvalHash Hash from the preview.
- * @param {boolean} request.approved     Must be true.
- * @param {Object}  [options]
- * @param {Function} [options.now]       Clock returning a Date.
- * @return {Object} Stored preview.
+ * @param request Preview ID, approval hash and approved flag.
+ * @param options Clock.
+ * @return Stored preview.
  */
-function getApprovedPreview( request, options = {} ) {
+export function getApprovedPreview(
+	request: ApprovalRequest,
+	options: Clock = {}
+): StoredPreview {
 	const now = options.now || ( () => new Date() );
 	sweepExpired( now() );
-	const { previewId, approvalHash, approved } = request || {};
+	const { previewId, approvalHash, approved } =
+		request || ( {} as ApprovalRequest );
 	const preview = previews.get( previewId );
 	if ( ! preview ) {
 		throw new GenerationError(
@@ -692,9 +812,9 @@ function getApprovedPreview( request, options = {} ) {
  * Throws CONFLICT if the preview had conflicts, and STALE_PREVIEW if the
  * destination changed in any way the preview relied on.
  *
- * @param {Object} preview Stored preview.
+ * @param preview Stored preview.
  */
-function assertPreviewCurrent( preview ) {
+export function assertPreviewCurrent( preview: StoredPreview ): void {
 	const conflicts = preview.files.filter(
 		( file ) => file.action === 'conflict'
 	);
@@ -711,20 +831,24 @@ function assertPreviewCurrent( preview ) {
 		);
 	}
 
-	let dest;
+	let dest: Destination;
 	try {
-		dest = resolveDestination( preview.destination, preview.values.slug, {
-			scaffoldDir: preview.scaffoldDir,
-			homeDir: preview.homeDir,
-		} );
+		dest = resolveDestination(
+			preview.destination,
+			String( preview.values.slug ),
+			{
+				scaffoldDir: preview.scaffoldDir,
+				homeDir: preview.homeDir,
+			}
+		);
 	} catch ( error ) {
 		throw new GenerationError(
 			CODES.STALE_PREVIEW,
 			'The destination changed after the preview. Preview again and ask again.',
-			{ reason: error.message }
+			{ reason: ( error as Error ).message }
 		);
 	}
-	const changed = [];
+	const changed: string[] = [];
 	if (
 		dest.path !== preview.destination ||
 		dest.exists !== preview.destinationExisted
@@ -732,11 +856,11 @@ function assertPreviewCurrent( preview ) {
 		changed.push( '.' );
 	}
 	for ( const file of preview.files ) {
-		const now = classify( dest.path, file );
+		const current = classify( dest.path, file );
 		if (
-			now.action !== file.action ||
-			now.state.type !== file.state.type ||
-			now.state.hash !== file.state.hash
+			current.action !== file.action ||
+			current.state.type !== file.state.type ||
+			current.state.hash !== file.state.hash
 		) {
 			changed.push( file.path );
 		}
@@ -749,14 +873,3 @@ function assertPreviewCurrent( preview ) {
 		);
 	}
 }
-
-module.exports = {
-	PREVIEW_TTL_MS,
-	resolveDestination,
-	createPreview,
-	getApprovedPreview,
-	assertPreviewCurrent,
-	discardPreview,
-	canonicalJson,
-	describePath,
-};

@@ -7,30 +7,33 @@
  * only; everything else goes to standard error or the log files. The
  * contract is in docs/MCP-PLUGIN-GENERATION.md.
  *
- * Run: node scripts/mcp/server.js
- *
- * @package
+ * Run: node scripts/mcp/server.ts (Node 24.18+ runs it directly, stripping
+ * the types, so it uses only erasable TypeScript syntax).
  */
 
-const { McpServer } = require( '@modelcontextprotocol/sdk/server/mcp.js' );
-const {
-	StdioServerTransport,
-} = require( '@modelcontextprotocol/sdk/server/stdio.js' );
-const { z } = require( 'zod' );
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 
-const { describeConfiguration, validateConfiguration } = require( './config' );
-const { CODES, GenerationError } = require( './errors' );
-const { generateFromPreview } = require( './merge' );
-const { createPreview } = require( './preview' );
-const { version } = require( '../../package.json' );
+import pkg from '../../package.json' with { type: 'json' };
+import { describeConfiguration, validateConfiguration } from './config.mts';
+import { CODES, GenerationError } from './errors.mts';
+import { generateFromPreview } from './merge.mts';
+import { createPreview } from './preview.mts';
+
+export interface ToolResult {
+	[ key: string ]: unknown;
+	isError?: boolean;
+	content: { type: 'text'; text: string }[];
+}
 
 /**
  * A successful tool result.
  *
- * @param {Object} value Result.
- * @return {Object} MCP tool result.
+ * @param value Result.
+ * @return MCP tool result.
  */
-function ok( value ) {
+function ok( value: unknown ): ToolResult {
 	return {
 		content: [ { type: 'text', text: JSON.stringify( value, null, 2 ) } ],
 	};
@@ -39,19 +42,23 @@ function ok( value ) {
 /**
  * Run a tool body and turn errors into contract error results.
  *
- * @param {Function} body Tool body.
- * @return {Object} MCP tool result.
+ * @param body Tool body.
+ * @return MCP tool result.
  */
-function run( body ) {
+export function run( body: () => unknown ): ToolResult {
 	try {
 		return ok( body() );
 	} catch ( error ) {
 		const known =
 			error instanceof GenerationError
 				? error
-				: new GenerationError( CODES.INTERNAL, error.message, {} );
+				: new GenerationError(
+						CODES.INTERNAL,
+						( error as Error ).message,
+						{}
+					);
 		if ( ! ( error instanceof GenerationError ) ) {
-			process.stderr.write( `${ error.stack }\n` );
+			process.stderr.write( `${ ( error as Error ).stack }\n` );
 		}
 		return {
 			isError: true,
@@ -74,12 +81,12 @@ const configSchema = z
 /**
  * Build the server with its four tools.
  *
- * @return {McpServer} Server.
+ * @return Server.
  */
-function createServer() {
+export function createServer(): McpServer {
 	const server = new McpServer( {
 		name: 'block-plugin-scaffold',
-		version,
+		version: pkg.version,
 	} );
 
 	server.registerTool(
@@ -186,22 +193,20 @@ function createServer() {
 /**
  * Start the server on stdio.
  */
-async function main() {
+async function main(): Promise< void > {
 	process.on( 'uncaughtException', ( error ) => {
 		process.stderr.write( `Uncaught: ${ error.stack }\n` );
 	} );
 	const server = createServer();
 	await server.connect( new StdioServerTransport() );
 	process.stderr.write(
-		`block-plugin-scaffold MCP server ${ version } ready on stdio\n`
+		`block-plugin-scaffold MCP server ${ pkg.version } ready on stdio\n`
 	);
 }
 
-if ( require.main === module ) {
-	main().catch( ( error ) => {
+if ( import.meta.main ) {
+	main().catch( ( error: Error ) => {
 		process.stderr.write( `Failed to start: ${ error.stack }\n` );
 		process.exit( 1 );
 	} );
 }
-
-module.exports = { createServer };

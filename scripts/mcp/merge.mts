@@ -5,29 +5,46 @@
  * overwrite only planned files, leave everything else (and every Git path)
  * alone, never write through links, write each file atomically, and back up
  * every file before overwriting it.
- *
- * @package
  */
 
-const crypto = require( 'crypto' );
-const fs = require( 'fs' );
-const path = require( 'path' );
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const {
+import { CODES, GenerationError } from './errors.mts';
+import {
 	assertPreviewCurrent,
 	describePath,
 	discardPreview,
 	getApprovedPreview,
-} = require( './preview' );
-const { CODES, GenerationError } = require( './errors' );
+	type Action,
+	type ApprovalRequest,
+	type Clock,
+	type PlannedFile,
+	type StoredPreview,
+} from './preview.mts';
+
+export interface MergeOptions extends Clock {
+	/** Called with each path before it is written; for fault-injection checks. */
+	beforeWrite?: ( file: string ) => void;
+}
+
+export interface MergeResult {
+	destination: string;
+	written: { path: string; action: Action }[];
+	unchanged: number;
+	backupFolder: string | null;
+	journal: string;
+	logFile: string;
+}
 
 /**
  * Append one line to the journal.
  *
- * @param {string} journal Journal file.
- * @param {Object} entry   Entry.
+ * @param journal Journal file.
+ * @param entry   Entry.
  */
-function record( journal, entry ) {
+function record( journal: string, entry: Record< string, unknown > ): void {
 	fs.appendFileSync( journal, `${ JSON.stringify( entry ) }\n`, 'utf8' );
 }
 
@@ -35,10 +52,13 @@ function record( journal, entry ) {
  * Check that a path is still in the state the preview saw, just before
  * writing it, and that no folder on the way has become a link.
  *
- * @param {string} destRoot Destination folder.
- * @param {Object} file     Planned file from the preview.
+ * @param destRoot Destination folder.
+ * @param file     Planned file from the preview.
  */
-function assertUnchangedSincePreview( destRoot, file ) {
+function assertUnchangedSincePreview(
+	destRoot: string,
+	file: PlannedFile
+): void {
 	const parts = file.path.split( '/' );
 	for ( let i = 1; i < parts.length; i++ ) {
 		const ancestor = describePath(
@@ -50,10 +70,10 @@ function assertUnchangedSincePreview( destRoot, file ) {
 			);
 		}
 	}
-	const now = describePath( path.join( destRoot, ...parts ) );
+	const current = describePath( path.join( destRoot, ...parts ) );
 	const expected =
 		file.action === 'create' ? { type: 'missing', hash: null } : file.state;
-	if ( now.type !== expected.type || now.hash !== expected.hash ) {
+	if ( current.type !== expected.type || current.hash !== expected.hash ) {
 		throw new Error( `${ file.path } changed after the preview` );
 	}
 }
@@ -62,10 +82,10 @@ function assertUnchangedSincePreview( destRoot, file ) {
  * Write one staged file into place: a temporary file beside the target,
  * then a rename, so the target is never half-written.
  *
- * @param {string} source Staged file.
- * @param {string} target Destination path.
+ * @param source Staged file.
+ * @param target Destination path.
  */
-function writeAtomically( source, target ) {
+function writeAtomically( source: string, target: string ): void {
 	const temp = path.join(
 		path.dirname( target ),
 		`.${ path.basename( target ) }.bps-${ crypto
@@ -86,13 +106,14 @@ function writeAtomically( source, target ) {
 /**
  * Copy an approved preview's files into its destination.
  *
- * @param {Object}   preview          Stored preview, already approved.
- * @param {Object}   [options]
- * @param {Function} [options.now]    Clock returning a Date.
- * @param {Function} [options.beforeWrite] Called with each path before it is written; for fault-injection checks.
- * @return {Object} Result for the client.
+ * @param preview Stored preview, already approved.
+ * @param options Clock and fault-injection hook.
+ * @return Result for the client.
  */
-function applyPreview( preview, options = {} ) {
+export function applyPreview(
+	preview: StoredPreview,
+	options: MergeOptions = {}
+): MergeResult {
 	const now = options.now || ( () => new Date() );
 	assertPreviewCurrent( preview );
 
@@ -114,9 +135,9 @@ function applyPreview( preview, options = {} ) {
 			( file ) => file.action === 'create' || file.action === 'overwrite'
 		)
 		.sort( ( a, b ) => ( a.path < b.path ? -1 : 1 ) );
-	const written = [];
-	const backedUp = [];
-	let current = null;
+	const written: string[] = [];
+	const backedUp: string[] = [];
+	let current: string | null = null;
 
 	try {
 		if ( ! preview.destinationExisted ) {
@@ -172,6 +193,7 @@ function applyPreview( preview, options = {} ) {
 			} );
 		}
 	} catch ( error ) {
+		const message = ( error as Error ).message;
 		const done = new Set( written );
 		const notWritten = planned
 			.map( ( file ) => file.path )
@@ -180,11 +202,11 @@ function applyPreview( preview, options = {} ) {
 			op: 'failed',
 			at: now().toISOString(),
 			path: current,
-			error: error.message,
+			error: message,
 		} );
 		throw new GenerationError(
 			CODES.PARTIAL_WRITE,
-			`Writing stopped at ${ current }: ${ error.message }`,
+			`Writing stopped at ${ current }: ${ message }`,
 			{
 				failedAt: current,
 				written,
@@ -218,16 +240,14 @@ function applyPreview( preview, options = {} ) {
 /**
  * The generate operation: check the approval, then merge.
  *
- * @param {Object}  request
- * @param {string}  request.previewId    Preview ID.
- * @param {string}  request.approvalHash Approval hash from the preview.
- * @param {boolean} request.approved     Must be true.
- * @param {Object}  [options]            See applyPreview().
- * @return {Object} Result for the client.
+ * @param request Preview ID, approval hash and approved flag.
+ * @param options See applyPreview().
+ * @return Result for the client.
  */
-function generateFromPreview( request, options = {} ) {
+export function generateFromPreview(
+	request: ApprovalRequest,
+	options: MergeOptions = {}
+): MergeResult {
 	const preview = getApprovedPreview( request, options );
 	return applyPreview( preview, options );
 }
-
-module.exports = { applyPreview, generateFromPreview };
