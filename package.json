@@ -46,11 +46,13 @@
 	"devDependencies": {
 		"@babel/core": "^7.28.0",
 		"@lhci/cli": "^0.15.1",
+		"@modelcontextprotocol/sdk": "^1.32.2",
 		"@playwright/test": "^1.64.1",
 		"@testing-library/dom": "^10.4.2",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.1",
 		"@vitejs/plugin-react-swc": "^4.3.3",
+		"@vitest/coverage-v8": "^5.0.5",
 		"@wordpress/babel-plugin-makepot": "^6.57.0",
 		"@wordpress/babel-preset-default": "^8.55.0",
 		"@wordpress/e2e-test-utils-playwright": "^3.0.0",
@@ -73,7 +75,8 @@
 		"size-limit": "^14.2.0",
 		"vite": "^8.3.4",
 		"vitest": "^5.0.5",
-		"webpack-bundle-analyzer": "^5.4.0"
+		"webpack-bundle-analyzer": "^5.4.0",
+		"zod": "^3.25.76"
 	},
 	"scripts": {
 		"analyze-bundle": "webpack-bundle-analyzer build/stats.json build",
@@ -83,6 +86,7 @@
 		"check-engines": "wp-scripts check-engines",
 		"check-licenses": "wp-scripts check-licenses",
 		"check:generation": "node scripts/toolchain/check-generation.js",
+		"mcp:server": "node scripts/mcp/server.mts",
 		"check:markdown-references": "node scripts/check-markdown-references.js",
 		"check:toolchain": "jest scripts/__tests__/generate-plugin.toolchain.test.js",
 		"clean:gh-references": "node scripts/clean-github-references.js",
@@ -155,6 +159,7 @@
 		"zip": "wp-scripts plugin-zip",
 		"sync:agent-skills": "node scripts/sync-agent-skills.ts",
 		"sync:agent-skills:check": "node scripts/sync-agent-skills.ts --check",
+		"test:mcp": "vitest run --config scripts/mcp/vitest.config.mts --coverage",
 		"test:agent-skills": "wp-scripts test-unit-jest scripts/__tests__/sync-agent-skills.test.ts --coverage --collectCoverageFrom=scripts/sync-agent-skills.ts --coverageThreshold={\"global\":{\"statements\":80,\"branches\":80,\"functions\":80,\"lines\":80}}"
 	},
 	"lint-staged": {
